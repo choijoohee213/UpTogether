@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bb15e51f5ae248babf5e046ad4c22c3, type: 3}
+  m_Name: Stage1
+  m_EditorClassIdentifier: Assembly-CSharp::UpTogether.StageData
+  displayName: "\uCCAB \uBC88\uC9F8 \uC5B8\uB355"
+  seed: 1001
+  groundY: 0.4
+  height: 19.4
+  platforms:
+  - x: 0
+    y: 0.4
+    width: 12.5
+  - x: 3.0232584
+    y: 1.1048322
+    width: 1.4254365
+  - x: 5.019536
+    y: 1.8121632
+    width: 1.4726074
+  - x: 7.1582813
+    y: 2.5219946
+    width: 1.3780843
+  - x: 8.962184
+    y: 3.4245439
+    width: 1.5011517
+  - x: 7.0140743
+    y: 4.2837873
+    width: 1.6933563
+  - x: 5.1714845
+    y: 5.2811337
+    width: 1.5667124
+  - x: 7.3659286
+    y: 6.1373672
+    width: 1.4678841
+  - x: 9.243802
+    y: 6.8388224
+    width: 1.648969
+  - x: 7.2860065
+    y: 7.6465583
+    width: 1.4155086
+  - x: 5.31699
+    y: 8.665113
+    width: 1.6823498
+  - x: 3.290063
+    y: 9.550236
+    width: 1.4979836
+  - x: 1.4827635
+    y: 10.322796
+    width: 1.4279847
+  - x: 3.3882623
+    y: 11.328907
+    width: 1.4981784
+  - x: 5.319276
+    y: 12.304069
+    width: 1.5281582
+  - x: 3.2691684
+    y: 13.182002
+    width: 1.455781
+  - x: 1.4144288
+    y: 13.896614
+    width: 1.3432628
+  movers: []
+  goal: {x: 2.0860603, y: 14.196613}

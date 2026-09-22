@@ -1,0 +1,6 @@
+{
+    "name": "UpTogether",
+    "rootNamespace": "UpTogether",
+    "references": ["UnityEngine.UI"],
+    "autoReferenced": true
+}

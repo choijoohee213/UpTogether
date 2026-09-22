@@ -1,0 +1,6 @@
+{
+    "name": "UpTogether.Editor",
+    "rootNamespace": "UpTogether.EditorTools",
+    "references": ["UpTogether", "UnityEngine.UI"],
+    "includePlatforms": ["Editor"]
+}

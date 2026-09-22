@@ -1,0 +1,53 @@
+# ───── Unity ─────
+# Unity가 다시 만드는 것들. Library는 수백 MB짜리 캐시다.
+UnityProject/Library/
+UnityProject/Temp/
+UnityProject/Obj/
+UnityProject/obj/
+UnityProject/Logs/
+UnityProject/UserSettings/
+UnityProject/MemoryCaptures/
+UnityProject/Recordings/
+
+# 빌드 산출물
+UnityProject/Build/
+UnityProject/Builds/
+UnityProject/[Bb]uild[Ss]/
+
+# IDE 프로젝트 파일 — Unity가 열 때마다 재생성한다
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vs/
+.idea/
+.vscode/
+
+# 크래시 리포트
+sysinfo.txt
+*.stackdump
+crashlytics-build.properties
+
+# ───── macOS ─────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ───── 기획 문서 (로컬 전용) ─────
+PROJECT.md
+SUMMARY.md
+
+# ───── 주의 ─────
+# .meta 파일은 절대 무시하면 안 된다. GUID가 들어 있어서
+# 빼면 씬·프리팹의 모든 참조가 끊긴다.

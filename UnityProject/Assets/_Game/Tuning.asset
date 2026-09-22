@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8157d17f826d424fa1354d51adbcb46, type: 3}
+  m_Name: Tuning
+  m_EditorClassIdentifier: Assembly-CSharp::UpTogether.Tuning
+  gravity: 0.62
+  holdGravity: 0.23
+  holdMaxSeconds: 0.3
+  jump1: 9.4
+  jump2: 8.4
+  maxFall: 17
+  walkSpeed: 3.6
+  walkAccel: 0.34
+  mapWidth: 1250
+  wallMargin: 16
+  platformGrabMargin: 6
+  camFollow: 0.12
+  camViewportY: 0.58
+  dogSpeed: 3.3
+  dogTrailDistance: 26
+  dogJumpTrigger: 34
+  dogJumpSpeed: 12.2
+  dogTeleportX: 640
+  dogTeleportY: 460
+  dogClingFallSpeed: 7
+  dogClingLerp: 0.35
+  dogClingOffsetX: 10
+  dogClingOffsetY: 24
