@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using UnityEditor;
 using UnityEditor.U2D.Sprites;
@@ -110,7 +110,7 @@ namespace UpTogether.EditorTools
                 rects[i] = new SpriteRect
                 {
                     name = $"{breed}_{i}",
-                    spriteID = GUID.Generate(),
+                    spriteID = StableId(breed, i),
                     rect = new Rect(i * meta.cellWidth, 0, meta.cellWidth, meta.cellHeight),
                     alignment = SpriteAlignment.Custom,
                     pivot = pivot,
@@ -129,6 +129,18 @@ namespace UpTogether.EditorTools
 
             provider.Apply();
             importer.SaveAndReimport();
+        }
+
+        /// 이름에서 항상 같은 GUID 를 만든다.
+        /// GUID.Generate() 를 쓰면 임포트할 때마다 spriteID 가 바뀌어
+        /// 견종마다 .meta 에 diff 가 생긴다 (참조는 internalID 라 안 깨지지만 소음이 된다).
+        static GUID StableId(string breed, int index)
+        {
+            using var md5 = MD5.Create();
+            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes($"UpTogether/dog/{breed}/{index}"));
+            var hex = new StringBuilder(32);
+            foreach (var b in hash) hex.Append(b.ToString("x2"));
+            return new GUID(hex.ToString());
         }
 
         /// 잘린 스프라이트를 프레임 순서대로 모아 CharacterSpriteSet 으로 굽는다.
