@@ -65,7 +65,11 @@ namespace UpTogether
             if (IsClinging || !body.grounded) return;
             if (Mathf.Abs(player.Body.X - body.X) > tuning.DogSyncJumpRangeU) return;
 
-            // 올라갈 발판을 이미 정해뒀으면 거기에 맞춰, 아니면 평소 점프로.
+            // 목표 발판을 먼저 잡는다. 이게 없으면 그냥 위로만 뛰었다가
+            // 착지할 곳이 없어 떨어진다 — 플레이어를 따라 뛸 때 제일 자주 나던 문제.
+            if (!hasStep && TryPickStep(player.Body, out var step, out float ax))
+                hasStep = SetStep(step, ax);
+
             body.vy = hasStep
                 ? JumpSpeedFor(stepY - body.Y + Px.U(ClearancePx))
                 : tuning.DogJumpV;
@@ -80,7 +84,10 @@ namespace UpTogether
             float dx = p.X - body.X;
             float dy = p.Y - body.Y;   // 양수 = 플레이어가 위에 있다
 
-            if (!p.grounded && p.vy < -tuning.DogClingFallV && !IsClinging)
+            // 빠르게 내려오는 것만으로는 부족하다. 높이 뛰었다 제자리로 내려오는 것도
+            // 금방 이 속도를 넘긴다. 마지막으로 서 있던 높이보다 확실히 아래여야 진짜 낙하다.
+            bool fallingBelowGround = p.Y < player.LastGroundedY - tuning.DogClingMinDropU;
+            if (!p.grounded && p.vy < -tuning.DogClingFallV && fallingBelowGround && !IsClinging)
                 IsClinging = true;
 
             if (IsClinging)
@@ -98,18 +105,16 @@ namespace UpTogether
             // 없으면(또는 같은 높이면) 예전처럼 플레이어 뒤를 따라간다.
             bool climbing = dy > tuning.DogJumpTrigU;
 
-            if (climbing)
+            // 목표는 땅에 있을 때만 새로 고른다.
+            // ★ 공중에서는 지우지 않는다 ★ — 지우면 따라 뛰는 도중에 목표를 잃고
+            // "플레이어 뒤"로 방향을 틀어 발판을 놓치고 떨어진다.
+            if (body.grounded && (!hasStep || body.Y >= stepY - Px.U(2f)))
             {
-                // 땅에 있고, 목표가 없거나 이미 그 높이에 올라섰으면 새로 고른다
-                if (body.grounded && (!hasStep || body.Y >= stepY - Px.U(2f)))
-                {
-                    hasStep = TryPickStep(p, out var step, out float ax);
-                    if (hasStep) { stepY = step.y; stepAimX = ax; }
-                }
+                hasStep = climbing && TryPickStep(p, out var step, out float ax0)
+                          && SetStep(step, ax0);
             }
-            else hasStep = false;
 
-            if (climbing && hasStep)
+            if (hasStep)
             {
                 float dead = Px.U(FollowDeadzonePx);
                 int dir = body.X > stepAimX + dead ? -1 : (body.X < stepAimX - dead ? 1 : 0);
@@ -152,6 +157,11 @@ namespace UpTogether
                     hasStep = false;
                 }
             }
+        }
+
+        bool SetStep(StageRunner.RuntimePlatform step, float aimX)
+        {
+            stepY = step.y; stepAimX = aimX; return true;
         }
 
         bool IsVisible()

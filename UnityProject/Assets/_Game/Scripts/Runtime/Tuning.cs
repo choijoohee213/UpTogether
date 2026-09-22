@@ -45,6 +45,10 @@ namespace UpTogether
         [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
         public float dogSyncJumpRange = 170f;
         public float dogClingFallSpeed = 7f;
+        [Tooltip("마지막으로 서 있던 높이보다 이만큼(px) 아래로 내려가야 안는다. " +
+                 "없으면 높이 뛰었다 내려오는 것만으로도 안겨버린다. " +
+                 "발판 한 칸 간격이 최대 102px 이라 그보다 커야 '크게 떨어졌다'가 된다.")]
+        public float dogClingMinDrop = 110f;
         public float dogClingLerp = 0.35f;
         public float dogClingOffsetX = 10f;
         public float dogClingOffsetY = 24f;
@@ -67,6 +71,7 @@ namespace UpTogether
         public float DogTeleportYU   => Px.U(dogTeleportY);
         public float DogSyncJumpRangeU => Px.U(dogSyncJumpRange);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);
+        public float DogClingMinDropU => Px.U(dogClingMinDrop);
         public float DogClingOffXU   => Px.U(dogClingOffsetX);
         public float DogClingOffYU   => Px.U(dogClingOffsetY);
     }

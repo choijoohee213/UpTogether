@@ -19,6 +19,9 @@ namespace UpTogether
         CharacterBody body;
         public CharacterBody Body => body != null ? body : (body = GetComponent<CharacterBody>());
         public float Squash { get; private set; }   // 점프 순간 1 → 0으로 감소
+        /// 마지막으로 발을 붙였던 높이. "높이 뛰었다 내려오는 중"과
+        /// "실제로 아래로 떨어지는 중"을 구분하는 데 쓴다.
+        public float LastGroundedY { get; private set; }
         public float ShakeAmount { get; private set; }
 
         float fallFromY = float.NaN;   // 0이 아니라 NaN이 센티넬이다 — Unity에서는 y=0이 실제 위치다
@@ -26,6 +29,7 @@ namespace UpTogether
         void Awake()
         {
             if (stage == null || stage.Data == null) { enabled = false; return; }
+            LastGroundedY = transform.position.y;
             Body.tuning = tuning;
             Body.Bind(stage);
         }
@@ -55,6 +59,7 @@ namespace UpTogether
 
             if (Body.grounded)
             {
+                LastGroundedY = Body.Y;
                 if (wasAirborne) OnLand();
             }
             else

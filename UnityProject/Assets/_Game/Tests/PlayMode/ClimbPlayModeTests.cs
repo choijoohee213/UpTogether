@@ -135,17 +135,28 @@ namespace UpTogether.Tests
         [UnityTest]
         public IEnumerator 크게_떨어지면_강아지가_안긴다()
         {
-            // 높이 띄워서 자유낙하시킨다. 낙하 속도가 기준을 넘으면 안겨야 한다.
-            player.Body.Teleport(player.Body.X, stage.Data.groundY + 6f);
-            player.Body.grounded = false;
+            yield return FallUntilHeld();
+            Assert.IsTrue(dog.IsClinging);
+        }
 
-            bool clung = false;
-            for (int i = 0; i < 120; i++)
+        [UnityTest]
+        public IEnumerator 높이_뛰었다_내려오는_것만으로는_안기지_않는다()
+        {
+            // 예전엔 낙하 속도만 봐서, 높이 점프해 내려오는 중에도 안겨버렸다.
+            yield return Steps(30);
+            Assert.IsTrue(player.Body.grounded);
+
+            input.SetJump(true);
+            yield return Steps(20);      // 최대 홀드로 높이 뛴다
+            input.SetJump(false);
+
+            for (int i = 0; i < 60; i++) // 정점 찍고 내려와 착지할 때까지
             {
                 yield return new WaitForFixedUpdate();
-                if (dog.IsClinging) { clung = true; break; }
+                Assert.IsFalse(dog.IsClinging,
+                    $"제자리 점프인데 안겼다 (y={player.Body.Y:F2}, 마지막 지면={player.LastGroundedY:F2})");
+                if (player.Body.grounded && i > 10) break;
             }
-            Assert.IsTrue(clung, "크게 떨어지는데 강아지가 안기지 않았다");
         }
 
         [UnityTest]
@@ -184,11 +195,24 @@ namespace UpTogether.Tests
         // ── 안기 3겹 (주인공 본체 → 강아지 → 앞팔) ──────────────────
 
         /// 강아지가 안길 때까지 떨어뜨린다.
+        /// 공중으로 순간이동만 시키면 안 된다 — 안기 판정이
+        /// "마지막으로 서 있던 높이보다 한참 아래"를 보기 때문에,
+        /// 먼저 높은 발판에 실제로 서 있어야 한다.
         IEnumerator FallUntilHeld()
         {
-            player.Body.Teleport(player.Body.X, stage.Data.groundY + 6f);
+            var high = stage.Data.platforms[0];
+            foreach (var pl in stage.Data.platforms)
+                if (pl.y > high.y && pl.y < stage.Data.groundY + 6f) high = pl;
+
+            player.Body.Teleport(high.x + high.width * 0.5f, high.y);
+            yield return Steps(40);                       // 착지해서 LastGroundedY 가 올라가도록
+            Assert.IsTrue(player.Body.grounded, "높은 발판에 못 섰다");
+
+            // 그 아래 허공에서 떨어뜨린다
+            player.Body.Teleport(high.x + high.width * 0.5f, high.y - 2f);
             player.Body.grounded = false;
-            for (int i = 0; i < 120; i++)
+
+            for (int i = 0; i < 180; i++)
             {
                 yield return new WaitForFixedUpdate();
                 if (dog.IsClinging) yield break;

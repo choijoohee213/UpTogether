@@ -59,14 +59,35 @@ namespace UpTogether.EditorTools
         /// 2) 캐시 무력화 — 파일명이 매 빌드 같아서 브라우저가 옛 loader 와 새 wasm 을
         ///    섞어 들면 "call_indirect to a signature that does not match" 로 죽는다.
         ///    빌드마다 다른 쿼리를 붙여 그런 조합이 생길 수 없게 한다.
+        static string ReplaceFirst(string text, string from, string to)
+        {
+            int i = text.IndexOf(from, System.StringComparison.Ordinal);
+            return i < 0 ? text : text.Substring(0, i) + to + text.Substring(i + from.Length);
+        }
+
         static void PostProcessIndex(string indexPath)
         {
             if (!File.Exists(indexPath)) { Debug.LogWarning($"{indexPath} 가 없어 후처리를 건너뜁니다."); return; }
             string html = File.ReadAllText(indexPath);
 
             const string cond = "if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {";
-            if (html.Contains(cond)) html = html.Replace(cond, "if (true) {   // 항상 창을 채운다");
+            if (html.Contains(cond)) html = html.Replace(cond, "if (true) {   // 항상 채우기 경로를 쓴다");
             else Debug.LogWarning("index.html 의 모바일 분기를 못 찾았습니다. 템플릿이 바뀌었는지 확인하세요.");
+
+            // 게임은 세로 고정이다. PC 브라우저 창은 가로로 길어서 그대로 채우면
+            // 폰에서 보게 될 화면과 전혀 다른 구도가 된다. 9:16 상자로 가둔다.
+            const string style = @"<style>
+    html, body { margin: 0; height: 100%; background: #14171a; overflow: hidden; }
+    #unity-container.unity-mobile {
+      position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(100vw, calc(100vh * 9 / 16));
+      height: min(100vh, calc(100vw * 16 / 9));
+    }
+    #unity-canvas { width: 100% !important; height: 100% !important; display: block; }
+  </style>
+  </head>";
+            if (html.Contains("</head>")) html = ReplaceFirst(html, "</head>", style);
+            else Debug.LogWarning("index.html 에 </head> 가 없어 세로 고정 스타일을 넣지 못했습니다.");
 
             string stamp = System.DateTime.UtcNow.ToString("yyyyMMddHHmmss");
             int stamped = 0;
