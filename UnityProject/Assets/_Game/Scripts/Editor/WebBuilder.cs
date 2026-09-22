@@ -14,9 +14,12 @@ namespace UpTogether.EditorTools
         [MenuItem("UpTogether/Build for Web")]
         public static void Build()
         {
-            // 압축을 끄면 평범한 정적 서버(python -m http.server)로도 그냥 열린다.
-            // 켜두면 서버가 Content-Encoding 헤더를 맞춰줘야 해서 번거롭다.
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+            // Brotli 로 줄이되, 디컴프레션 폴백을 켠다.
+            // 폴백이 있으면 서버가 Content-Encoding 헤더를 안 맞춰줘도 열린다 —
+            // GitHub Pages 처럼 헤더를 못 건드리는 정적 호스팅과 로컬 http.server 양쪽에서 통한다.
+            // 대가는 시작이 조금 느려지는 것인데, 42MB 를 모바일 데이터로 받는 것보다 낫다.
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.WebGL.template = "APPLICATION:Default";
             PlayerSettings.runInBackground = true;
 

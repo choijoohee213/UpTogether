@@ -248,5 +248,22 @@ namespace UpTogether.Tests
             float wantX = player.Body.X - Px.U(clip.dogPivotOffsetPx.x);
             Assert.AreEqual(wantX, dog.transform.position.x, 0.001f, "왼쪽인데 강아지가 오른쪽에 붙었다");
         }
+
+        [UnityTest]
+        public IEnumerator 카메라가_맵_바깥을_보여주지_않는다()
+        {
+            // 세로 화면(폰 비율)에서 맵 왼쪽 끝에 섰을 때가 가장 위험하다.
+            cam.aspect = 375f / 812f;
+            player.Body.Teleport(0.5f, stage.Data.groundY);
+            yield return Steps(180);
+
+            float halfW = cam.orthographicSize * cam.aspect;
+            float left = cam.transform.position.x - halfW;
+            float right = cam.transform.position.x + halfW;
+
+            Assert.GreaterOrEqual(left, -0.001f, $"맵 왼쪽 바깥이 보인다 (left={left:F3})");
+            Assert.LessOrEqual(right, player.tuning.MapWidthU + 0.001f,
+                               $"맵 오른쪽 바깥이 보인다 (right={right:F3})");
+        }
     }
 }
