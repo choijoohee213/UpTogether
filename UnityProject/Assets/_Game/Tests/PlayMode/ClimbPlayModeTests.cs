@@ -528,5 +528,33 @@ namespace UpTogether.Tests
             float above = (dog.transform.position.y - player.Body.Y) * Px.PPU;
             Assert.Less(above, 40f, $"강아지가 플레이어보다 {above:F0}px 위에 있다");
         }
+
+        [UnityTest]
+        public IEnumerator 플레이어가_점프하는_동안_강아지가_순간이동하지_않는다()
+        {
+            // 지금까지 테스트는 플레이어를 순간이동시켜서, 점프 정점이 없었다.
+            // 실제로는 정점에서 146px 까지 올라가는데, 그걸 기준으로 재면
+            // 강아지가 "못 닿는다"며 공중의 플레이어 옆으로 옮겨갔다가 같이 떨어졌다.
+            yield return Steps(40);
+            Assert.IsTrue(player.Body.grounded);
+
+            int before = dog.TeleportCount;
+            input.SetJump(true);
+            input.SetRight(true);
+
+            bool sawApex = false;
+            for (int i = 0; i < 90; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (!player.Body.grounded && player.Body.vy <= 0f) sawApex = true;
+                Assert.AreEqual(before, dog.TeleportCount,
+                    $"점프 도중에 강아지가 순간이동했다 (프레임 {i}, 플레이어 y={player.Body.Y:F2})");
+                if (sawApex && player.Body.grounded) break;
+            }
+            input.SetJump(false);
+            input.SetRight(false);
+
+            Assert.IsTrue(sawApex, "점프가 일어나지 않았다");
+        }
     }
 }

@@ -53,8 +53,8 @@ namespace UpTogether
         public float dogClingFallSpeed = 7f;
         [Tooltip("마지막으로 서 있던 높이보다 이만큼(px) 아래로 내려가야 안는다. " +
                  "없으면 높이 뛰었다 내려오는 것만으로도 안겨버린다. " +
-                 "발판 한 칸 간격이 최대 102px 이라 그보다 커야 '크게 떨어졌다'가 된다.")]
-        public float dogClingMinDrop = 110f;
+                 "발판 한 칸(68~102px) 정도 미끄러지면 안기는 값이다. 올리면 더 크게 떨어져야 안는다.")]
+        public float dogClingMinDrop = 70f;
         public float dogClingLerp = 0.35f;
         public float dogClingOffsetX = 10f;
         public float dogClingOffsetY = 24f;

@@ -163,11 +163,17 @@ namespace UpTogether
             // ★ 스스로 오르는 건 '지금 칸에서 다음 칸'까지만 ★
             // 한 번 뛰어 닿지 않으면 한 칸씩 기어오르지 않고 그냥 쫓아온다.
             float reach = SingleJumpReach();
+
+            // ★ 플레이어의 '지금 높이'가 아니라 '마지막으로 디딘 발판'을 기준으로 본다 ★
+            // 플레이어가 점프하면 정점에서 146px 까지 올라간다. 그 순간을 기준으로 재면
+            // 강아지가 "못 닿는다"고 판단해 공중의 플레이어 옆으로 순간이동했다가
+            // 같이 떨어진다 — 다음 발판으로 뛸 때마다 강아지가 떨어지던 원인이다.
+            float dyGround = player.LastGroundedY - body.Y;
+
             // 땅에 있을 때: 여기서 한 번에 못 닿으면 바로
-            bool cantReach = body.grounded && dy > reach + tuning.DogCatchUpBufferU;
+            bool cantReach = body.grounded && dyGround > reach + tuning.DogCatchUpBufferU;
             // 떨어지는 중일 때: 이미 두 칸 넘게 벌어졌으면 착지를 기다리지 않는다.
-            // (뛰는 도중의 순간적인 벌어짐으로 터지지 않도록 넉넉히 잡는다)
-            bool plummeting = !body.grounded && body.vy < 0f && dy > reach * 2f;
+            bool plummeting = !body.grounded && body.vy < 0f && dyGround > reach * 2f;
 
             if (Mathf.Abs(dx) > tuning.DogTeleportXU || cantReach || plummeting)
             {
@@ -250,7 +256,9 @@ namespace UpTogether
                 float landX = Mathf.Clamp(standX, landLo, landHi);
 
                 // 플레이어 높이에 가까울수록 좋고, 옆으로 많이 걸어야 하면 감점
-                float score = Mathf.Abs(p.Y - c.y) + Mathf.Abs(standX - body.X) * 0.5f;
+                // 플레이어가 공중이면 정점이 아니라 디딘 발판 높이를 기준으로 고른다
+                float refY = player.LastGroundedY;
+                float score = Mathf.Abs(refY - c.y) + Mathf.Abs(standX - body.X) * 0.5f;
                 if (score < bestScore)
                 {
                     bestScore = score;
