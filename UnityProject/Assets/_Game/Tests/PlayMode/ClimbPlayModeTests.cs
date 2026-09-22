@@ -265,5 +265,68 @@ namespace UpTogether.Tests
             Assert.LessOrEqual(right, player.tuning.MapWidthU + 0.001f,
                                $"맵 오른쪽 바깥이 보인다 (right={right:F3})");
         }
+
+        /// 계측용. 통과/실패를 가리지 않고 숫자만 찍는다.
+        /// 플레이어를 발판 따라 위로 옮기면서 강아지가 어떻게 따라오는지 본다.
+        [UnityTest]
+        public IEnumerator 진단_오르는동안_강아지_추적()
+        {
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+
+            float maxGapY = 0f, maxGapX = 0f, sumGapY = 0f; int samples = 0;
+            int clingCount = 0;
+            bool wasCling = false;
+
+            foreach (var pl in plats)
+            {
+                if (pl.y <= stage.Data.groundY) continue;
+                player.Body.Teleport(pl.x + pl.width * 0.5f, pl.y);
+
+                for (int i = 0; i < 90; i++)   // 발판당 1.5초
+                {
+                    yield return new WaitForFixedUpdate();
+                    float gy = player.Body.Y - dog.transform.position.y;
+                    float gx = Mathf.Abs(player.Body.X - dog.transform.position.x);
+                    sumGapY += Mathf.Max(0f, gy); samples++;
+                    if (gy > maxGapY) maxGapY = gy;
+                    if (gx > maxGapX) maxGapX = gx;
+                    if (dog.IsClinging && !wasCling) clingCount++;
+                    wasCling = dog.IsClinging;
+                }
+            }
+
+            Debug.Log($"[진단] 발판 {plats.Count - 1}개를 오르는 동안\n" +
+                      $"  순간이동 {dog.TeleportCount}회 (화면 안이라 참은 것 {dog.SuppressedTeleportCount}회)\n" +
+                      $"  세로 간격 평균 {sumGapY / samples * Px.PPU:F0}px / 최대 {maxGapY * Px.PPU:F0}px (순간이동 기준 {player.tuning.dogTeleportY}px)\n" +
+                      $"  최대 가로 간격 {maxGapX * Px.PPU:F0}px (순간이동 기준 {player.tuning.dogTeleportX}px)\n" +
+                      $"  안기 발동 {clingCount}회");
+            Assert.Pass();
+        }
+
+        [UnityTest]
+        public IEnumerator 강아지가_발판을_타고_올라온다()
+        {
+            // 플레이어를 몇 칸 위로 올려두고 내버려 두면, 강아지가 스스로 발판을 밟고 올라와야 한다.
+            // 예전에는 제자리에서 헛뛰기만 해서 바닥에 남았다.
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+            var target = plats[3];   // 바닥 제외 세 번째 발판
+
+            player.Body.Teleport(target.x + target.width * 0.5f, target.y);
+            float dogStartY = dog.transform.position.y;
+
+            for (int i = 0; i < 600; i++)   // 10초
+            {
+                yield return new WaitForFixedUpdate();
+                player.Body.Teleport(target.x + target.width * 0.5f, target.y);  // 플레이어는 가만히 둔다
+            }
+
+            float climbed = dog.transform.position.y - dogStartY;
+            Assert.Greater(climbed, 0.5f,
+                $"강아지가 {climbed * Px.PPU:F0}px 밖에 못 올라왔다 (목표 발판은 {(target.y - dogStartY) * Px.PPU:F0}px 위)");
+            Assert.Less(Mathf.Abs(dog.transform.position.y - target.y), 1.2f,
+                "강아지가 플레이어가 선 발판 근처에 못 왔다");
+        }
     }
 }
