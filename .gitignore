@@ -49,6 +49,7 @@ crashlytics-build.properties
 # (Art/Player 에 SUMMARY.md 라는 이름으로 잘못 저장된 PNG 가 있어서 실제로 걸릴 뻔했다)
 /PROJECT.md
 /SUMMARY.md
+/DEV_NOTES.md
 
 # ───── 주의 ─────
 # .meta 파일은 절대 무시하면 안 된다. GUID가 들어 있어서
