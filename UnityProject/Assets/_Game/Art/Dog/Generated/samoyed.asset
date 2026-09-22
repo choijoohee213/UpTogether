@@ -36,36 +36,57 @@ MonoBehaviour:
     - 0.13
     - 0.13
     loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: idle
     frames: 0400000005000000i
     durations:
     - 1.5
     - 0.15
     loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: jump
     frames: 06000000i
     durations:
     - 0
     loop: 0
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: fall
     frames: 0700000008000000i
     durations:
     - 0.1
     - 0.1
     loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: land
     frames: 09000000i
     durations:
     - 0.12
     loop: 0
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: held
     frames: 0a000000i
     durations:
     - 0
     loop: 0
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
   - name: happy
     frames: 0b0000000c000000i
     durations:
     - 0.12
     - 0.12
     loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
