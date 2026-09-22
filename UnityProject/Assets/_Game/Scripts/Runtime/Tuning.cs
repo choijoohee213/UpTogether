@@ -30,7 +30,7 @@ namespace UpTogether
         [Tooltip("화면 세로에 담을 월드 높이(px). 프로토타입은 800이었는데 캐릭터가 화면의 6%라 작아 보인다. " +
                  "줄이면 캐릭터가 커지고 위를 덜 보게 된다. 발판 세로 간격이 68~102px 이라 " +
                  "너무 줄이면 다음 발판이 안 보인다.")]
-        public float cameraViewHeightPx = 600f;
+        public float cameraViewHeightPx = 500f;
         public float camFollow = 0.12f;
         [Tooltip("플레이어를 화면 세로 몇 % 지점에 둘지")]
         public float camViewportY = 0.58f;
