@@ -77,7 +77,10 @@ namespace UpTogether
                 var p = platforms[i];
                 bool isMover = i >= moverStart;
                 float width = p.right - p.left;
-                bool isGround = width > Px.U(1000f);   // 바닥은 맵 전체 폭이다
+                // 바닥은 베이커가 가장 먼저 넣는 발판이다.
+                // 예전엔 '폭 1000px 초과'로 봤는데, 맵을 좁히자(1250->900) 조건에 안 걸려
+                // 아래를 메우는 흙이 통째로 사라졌다. 폭으로 판단하면 안 된다.
+                bool isGround = i == 0;
 
                 var go = new GameObject(isMover ? $"Mover{i - moverStart}" : $"Platform{i}");
                 go.transform.SetParent(platformRoot, false);
