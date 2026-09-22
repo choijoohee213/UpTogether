@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Text;
 using UnityEditor;
-using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace UpTogether.EditorTools
@@ -20,7 +17,7 @@ namespace UpTogether.EditorTools
         /// 발판 세로 간격이 0.68~1.02유닛이라 말이 안 된다.
         /// 135면 40px 몸통이 0.30유닛으로 프로토타입 강아지(~0.28)와 맞고,
         /// 세로 8유닛 화면이 1080px일 때 유닛당 135px이라 픽셀아트가 1:1로 찍힌다.
-        const float PixelsPerUnit = 135f;
+        public const float PixelsPerUnit = 135f;
 
         /// 출처: dog_sprites.json (v2). JSON 이 바뀌면 여기도 고쳐야 한다.
         /// 아래 Version 검사가 불일치를 잡아준다.
@@ -74,7 +71,8 @@ namespace UpTogether.EditorTools
                 if (AssetDatabase.LoadAssetAtPath<Texture2D>(sheet) == null)
                 { log.AppendLine($"  [건너뜀] {breed}: {sheet} 없음"); continue; }
 
-                Slice(sheet, breed, meta, pivot);
+                SheetSlicer.Slice(sheet, breed, $"dog/{breed}",
+                                  meta.cellWidth, meta.cellHeight, meta.columns, pivot, PixelsPerUnit);
                 int n = BuildSet(sheet, breed, log);
                 log.AppendLine($"  [완료] {breed}: 프레임 {n}개");
             }
@@ -84,82 +82,14 @@ namespace UpTogether.EditorTools
             Debug.Log(log.ToString());
         }
 
-        /// 텍스처 임포트 설정 + 13칸 슬라이스.
-        static void Slice(string path, string breed, Meta meta, Vector2 pivot)
-        {
-            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
-            importer.textureType = TextureImporterType.Sprite;
-            importer.spriteImportMode = SpriteImportMode.Multiple;
-            importer.spritePixelsPerUnit = PixelsPerUnit;
-            importer.filterMode = FilterMode.Point;          // 픽셀아트 — 뭉개지면 안 된다
-            importer.textureCompression = TextureImporterCompression.Uncompressed;
-            importer.mipmapEnabled = false;
-            importer.wrapMode = TextureWrapMode.Clamp;
-            importer.alphaIsTransparency = true;
-            importer.maxTextureSize = 1024;
-
-            // 구 API(importer.spritesheet)는 deprecated라 데이터 프로바이더를 쓴다
-            var factories = new SpriteDataProviderFactories();
-            factories.Init();
-            var provider = factories.GetSpriteEditorDataProviderFromObject(importer);
-            provider.InitSpriteEditorDataProvider();
-
-            var rects = new SpriteRect[meta.columns];
-            for (int i = 0; i < meta.columns; i++)
-            {
-                rects[i] = new SpriteRect
-                {
-                    name = $"{breed}_{i}",
-                    spriteID = StableId(breed, i),
-                    rect = new Rect(i * meta.cellWidth, 0, meta.cellWidth, meta.cellHeight),
-                    alignment = SpriteAlignment.Custom,
-                    pivot = pivot,
-                };
-            }
-            provider.SetSpriteRects(rects);
-
-            // 이름↔파일ID 표를 같이 넣어야 다시 임포트해도 참조가 유지된다
-            var nameIds = provider.GetDataProvider<ISpriteNameFileIdDataProvider>();
-            if (nameIds != null)
-            {
-                var pairs = new List<SpriteNameFileIdPair>();
-                foreach (var r in rects) pairs.Add(new SpriteNameFileIdPair(r.name, r.spriteID));
-                nameIds.SetNameFileIdPairs(pairs);
-            }
-
-            provider.Apply();
-            importer.SaveAndReimport();
-        }
-
-        /// 이름에서 항상 같은 GUID 를 만든다.
-        /// GUID.Generate() 를 쓰면 임포트할 때마다 spriteID 가 바뀌어
-        /// 견종마다 .meta 에 diff 가 생긴다 (참조는 internalID 라 안 깨지지만 소음이 된다).
-        static GUID StableId(string breed, int index)
-        {
-            using var md5 = MD5.Create();
-            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes($"UpTogether/dog/{breed}/{index}"));
-            var hex = new StringBuilder(32);
-            foreach (var b in hash) hex.Append(b.ToString("x2"));
-            return new GUID(hex.ToString());
-        }
-
         /// 잘린 스프라이트를 프레임 순서대로 모아 CharacterSpriteSet 으로 굽는다.
         static int BuildSet(string sheet, string breed, StringBuilder log)
         {
-            var byName = new Dictionary<string, Sprite>();
-            foreach (var o in AssetDatabase.LoadAllAssetsAtPath(sheet))
-                if (o is Sprite s) byName[s.name] = s;
-
             var clips = Clips();
             int max = 0;
             foreach (var c in clips) foreach (var f in c.frames) if (f > max) max = f;
 
-            var frames = new Sprite[max + 1];
-            for (int i = 0; i <= max; i++)
-            {
-                if (byName.TryGetValue($"{breed}_{i}", out var s)) frames[i] = s;
-                else log.AppendLine($"    경고: {breed}_{i} 스프라이트가 없습니다");
-            }
+            var frames = SheetSlicer.Collect(sheet, breed, max + 1, log);
 
             string outPath = $"{OutDir}/{breed}.asset";
             var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(outPath);
