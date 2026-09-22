@@ -38,6 +38,8 @@ namespace UpTogether
         public float dogJumpSpeed = 12.2f;
         public float dogTeleportX = 640f;
         public float dogTeleportY = 460f;
+        [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
+        public float dogSyncJumpRange = 170f;
         public float dogClingFallSpeed = 7f;
         public float dogClingLerp = 0.35f;
         public float dogClingOffsetX = 10f;
@@ -59,6 +61,7 @@ namespace UpTogether
         public float DogJumpV        => Px.V(dogJumpSpeed);
         public float DogTeleportXU   => Px.U(dogTeleportX);
         public float DogTeleportYU   => Px.U(dogTeleportY);
+        public float DogSyncJumpRangeU => Px.U(dogSyncJumpRange);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);
         public float DogClingOffXU   => Px.U(dogClingOffsetX);
         public float DogClingOffYU   => Px.U(dogClingOffsetY);

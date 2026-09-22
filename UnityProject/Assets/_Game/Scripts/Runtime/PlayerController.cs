@@ -13,6 +13,8 @@ namespace UpTogether
 
         /// 착지할 때 낙하 거리(m)를 흘려보낸다. 친밀도/연출이 여기에 붙는다.
         public event Action<float> Landed;
+        /// 점프한 순간. 강아지가 같이 뛰려고 듣는다.
+        public event Action Jumped;
 
         CharacterBody body;
         public CharacterBody Body => body != null ? body : (body = GetComponent<CharacterBody>());
@@ -89,6 +91,7 @@ namespace UpTogether
             Squash = 1f;
             Body.holding = true;
             Body.holdTime = 0f;
+            Jumped?.Invoke();
         }
 
         void OnLand()

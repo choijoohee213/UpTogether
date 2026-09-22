@@ -328,5 +328,41 @@ namespace UpTogether.Tests
             Assert.Less(Mathf.Abs(dog.transform.position.y - target.y), 1.2f,
                 "강아지가 플레이어가 선 발판 근처에 못 왔다");
         }
+
+        [UnityTest]
+        public IEnumerator 플레이어가_뛰면_강아지도_같이_뛴다()
+        {
+            // 예전에는 플레이어가 34px 위로 올라간 뒤에야 반응해서 한 박자 늦었다.
+            yield return Steps(30);
+            Assert.IsTrue(dog.GetComponent<CharacterBody>().grounded, "강아지가 땅에 있지 않다");
+
+            input.SetJump(true);
+            bool dogJumped = false;
+            for (int i = 0; i < 12; i++)   // 0.2초 안에
+            {
+                yield return new WaitForFixedUpdate();
+                if (!dog.GetComponent<CharacterBody>().grounded) { dogJumped = true; break; }
+            }
+            input.SetJump(false);
+
+            Assert.IsTrue(dogJumped, "플레이어가 뛰었는데 강아지가 안 뛰었다");
+        }
+
+        [UnityTest]
+        public IEnumerator 멀리_있으면_같이_뛰지_않는다()
+        {
+            // 화면 반대편에서 덩달아 뛰면 이상하다. 사거리 밖이면 제 갈 길을 가야 한다.
+            var body = dog.GetComponent<CharacterBody>();
+            yield return Steps(20);
+            body.Teleport(player.Body.X + player.tuning.DogSyncJumpRangeU + 1f, stage.Data.groundY);
+            body.grounded = true;
+            yield return Steps(2);
+
+            input.SetJump(true);
+            yield return Steps(3);
+            input.SetJump(false);
+
+            Assert.LessOrEqual(body.vy, 0.01f, "사거리 밖인데 덩달아 뛰었다");
+        }
     }
 }

@@ -48,6 +48,25 @@ namespace UpTogether
             body = GetComponent<CharacterBody>();
             body.tuning = tuning;
             body.Bind(stage);
+            if (player != null) player.Jumped += OnPlayerJumped;
+        }
+
+        void OnDestroy()
+        {
+            if (player != null) player.Jumped -= OnPlayerJumped;
+        }
+
+        /// 플레이어가 뛰는 순간 같이 뛴다.
+        /// 예전에는 플레이어가 34px 위로 올라간 뒤에야 반응해서 항상 한 박자 늦었다.
+        void OnPlayerJumped()
+        {
+            if (IsClinging || !body.grounded) return;
+            if (Mathf.Abs(player.Body.X - body.X) > tuning.DogSyncJumpRangeU) return;
+
+            // 올라갈 발판을 이미 정해뒀으면 거기에 맞춰, 아니면 평소 점프로.
+            body.vy = hasStep
+                ? JumpSpeedFor(stepY - body.Y + Px.U(ClearancePx))
+                : tuning.DogJumpV;
         }
 
         void FixedUpdate()
