@@ -475,5 +475,42 @@ namespace UpTogether.Tests
             Debug.Log(log.ToString());
             Assert.AreEqual(0, stuck, $"강아지가 못 올라온 발판이 {stuck}개 있다. 위 로그 참고.");
         }
+
+        [UnityTest]
+        public IEnumerator 많이_뒤처지면_바로_따라붙는다()
+        {
+            // 한 칸씩 밟고 올라오게 두면 느리고 기계적으로 보인다.
+            // 크게 벌어지면 그냥 쫓아온 것으로 처리한다.
+            var body = dog.GetComponent<CharacterBody>();
+            yield return Steps(30);
+
+            int before = dog.TeleportCount;
+            body.Teleport(player.Body.X, player.Body.Y - Px.U(320f));   // 기준 200px 을 넘겨 떨어뜨린다
+            yield return Steps(12);
+
+            Assert.Greater(dog.TeleportCount, before, "많이 뒤처졌는데 따라붙지 않았다");
+
+            yield return Steps(60);
+            float gap = (player.Body.Y - dog.transform.position.y) * Px.PPU;
+            Assert.Less(gap, 200f, $"따라붙은 뒤에도 {gap:F0}px 뒤처져 있다");
+        }
+
+        [UnityTest]
+        public IEnumerator 평소_등반중에는_따라붙기가_안_터진다()
+        {
+            // 한 칸씩 올라가는 정상 상황에서 순간이동이 튀면 툭툭 끊겨 보인다.
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+
+            int before = dog.TeleportCount;
+            for (int n = 1; n < Mathf.Min(6, plats.Count); n++)
+            {
+                var t = plats[n];
+                player.Body.Teleport(t.x + t.width * 0.5f, t.y);
+                yield return Steps(120);
+            }
+            Assert.AreEqual(before, dog.TeleportCount,
+                $"평소 등반 중에 따라붙기가 {dog.TeleportCount - before}회 터졌다");
+        }
     }
 }

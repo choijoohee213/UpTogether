@@ -163,22 +163,19 @@ namespace UpTogether
                 }
             }
 
-            // 너무 벌어지면 순간이동. 강아지를 찾으러 내려가는 건 재미가 없다.
-            // 단, 보이는 데서 사라졌다 나타나면 튄다 — 화면 밖일 때만 옮긴다.
+            // 뒤처지면 바로 따라붙는다.
+            // 한 칸씩 밟고 올라오게 두면 느리고 기계적으로 보인다 —
+            // 떨어졌을 때는 그냥 쫓아온 것으로 처리한다.
             if (Mathf.Abs(dx) > tuning.DogTeleportXU || dy > tuning.DogTeleportYU)
             {
-                if (IsVisible()) SuppressedTeleportCount++;
-                else
-                {
-                    TeleportCount++;
-                    // 플레이어 옆에 바로 놓지 않는다. 아래에서 솟아올라 착지하게 한다 —
-                    // 발판은 원웨이라 아래에서 통과해 올라간다.
-                    float drop = Px.U(CatchUpEntryDropPx);
-                    body.Teleport(p.X - Px.U(24f) * p.face, p.Y - drop);
-                    body.vy = JumpSpeedFor(drop + Px.U(ClearancePx));
-                    body.face = p.face;
-                    hasStep = false;
-                }
+                TeleportCount++;
+                // 옆에 툭 생겨나면 튄다. 아래에서 솟아올라 착지하게 한다 —
+                // 발판은 원웨이라 아래에서 통과해 올라간다.
+                float drop = Px.U(CatchUpEntryDropPx);
+                body.Teleport(p.X - Px.U(24f) * p.face, p.Y - drop);
+                body.vy = JumpSpeedFor(drop + Px.U(ClearancePx));
+                body.face = p.face;
+                hasStep = false;
             }
         }
 

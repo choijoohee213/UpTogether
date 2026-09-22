@@ -44,7 +44,10 @@ namespace UpTogether
         public float dogJumpTrigger = 34f;
         public float dogJumpSpeed = 12.2f;
         public float dogTeleportX = 640f;
-        public float dogTeleportY = 460f;
+        [Tooltip("플레이어보다 이만큼(px) 아래로 뒤처지면 바로 따라붙는다. " +
+                 "발판 한 칸이 최대 102px 이라 그보다 커야 평소 등반 중에는 안 터진다. " +
+                 "한 칸씩 밟고 올라오는 건 느리고 어색해서, 떨어지면 그냥 따라붙게 한다.")]
+        public float dogTeleportY = 200f;
         [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
         public float dogSyncJumpRange = 170f;
         public float dogClingFallSpeed = 7f;
