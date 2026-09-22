@@ -336,16 +336,12 @@ namespace UpTogether.Tests
             yield return Steps(30);
             Assert.IsTrue(dog.GetComponent<CharacterBody>().grounded, "강아지가 땅에 있지 않다");
 
+            int before = dog.SyncJumpCount;
             input.SetJump(true);
-            bool dogJumped = false;
-            for (int i = 0; i < 12; i++)   // 0.2초 안에
-            {
-                yield return new WaitForFixedUpdate();
-                if (!dog.GetComponent<CharacterBody>().grounded) { dogJumped = true; break; }
-            }
+            yield return Steps(6);
             input.SetJump(false);
 
-            Assert.IsTrue(dogJumped, "플레이어가 뛰었는데 강아지가 안 뛰었다");
+            Assert.Greater(dog.SyncJumpCount, before, "플레이어가 뛰었는데 강아지가 안 뛰었다");
         }
 
         [UnityTest]
@@ -358,11 +354,41 @@ namespace UpTogether.Tests
             body.grounded = true;
             yield return Steps(2);
 
+            // 강아지에겐 "많이 뒤처지면 확률로 점프"가 따로 있어서 vy 로 보면 흔들린다.
+            // 같이 뛴 횟수만 본다.
+            int before = dog.SyncJumpCount;
             input.SetJump(true);
             yield return Steps(3);
             input.SetJump(false);
 
-            Assert.LessOrEqual(body.vy, 0.01f, "사거리 밖인데 덩달아 뛰었다");
+            Assert.AreEqual(before, dog.SyncJumpCount, "사거리 밖인데 덩달아 뛰었다");
+        }
+
+        [UnityTest]
+        public IEnumerator 진단_카메라_클램프()
+        {
+            cam.aspect = 375f / 812f;                       // 폰 세로
+            player.Body.Teleport(0.90f, stage.Data.groundY); // 씬 시작 위치
+            yield return Steps(240);
+
+            float halfW = cam.orthographicSize * cam.aspect;
+            float min = halfW, max = player.tuning.MapWidthU - halfW;
+            Debug.Log($"[진단-카메라] ortho={cam.orthographicSize:F3} aspect={cam.aspect:F4} halfW={halfW:F3}\n" +
+                      $"  클램프 범위 [{min:F3}, {max:F3}]  플레이어 x={player.Body.X:F3}\n" +
+                      $"  카메라 x={cam.transform.position.x:F3}  좌측 끝={cam.transform.position.x - halfW:F3}");
+            Assert.Pass();
+        }
+
+        [UnityTest]
+        public IEnumerator 시작하자마자_맵_바깥이_보이지_않는다()
+        {
+            // 카메라가 (0,0) 에서 lerp 로 들어오면 첫 순간 맵 밖이 보인다.
+            cam.aspect = 375f / 812f;
+            yield return null;          // 첫 LateUpdate 직후
+
+            float halfW = cam.orthographicSize * cam.aspect;
+            Assert.GreaterOrEqual(cam.transform.position.x - halfW, -0.001f,
+                $"시작 프레임에 맵 왼쪽 바깥이 보인다 (left={cam.transform.position.x - halfW:F3})");
         }
     }
 }

@@ -12,10 +12,12 @@ namespace UpTogether
         public PlayerController player;
 
         Camera cam;
+        bool snapped;   // 첫 프레임은 lerp 하지 않고 바로 맞춘다
 
         void Awake()
         {
             cam = GetComponent<Camera>();
+            if (tuning != null) cam.orthographicSize = tuning.CameraOrthoSize;
             if (stage == null || stage.Data == null || player == null) enabled = false;
         }
 
@@ -34,9 +36,18 @@ namespace UpTogether
             targetY = ClampRange(targetY, -Px.U(120f) + halfH, stage.Data.height + Px.U(40f) - halfH);
 
             var pos = transform.position;
-            float k = Px.Smoothing(tuning.camFollow, Time.deltaTime);
-            pos.x += (targetX - pos.x) * k;
-            pos.y += (targetY - pos.y) * k;
+            if (!snapped)
+            {
+                // 시작하자마자 (0,0) 에서 흘러 들어오면 맵 바깥이 잠깐 보인다
+                pos.x = targetX; pos.y = targetY;
+                snapped = true;
+            }
+            else
+            {
+                float k = Px.Smoothing(tuning.camFollow, Time.deltaTime);
+                pos.x += (targetX - pos.x) * k;
+                pos.y += (targetY - pos.y) * k;
+            }
 
             // 크게 떨어졌을 때만 흔든다
             float s = player.ShakeAmount;

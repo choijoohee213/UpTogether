@@ -34,6 +34,8 @@ namespace UpTogether
         /// 계측용. 실제로 순간이동한 횟수와, 화면 안이라 참은 횟수.
         public int TeleportCount { get; private set; }
         public int SuppressedTeleportCount { get; private set; }
+        /// 플레이어를 따라 같이 뛴 횟수. 혼자 뛴 것과 구분해야 테스트가 흔들리지 않는다.
+        public int SyncJumpCount { get; private set; }
 
         CharacterBody body;
 
@@ -67,6 +69,7 @@ namespace UpTogether
             body.vy = hasStep
                 ? JumpSpeedFor(stepY - body.Y + Px.U(ClearancePx))
                 : tuning.DogJumpV;
+            SyncJumpCount++;
         }
 
         void FixedUpdate()

@@ -40,7 +40,7 @@ namespace UpTogether.EditorTools
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
             cam.orthographic = true;
-            cam.orthographicSize = 4f;          // 세로 8 units = 800px. 세로 화면 기준
+            cam.orthographicSize = tuning.CameraOrthoSize;   // Tuning.cameraViewHeightPx 에서 조절
             cam.backgroundColor = new Color(0.68f, 0.85f, 0.95f);   // 하늘이 못 덮는 틈의 보험
             cam.clearFlags = CameraClearFlags.SolidColor;
             camGo.transform.position = new Vector3(0, 0, -10f);
