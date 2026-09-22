@@ -12,6 +12,7 @@ namespace UpTogether.Tests
     public class ClimbPlayModeTests
     {
         PlayerController player;
+        PlayerVisual playerVisual;
         DogController dog;
         StageRunner stage;
         Camera cam;
@@ -25,6 +26,7 @@ namespace UpTogether.Tests
 
             player = Object.FindFirstObjectByType<PlayerController>();
             dog    = Object.FindFirstObjectByType<DogController>();
+            playerVisual = Object.FindFirstObjectByType<PlayerVisual>();
             stage  = Object.FindFirstObjectByType<StageRunner>();
             input  = Object.FindFirstObjectByType<GameInput>();
             cam    = Camera.main;
@@ -177,6 +179,74 @@ namespace UpTogether.Tests
             float viewportY = cam.WorldToViewportPoint(new Vector3(player.Body.X, player.Body.Y, 0f)).y;
             Assert.AreEqual(1f - player.tuning.camViewportY, viewportY, 0.03f,
                 $"플레이어가 화면 아래에서 {viewportY * 100f:F0}% 지점에 있다 (기대 42%)");
+        }
+
+        // ── 안기 3겹 (주인공 본체 → 강아지 → 앞팔) ──────────────────
+
+        /// 강아지가 안길 때까지 떨어뜨린다.
+        IEnumerator FallUntilHeld()
+        {
+            player.Body.Teleport(player.Body.X, stage.Data.groundY + 6f);
+            player.Body.grounded = false;
+            for (int i = 0; i < 120; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (dog.IsClinging) yield break;
+            }
+            Assert.Fail("강아지가 안기지 않았다");
+        }
+
+        [UnityTest]
+        public IEnumerator 안으면_세_겹이_모두_켜진다()
+        {
+            if (playerVisual == null) Assert.Ignore("주인공 스프라이트가 아직 없다");
+
+            yield return FallUntilHeld();
+            yield return null;   // PlayerVisual 은 LateUpdate 에서 돈다
+
+            Assert.AreEqual("hold_fall", playerVisual.CurrentClip, "떨어지며 안은 클립이 아니다");
+            Assert.IsTrue(playerVisual.overlay.enabled, "앞팔 오버레이가 꺼져 있다");
+            Assert.IsNotNull(playerVisual.overlay.sprite, "앞팔 스프라이트가 비었다");
+            Assert.Greater(playerVisual.dogRenderer.sortingOrder,
+                           playerVisual.target.sortingOrder, "강아지가 주인공 뒤에 있다");
+            Assert.Greater(playerVisual.overlay.sortingOrder,
+                           playerVisual.dogRenderer.sortingOrder, "앞팔이 강아지 뒤에 있다");
+        }
+
+        [UnityTest]
+        public IEnumerator 안았을_때_강아지가_지정된_오프셋에_붙는다()
+        {
+            if (playerVisual == null) Assert.Ignore("주인공 스프라이트가 아직 없다");
+
+            yield return FallUntilHeld();
+            yield return null;
+
+            var clip = playerVisual.spriteSet.Find(playerVisual.CurrentClip);
+            float sign = player.Body.face < 0 ? -1f : 1f;
+            float wantX = player.Body.X + Px.U(clip.dogPivotOffsetPx.x) * sign;
+            float wantY = player.Body.Y + Px.U(clip.dogPivotOffsetPx.y);
+
+            Assert.AreEqual(wantX, dog.transform.position.x, 0.001f, "강아지 가로 위치가 어긋났다");
+            Assert.AreEqual(wantY, dog.transform.position.y, 0.001f, "강아지 세로 위치가 어긋났다");
+        }
+
+        [UnityTest]
+        public IEnumerator 왼쪽을_보면_세_겹이_같이_뒤집힌다()
+        {
+            if (playerVisual == null) Assert.Ignore("주인공 스프라이트가 아직 없다");
+
+            yield return FallUntilHeld();
+            player.Body.face = -1;
+            yield return null;
+
+            Assert.IsTrue(playerVisual.target.flipX, "본체가 안 뒤집혔다");
+            Assert.IsTrue(playerVisual.overlay.flipX, "앞팔이 안 뒤집혔다");
+            Assert.IsTrue(playerVisual.dogRenderer.flipX, "강아지가 안 뒤집혔다");
+
+            // x 오프셋도 부호가 바뀌어야 한다 — 안 그러면 팔이 엉뚱한 데 붙는다
+            var clip = playerVisual.spriteSet.Find(playerVisual.CurrentClip);
+            float wantX = player.Body.X - Px.U(clip.dogPivotOffsetPx.x);
+            Assert.AreEqual(wantX, dog.transform.position.x, 0.001f, "왼쪽인데 강아지가 오른쪽에 붙었다");
         }
     }
 }
