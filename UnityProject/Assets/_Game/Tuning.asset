@@ -26,6 +26,7 @@ MonoBehaviour:
   camFollow: 0.12
   camViewportY: 0.58
   dogSpeed: 3.3
+  dogAirSpeed: 6.6
   dogTrailDistance: 26
   dogJumpTrigger: 34
   dogJumpSpeed: 12.2

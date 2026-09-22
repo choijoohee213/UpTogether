@@ -21,6 +21,9 @@ namespace UpTogether
         [Header("상태 (읽기용)")]
         public float vx, vy;
         public bool grounded;
+        /// 지금 딛고 있는 발판 번호. 공중이면 -1.
+        /// 강아지가 "여기서 갈 수 있는 발판"을 고를 때 쓴다.
+        [HideInInspector] public int groundIndex = -1;
         public int face = 1;
         public float walkPhase;
 
@@ -57,6 +60,7 @@ namespace UpTogether
 
             Y += vy * dt;
             grounded = false;
+            groundIndex = -1;
 
             // 내려가는 중에만 발판을 잡는다 = 아래에서 통과 가능(원웨이)
             if (vy <= 0f)
@@ -72,6 +76,7 @@ namespace UpTogether
                         Y = p.y;
                         vy = 0f;
                         grounded = true;
+                        groundIndex = i;
                         X += p.deltaX; // 움직이는 발판에 실려 간다
                         break;
                     }

@@ -37,6 +37,9 @@ namespace UpTogether
 
         [Header("강아지 AI")]
         public float dogSpeed = 3.3f;
+        [Tooltip("공중에서의 가로 속도(px/frame). 걷기보다 빨라야 발판 사이를 건넌다. " +
+                 "발판 가로 간격이 최대 68px 인데 걷기 속도로는 점프 중 47px 밖에 못 간다.")]
+        public float dogAirSpeed = 6.6f;
         public float dogTrailDistance = 26f;
         public float dogJumpTrigger = 34f;
         public float dogJumpSpeed = 12.2f;
@@ -64,6 +67,7 @@ namespace UpTogether
         public float WallMarginU     => Px.U(wallMargin);
         public float GrabMarginU     => Px.U(platformGrabMargin);
         public float DogSpeedV       => Px.V(dogSpeed);
+        public float DogAirSpeedV    => Px.V(dogAirSpeed);
         public float DogTrailU       => Px.U(dogTrailDistance);
         public float DogJumpTrigU    => Px.U(dogJumpTrigger);
         public float DogJumpV        => Px.V(dogJumpSpeed);

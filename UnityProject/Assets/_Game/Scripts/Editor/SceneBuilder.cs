@@ -237,10 +237,13 @@ namespace UpTogether.EditorTools
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
 
-            // 엄지 위치에 맞춘 대략값. 실기기에서 반드시 다시 만질 것 (PROJECT.md 열린 과제)
-            MakeButton(canvasGo.transform, "Left",  TouchButton.Kind.Left,  -1, new Vector2(0f, 0f), new Vector2( 190f, 210f));
-            MakeButton(canvasGo.transform, "Right", TouchButton.Kind.Right,  1, new Vector2(0f, 0f), new Vector2( 450f, 210f));
-            MakeButton(canvasGo.transform, "Jump",  TouchButton.Kind.Jump,   0, new Vector2(1f, 0f), new Vector2(-250f, 230f));
+            // 기준 해상도 1080x1920. 버튼 160px 이면 화면 폭의 15% 로,
+            // 엄지로 누르기엔 충분하면서 플레이 화면을 덜 가린다.
+            // (230px 일 때는 세 개가 폭의 64% 를 먹었다)
+            // 실기기에서 반드시 다시 만질 것 (PROJECT.md 열린 과제)
+            MakeButton(canvasGo.transform, "Left",  TouchButton.Kind.Left,  -1, new Vector2(0f, 0f), new Vector2( 140f, 165f));
+            MakeButton(canvasGo.transform, "Right", TouchButton.Kind.Right,  1, new Vector2(0f, 0f), new Vector2( 330f, 165f));
+            MakeButton(canvasGo.transform, "Jump",  TouchButton.Kind.Jump,   0, new Vector2(1f, 0f), new Vector2(-175f, 180f));
         }
 
         static void MakeButton(Transform parent, string label, TouchButton.Kind kind, int dir, Vector2 anchor, Vector2 pos)
@@ -251,7 +254,7 @@ namespace UpTogether.EditorTools
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = anchor;
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(230f, 230f);
+            rt.sizeDelta = new Vector2(160f, 160f);
             rt.anchoredPosition = pos;
 
             var img = go.GetComponent<Image>();

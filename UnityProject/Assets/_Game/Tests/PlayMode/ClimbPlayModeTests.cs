@@ -436,5 +436,44 @@ namespace UpTogether.Tests
             Assert.LessOrEqual(player.Body.vy, vyBefore + 0.001f,
                 $"공중에서 다시 뛰었다 (vy {vyBefore:F2} -> {player.Body.vy:F2})");
         }
+
+        /// 발판을 하나씩 짚어가며 강아지가 따라 올라오는지 전수 확인한다.
+        /// 한 곳이라도 막히면 실패다 — 예전엔 16개 중 8개에서 무한 점프에 갇혔다.
+        [UnityTest]
+        public IEnumerator 강아지가_모든_발판을_따라_올라온다()
+        {
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+
+            var body = dog.GetComponent<CharacterBody>();
+            var log = new System.Text.StringBuilder("[진단-도달] 발판별 (플레이어를 올려두고 4초 대기)\n");
+            int stuck = 0;
+
+            for (int n = 1; n < plats.Count; n++)
+            {
+                var target = plats[n];
+                player.Body.Teleport(target.x + target.width * 0.5f, target.y);
+
+                int jumps = 0; bool wasGrounded = body.grounded;
+                for (int i = 0; i < 240; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    player.Body.Teleport(target.x + target.width * 0.5f, target.y);
+                    if (wasGrounded && !body.grounded) jumps++;
+                    wasGrounded = body.grounded;
+                }
+
+                float gap = (target.y - body.Y) * Px.PPU;
+                bool ok = gap < 120f;              // 발판 한 칸 안쪽이면 따라온 것으로 본다
+                if (!ok) stuck++;
+                log.AppendLine($"  #{n,2} y={target.y:F2} → 남은 {gap,5:F0}px, 점프 {jumps,2}회" +
+                               (ok ? "" : $"  <-- 막힘 | 개 x={body.X:F2} y={body.Y:F2} 접지={body.grounded}" +
+                                          $" | 목표 {(dog.HasStep ? $"y={dog.StepY:F2} x={dog.StepAimX:F2} (올라야 할 높이 {(dog.StepY - body.Y) * Px.PPU:F0}px)" : "없음")}"));
+            }
+
+            log.AppendLine($"  못 올라온 발판: {stuck} / {plats.Count - 1}");
+            Debug.Log(log.ToString());
+            Assert.AreEqual(0, stuck, $"강아지가 못 올라온 발판이 {stuck}개 있다. 위 로그 참고.");
+        }
     }
 }
