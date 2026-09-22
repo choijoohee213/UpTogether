@@ -99,7 +99,7 @@ namespace UpTogether
                 }
 
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Ledge(Mathf.RoundToInt(width * Px.PPU), isMover);
+                sr.sprite = ProceduralArt.Ledge(Mathf.RoundToInt(width * Px.PPU), isMover, withHighlight: !isGround);
                 sr.sortingOrder = -10;
 
                 // 바닥은 화면 아래까지 흙으로 메운다 (원본: fillRect(x, y, w, VH+200))

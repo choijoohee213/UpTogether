@@ -390,5 +390,27 @@ namespace UpTogether.Tests
             Assert.GreaterOrEqual(cam.transform.position.x - halfW, -0.001f,
                 $"시작 프레임에 맵 왼쪽 바깥이 보인다 (left={cam.transform.position.x - halfW:F3})");
         }
+
+        [UnityTest]
+        public IEnumerator 공중에서는_다시_뛸_수_없다()
+        {
+            yield return Steps(30);
+            Assert.IsTrue(player.Body.grounded, "시작할 때 땅에 있지 않다");
+
+            input.SetJump(true);
+            yield return Steps(6);
+            input.SetJump(false);
+            yield return Steps(6);
+            Assert.IsFalse(player.Body.grounded, "점프가 안 됐다");
+
+            // 올라가는 중에 다시 눌러도 속도가 늘면 안 된다
+            float vyBefore = player.Body.vy;
+            input.SetJump(true);
+            yield return new WaitForFixedUpdate();
+            input.SetJump(false);
+
+            Assert.LessOrEqual(player.Body.vy, vyBefore + 0.001f,
+                $"공중에서 다시 뛰었다 (vy {vyBefore:F2} -> {player.Body.vy:F2})");
+        }
     }
 }

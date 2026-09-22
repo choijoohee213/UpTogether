@@ -16,7 +16,6 @@ MonoBehaviour:
   holdGravity: 0.23
   holdMaxSeconds: 0.3
   jump1: 9.4
-  jump2: 8.4
   maxFall: 17
   walkSpeed: 3.6
   walkAccel: 0.34

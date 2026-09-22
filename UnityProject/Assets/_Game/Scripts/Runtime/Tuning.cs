@@ -13,7 +13,6 @@ namespace UpTogether
         public float holdGravity = 0.23f;
         public float holdMaxSeconds = 0.30f;
         public float jump1 = 9.4f;
-        public float jump2 = 8.4f;
         public float maxFall = 17f;
         public float walkSpeed = 3.6f;
         [Tooltip("목표 속도로 가는 프레임당 lerp 계수")]
@@ -54,7 +53,6 @@ namespace UpTogether
         public float GravityA        => Px.A(gravity);
         public float HoldGravityA    => Px.A(holdGravity);
         public float Jump1V          => Px.V(jump1);
-        public float Jump2V          => Px.V(jump2);
         public float MaxFallV        => Px.V(maxFall);
         public float WalkSpeedV      => Px.V(walkSpeed);
         public float CameraOrthoSize => Px.U(cameraViewHeightPx) * 0.5f;

@@ -21,7 +21,6 @@ namespace UpTogether
         public float Squash { get; private set; }   // 점프 순간 1 → 0으로 감소
         public float ShakeAmount { get; private set; }
 
-        int jumpsUsed;
         float fallFromY = float.NaN;   // 0이 아니라 NaN이 센티넬이다 — Unity에서는 y=0이 실제 위치다
 
         void Awake()
@@ -56,7 +55,6 @@ namespace UpTogether
 
             if (Body.grounded)
             {
-                jumpsUsed = 0;
                 if (wasAirborne) OnLand();
             }
             else
@@ -70,23 +68,12 @@ namespace UpTogether
 
         void TryJump()
         {
-            var at = new Vector2(Body.X, Body.Y);
-            if (Body.grounded)
-            {
-                Body.vy = tuning.Jump1V;
-                Body.grounded = false;
-                jumpsUsed = 1;
-            }
-            else if (jumpsUsed < 2)
-            {
-                Body.vy = tuning.Jump2V;
-                jumpsUsed = 2;
-                // 이단 점프는 발밑이 아니라 몸 주변에서 터진다
-                puffs?.Burst(at + Vector2.up * Px.U(14f), 10, 26f, 5f, 0f);
-            }
-            else return;
+            // 이중 점프 없음 — 땅에 있을 때만 뛴다.
+            if (!Body.grounded) return;
 
-            puffs?.Burst(at, 7, 18f, 3.5f, 2f);
+            Body.vy = tuning.Jump1V;
+            Body.grounded = false;
+            puffs?.Burst(new Vector2(Body.X, Body.Y), 7, 18f, 3.5f, 2f);
 
             Squash = 1f;
             Body.holding = true;

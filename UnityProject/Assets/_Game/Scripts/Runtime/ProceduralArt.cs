@@ -145,7 +145,10 @@ namespace UpTogether
 
         /// 발판 한 장을 통째로 그린다 (흙 + 잔디 + 윗면 하이라이트).
         /// 폭이 발판마다 달라서 한 장씩 만든다. 170px짜리가 20KB 정도라 60개여도 부담 없다.
-        public static Sprite Ledge(int widthPx, bool isMover)
+        /// withHighlight: 윗면의 밝은 선. 작은 발판에서는 입체감을 주지만
+        /// 맵 전체 폭인 바닥에 넣으면 화면을 가로지르는 흰 줄로 보인다.
+        /// 원본도 바닥은 하이라이트 없이 그렸다.
+        public static Sprite Ledge(int widthPx, bool isMover, bool withHighlight = true)
         {
             const int Top = 9;      // 잔디가 발판 위로 솟는 높이
             const int Body = 20;    // 흙 두께
@@ -175,7 +178,7 @@ namespace UpTogether
                     }
 
                     // 윗면 하이라이트
-                    if (ty >= Top && ty < Top + 3 && x > 3 && x < w - 4)
+                    if (withHighlight && ty >= Top && ty < Top + 3 && x > 3 && x < w - 4)
                         c = Color.Lerp(c, Color.white, 0.22f);
 
                     // 움직이는 발판 표시 — 가운데 흰 줄
