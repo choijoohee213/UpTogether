@@ -44,10 +44,10 @@ namespace UpTogether
         public float dogJumpTrigger = 34f;
         public float dogJumpSpeed = 12.2f;
         public float dogTeleportX = 640f;
-        [Tooltip("플레이어보다 이만큼(px) 아래로 뒤처지면 바로 따라붙는다. " +
-                 "발판 한 칸이 최대 102px 이라 그보다 커야 평소 등반 중에는 안 터진다. " +
-                 "한 칸씩 밟고 올라오는 건 느리고 어색해서, 떨어지면 그냥 따라붙게 한다.")]
-        public float dogTeleportY = 200f;
+        [Tooltip("한 번 뛰어 닿는 높이보다 이만큼(px) 더 벌어지면 바로 따라붙는다. " +
+                 "강아지는 '지금 칸에서 다음 칸'만 스스로 오르고, 그보다 멀어지면 " +
+                 "한 칸씩 기어오르지 않고 그냥 쫓아온다.")]
+        public float dogCatchUpBuffer = 12f;
         [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
         public float dogSyncJumpRange = 170f;
         public float dogClingFallSpeed = 7f;
@@ -75,7 +75,7 @@ namespace UpTogether
         public float DogJumpTrigU    => Px.U(dogJumpTrigger);
         public float DogJumpV        => Px.V(dogJumpSpeed);
         public float DogTeleportXU   => Px.U(dogTeleportX);
-        public float DogTeleportYU   => Px.U(dogTeleportY);
+        public float DogCatchUpBufferU => Px.U(dogCatchUpBuffer);
         public float DogSyncJumpRangeU => Px.U(dogSyncJumpRange);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);
         public float DogClingMinDropU => Px.U(dogClingMinDrop);

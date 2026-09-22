@@ -322,7 +322,7 @@ namespace UpTogether.Tests
 
             Debug.Log($"[진단] 발판 {plats.Count - 1}개를 오르는 동안\n" +
                       $"  순간이동 {dog.TeleportCount}회 (화면 안이라 참은 것 {dog.SuppressedTeleportCount}회)\n" +
-                      $"  세로 간격 평균 {sumGapY / samples * Px.PPU:F0}px / 최대 {maxGapY * Px.PPU:F0}px (순간이동 기준 {player.tuning.dogTeleportY}px)\n" +
+                      $"  세로 간격 평균 {sumGapY / samples * Px.PPU:F0}px / 최대 {maxGapY * Px.PPU:F0}px (한 번 뛰어 닿는 높이 기준)\n" +
                       $"  최대 가로 간격 {maxGapX * Px.PPU:F0}px (순간이동 기준 {player.tuning.dogTeleportX}px)\n" +
                       $"  안기 발동 {clingCount}회");
             Assert.Pass();
@@ -485,20 +485,21 @@ namespace UpTogether.Tests
             yield return Steps(30);
 
             int before = dog.TeleportCount;
-            body.Teleport(player.Body.X, player.Body.Y - Px.U(320f));   // 기준 200px 을 넘겨 떨어뜨린다
+            body.Teleport(player.Body.X, player.Body.Y - Px.U(320f));   // 한 번에 못 닿는 높이로 떨어뜨린다
             yield return Steps(12);
 
             Assert.Greater(dog.TeleportCount, before, "많이 뒤처졌는데 따라붙지 않았다");
 
             yield return Steps(60);
             float gap = (player.Body.Y - dog.transform.position.y) * Px.PPU;
-            Assert.Less(gap, 200f, $"따라붙은 뒤에도 {gap:F0}px 뒤처져 있다");
+            Assert.Less(gap, 150f, $"따라붙은 뒤에도 {gap:F0}px 뒤처져 있다");
         }
 
         [UnityTest]
-        public IEnumerator 평소_등반중에는_따라붙기가_안_터진다()
+        public IEnumerator 한칸씩_올라갈_때는_스스로_따라온다()
         {
-            // 한 칸씩 올라가는 정상 상황에서 순간이동이 튀면 툭툭 끊겨 보인다.
+            // 지금 칸에서 다음 칸으로 가는 건 제 발로 와야 한다.
+            // 여기서 순간이동이 튀면 툭툭 끊겨 보인다.
             var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
             plats.Sort((a, b) => a.y.CompareTo(b.y));
 

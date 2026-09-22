@@ -31,7 +31,7 @@ MonoBehaviour:
   dogJumpTrigger: 34
   dogJumpSpeed: 12.2
   dogTeleportX: 640
-  dogTeleportY: 200
+  dogCatchUpBuffer: 12
   dogClingMinDrop: 110
   dogClingFallSpeed: 7
   dogClingLerp: 0.35

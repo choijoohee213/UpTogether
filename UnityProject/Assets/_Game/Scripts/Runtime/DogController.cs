@@ -163,10 +163,16 @@ namespace UpTogether
                 }
             }
 
-            // 뒤처지면 바로 따라붙는다.
-            // 한 칸씩 밟고 올라오게 두면 느리고 기계적으로 보인다 —
-            // 떨어졌을 때는 그냥 쫓아온 것으로 처리한다.
-            if (Mathf.Abs(dx) > tuning.DogTeleportXU || dy > tuning.DogTeleportYU)
+            // ★ 스스로 오르는 건 '지금 칸에서 다음 칸'까지만 ★
+            // 한 번 뛰어 닿지 않으면 한 칸씩 기어오르지 않고 그냥 쫓아온다.
+            float reach = SingleJumpReach();
+            // 땅에 있을 때: 여기서 한 번에 못 닿으면 바로
+            bool cantReach = body.grounded && dy > reach + tuning.DogCatchUpBufferU;
+            // 떨어지는 중일 때: 이미 두 칸 넘게 벌어졌으면 착지를 기다리지 않는다.
+            // (뛰는 도중의 순간적인 벌어짐으로 터지지 않도록 넉넉히 잡는다)
+            bool plummeting = !body.grounded && body.vy < 0f && dy > reach * 2f;
+
+            if (Mathf.Abs(dx) > tuning.DogTeleportXU || cantReach || plummeting)
             {
                 TeleportCount++;
                 // 옆에 툭 생겨나면 튄다. 아래에서 솟아올라 착지하게 한다 —
@@ -183,6 +189,10 @@ namespace UpTogether
         {
             stepY = y; stepStandX = standX; stepLandX = landX; return true;
         }
+
+        /// 한 번 뛰어 오를 수 있는 높이.
+        float SingleJumpReach()
+            => tuning.DogJumpV * tuning.DogJumpV / (2f * tuning.GravityA) - Px.U(ClearancePx);
 
         /// 높이 rise 를 뛰는 동안 가로로 움직일 수 있는 거리. 여유를 20% 둔다.
         /// 공중 속도로 계산한다 — 땅 속도로 재면 건널 수 있는 발판도 못 간다고 본다.
@@ -212,8 +222,7 @@ namespace UpTogether
             if (body.groundIndex < 0) return false;
             var cur = stage.GetPlatform(body.groundIndex);
 
-            float maxRise = tuning.DogJumpV * tuning.DogJumpV / (2f * tuning.GravityA)
-                            - Px.U(ClearancePx);
+            float maxRise = SingleJumpReach();
             float minRise = Px.U(MinRisePx);
             float inset = Px.U(EdgeInsetPx);
 
