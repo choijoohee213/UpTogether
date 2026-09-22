@@ -8,7 +8,11 @@ namespace UpTogether
     /// 좌표는 아직 프로토타입 px 공간(y 아래쪽 양수)이다. 변환은 베이커가 한다.
     public static class StageGenerator
     {
-        public const double MapWidth = 1250.0;
+        /// ★ 맵 폭의 기준값 ★
+        /// Tuning.mapWidth 와 반드시 같아야 한다 (베이커가 어긋나면 오류를 낸다).
+        /// 1250 은 프로토타입이 넓은 브라우저 창을 가정한 값이라 세로 화면에서는
+        /// 시야(231px)에 비해 너무 넓어 강아지가 화면 밖으로 나간다.
+        public const double MapWidth = 900.0;
 
         public struct Box
         {

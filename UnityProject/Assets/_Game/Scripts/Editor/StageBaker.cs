@@ -14,6 +14,15 @@ namespace UpTogether.EditorTools
         [MenuItem("UpTogether/Bake Stages")]
         public static void BakeAll()
         {
+            var tuning = AssetDatabase.LoadAssetAtPath<Tuning>("Assets/_Game/Tuning.asset");
+            if (tuning != null && !Mathf.Approximately(tuning.mapWidth, (float)StageGenerator.MapWidth))
+            {
+                Debug.LogError($"맵 폭이 어긋납니다 — Tuning.mapWidth={tuning.mapWidth}, " +
+                               $"StageGenerator.MapWidth={StageGenerator.MapWidth}. " +
+                               "둘을 같게 맞추고 다시 구우세요.");
+                return;
+            }
+
             var log = new StringBuilder("스테이지 베이크\n");
             int totalBad = 0;
 

@@ -17,13 +17,13 @@ namespace UpTogether
         {
             if (stage == null || stage.Data == null) return;
 
-            float mapW = Px.U(1250f);
+            float mapW = (float)StageGenerator.MapWidth / Px.PPU;
             float top = stage.Data.height;
 
             // 구름 — 맵 전체 높이에 퍼뜨린다
             for (int i = 0; i < CloudCount; i++)
             {
-                float x = ((i * 317f) % 1250f) / 100f;
+                float x = (i * 317f % (float)StageGenerator.MapWidth) / Px.PPU;
                 float y = Mathf.Lerp(2f, top * 0.95f, i / (CloudCount - 1f));
                 float scale = 0.8f + (i % 3) * 0.35f;      // 크기를 섞어 깊이를 준다
                 Spawn($"Cloud{i}", ProceduralArt.Cloud, new Vector2(x, y),

@@ -20,7 +20,7 @@ MonoBehaviour:
   maxFall: 17
   walkSpeed: 3.6
   walkAccel: 0.34
-  mapWidth: 1250
+  mapWidth: 900
   wallMargin: 16
   platformGrabMargin: 6
   cameraViewHeightPx: 500

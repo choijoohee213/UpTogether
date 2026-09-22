@@ -20,7 +20,8 @@ namespace UpTogether
         public float walkAccel = 0.34f;
 
         [Header("맵 (px)")]
-        public float mapWidth = 1250f;
+        [Tooltip("StageGenerator.MapWidth 와 같아야 한다. 어긋나면 벽과 카메라 한계가 발판과 안 맞는다.")]
+        public float mapWidth = 900f;
         [Tooltip("좌우 벽에서 몸이 멈추는 여유")]
         public float wallMargin = 16f;
         [Tooltip("발판 좌우로 발이 걸리는 여유")]
