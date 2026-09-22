@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad3201bbaa374421f98740e797c3b71a, type: 3}
+  m_Name: shiba
+  m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
+  displayName: shiba
+  frames:
+  - {fileID: 1434229647, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: -1369906542, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 1763182891, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 70510248, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 93325155, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: -1659965426, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 1497301277, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 2006739404, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: -277013933, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 698811581, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: -1431341602, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: 1687617049, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  - {fileID: -285695587, guid: 30309dbcd1be74a63a6245e33c5090c2, type: 3}
+  clips:
+  - name: walk
+    frames: 00000000010000000200000003000000i
+    durations:
+    - 0.13
+    - 0.13
+    - 0.13
+    - 0.13
+    loop: 1
+  - name: idle
+    frames: 0400000005000000i
+    durations:
+    - 1.5
+    - 0.15
+    loop: 1
+  - name: jump
+    frames: 06000000i
+    durations:
+    - 0
+    loop: 0
+  - name: fall
+    frames: 0700000008000000i
+    durations:
+    - 0.1
+    - 0.1
+    loop: 1
+  - name: land
+    frames: 09000000i
+    durations:
+    - 0.12
+    loop: 0
+  - name: held
+    frames: 0a000000i
+    durations:
+    - 0
+    loop: 0
+  - name: happy
+    frames: 0b0000000c000000i
+    durations:
+    - 0.12
+    - 0.12
+    loop: 1

@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad3201bbaa374421f98740e797c3b71a, type: 3}
+  m_Name: bernese
+  m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
+  displayName: bernese
+  frames:
+  - {fileID: 1195726997, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -887550281, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: 898314887, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -632768264, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -648011089, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -1261318694, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -1104649833, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -1997488606, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: 1671556854, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -154528625, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: 2128737337, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: 981108143, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  - {fileID: -292764745, guid: 64704f3bdf6bc48388b552d3b89cfa18, type: 3}
+  clips:
+  - name: walk
+    frames: 00000000010000000200000003000000i
+    durations:
+    - 0.13
+    - 0.13
+    - 0.13
+    - 0.13
+    loop: 1
+  - name: idle
+    frames: 0400000005000000i
+    durations:
+    - 1.5
+    - 0.15
+    loop: 1
+  - name: jump
+    frames: 06000000i
+    durations:
+    - 0
+    loop: 0
+  - name: fall
+    frames: 0700000008000000i
+    durations:
+    - 0.1
+    - 0.1
+    loop: 1
+  - name: land
+    frames: 09000000i
+    durations:
+    - 0.12
+    loop: 0
+  - name: held
+    frames: 0a000000i
+    durations:
+    - 0
+    loop: 0
+  - name: happy
+    frames: 0b0000000c000000i
+    durations:
+    - 0.12
+    - 0.12
+    loop: 1

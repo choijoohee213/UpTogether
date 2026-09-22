@@ -112,12 +112,16 @@ Assets/_Game/
     ParallaxLayer.cs      카메라보다 느리게 흐르는 배경 조각
     Backdrop.cs           구름·언덕 배치
     Puffs.cs              점프·착지 먼지
+    SpriteClip.cs         프레임별 지속시간을 가진 클립
+    CharacterSpriteSet.cs 캐릭터 한 마리의 프레임 + 클립 표 (파일명 = 클래스명 필수)
+    DogVisual.cs          강아지 상태 → 스프라이트 교체
   Scripts/Editor/
     StageBaker.cs         UpTogether ▸ Bake Stages
     SceneBuilder.cs       UpTogether ▸ Build Play Scene
     JumpVerifier.cs       UpTogether ▸ Verify Jump Heights
     WebBuilder.cs         UpTogether ▸ Build for Web
     UrpSetup.cs           UpTogether ▸ Switch to URP 2D
+    DogArtImporter.cs     UpTogether ▸ Import Dog Art
 ```
 
 ---
@@ -149,6 +153,17 @@ Unity는 반대다. `CharacterBody`는 전부 Unity 기준으로 뒤집어 놨�
 Quality 단계별 `renderPipeline` 은 비워둔 게 정상이다 — 비면 Graphics의 기본값(= URP)을 따른다.
 나중에 2D Light를 쓸 수 있다 (스테이지 3 '별빛 언덕'에 쓸만하다).
 
+**ScriptableObject 클래스는 파일명과 이름이 같아야 한다.** Unity는 `.cs` 파일 하나당
+MonoScript 하나를 파일명으로 만든다. `CharacterSpriteSet` 을 `SpriteClip.cs` 안에 뒀더니
+에셋의 `m_Script` 가 0 으로 저장되고 `LoadAssetAtPath<CharacterSpriteSet>` 이 null 을 돌려줬다.
+경고도 오류도 안 난다. 실제로 이걸로 한 번 당했다.
+
+**스프라이트 PPU는 135다. JSON 의 48이 아니다.** 48이면 48px 셀이 1유닛이라
+강아지 키가 0.83유닛이 되는데, 발판 세로 간격이 0.68~1.02유닛이라 말이 안 된다.
+135면 40px 몸통이 0.30유닛으로 프로토타입 강아지와 맞고, 세로 8유닛 화면이 1080px일 때
+유닛당 135px이라 픽셀아트가 1:1로 찍힌다. 피벗(0.47, 0.0625)은 비율이라 그대로 쓴다 —
+전 견종의 접지 프레임 바닥여백이 정확히 3px 이라 발이 몸 위치에 정확히 맞는다.
+
 **실행 순서가 고정돼 있다.** 입력(-200) → 발판 이동(-100) → 플레이어(0) → 강아지(10).
 강아지가 플레이어보다 먼저 돌면 한 프레임 낡은 상태를 읽는다.
 
@@ -166,13 +181,26 @@ Quality 단계별 `renderPipeline` 은 비워둔 게 정상이다 — 비면 Gra
 잔디+흙 발판, 공중 발판 그림자, 점프·착지 먼지, 원형 화살표 조작 버튼.
 전부 `ProceduralArt.cs` 가 코드로 굽는다.
 
-**캐릭터는 아직 네모다.** 이건 의도된 것이다 — PROJECT.md 5절이
-"코드로 그리지 않는다. 캐릭터는 이미지 에셋으로 간다"고 못 박아뒀다.
-`ProceduralArt` 에 캐릭터를 추가하지 말 것. 나중에 진짜 아트로 갈아끼울 때 버려지는 작업이 된다.
+**강아지 아트는 들어왔다.** 픽셀아트 시트, 7견종 × 13프레임.
+`Art/Dog/dog_sprites_v2/{breed}48_sheet.png` (624×48, 셀 48×48) + `dog_sprites.json`.
 
-필요 프레임 (PROJECT.md): 대기 1 / 달리기 4 / 점프 1 / 낙하 1 / 안김 1, 플레이어와 강아지 각각.
-STYLE 프롬프트는 PROJECT.md 5절에 있다. 생성 AI를 쓸 거면 **상업적 이용 조건을 먼저 확인**할 것
-(예: FLUX.1 dev는 비상업 라이선스라 못 쓴다).
+`UpTogether ▸ Import Dog Art` 가 텍스처 설정·슬라이스·에셋 생성을 한 번에 한다.
+결과는 `Art/Dog/Generated/{breed}.asset` (CharacterSpriteSet). 기본 견종은 `shiba`,
+`SceneBuilder.DefaultBreed` 에서 바꾼다.
+
+| 상태 | 프레임 | 루프 | 비고 |
+|---|---|---|---|
+| walk | 0–3 | O | 각 0.13s. 1·3번은 의도적으로 1px 통통 튄다 |
+| idle | 4–5 | O | 1.5s / 0.15s — 숨쉬기 + 눈 깜빡임 |
+| jump | 6 | X | vy > 0 일 때 |
+| fall | 7–8 | O | 각 0.1s. vy ≤ 0 으로 바뀌는 순간 전환 |
+| land | 9 | X | 0.12s 재생 후 idle/walk 자동 복귀 |
+| held | 10 | X | 안김. **주인공 팔 스프라이트를 앞에 겹쳐야 완성된다** |
+| happy | 11–12 | O | 각 0.12s. 아직 트리거 없음 (친밀도·클리어에 붙일 자리) |
+
+**플레이어는 아직 네모다.** PROJECT.md 5절대로 이미지 에셋으로 간다.
+`ProceduralArt` 에 캐릭터를 추가하지 말 것 — 진짜 아트로 갈아끼울 때 버려지는 작업이 된다.
+생성 AI를 쓸 거면 **상업적 이용 조건을 먼저 확인**할 것 (예: FLUX.1 dev는 비상업 라이선스).
 
 ---
 

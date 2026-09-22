@@ -12,6 +12,8 @@ namespace UpTogether.EditorTools
     {
         const string TuningPath = "Assets/_Game/Tuning.asset";
         const string ScenePath = "Assets/_Game/Playground.unity";
+        /// 기본 견종. Art/Dog/Generated 에 구워진 것 중에서 고른다.
+        const string DefaultBreed = "shiba";
 
         [MenuItem("UpTogether/Build Play Scene")]
         public static void Build()
@@ -76,8 +78,9 @@ namespace UpTogether.EditorTools
             player.puffs = puffs;
             playerGo.transform.position = new Vector3(0.90f, stage.groundY, 0f);
 
-            var dogGo = MakeBody("Dog", new Color(0.85f, 0.62f, 0.40f), 0.30f, 0.30f, tuning);
+            var dogGo = MakeDog(tuning, out var dogVisual);
             var dog = dogGo.AddComponent<DogController>();
+            if (dogVisual != null) dogVisual.dog = dog;
             dog.tuning = tuning;
             dog.stage = runner;
             dog.player = player;
@@ -105,6 +108,7 @@ namespace UpTogether.EditorTools
             if (sky.stage == null)           missing.Add("Sky.stage");
             if (backdrop.stage == null)      missing.Add("Backdrop.stage");
             if (player.puffs == null)        missing.Add("Player.puffs");
+            if (dogVisual != null && dogVisual.spriteSet == null) missing.Add("DogVisual.spriteSet");
             if (missing.Count > 0)
             {
                 Debug.LogError("씬 참조 연결 실패 — 저장하지 않았습니다: " + string.Join(", ", missing));
@@ -114,6 +118,39 @@ namespace UpTogether.EditorTools
             EditorSceneManager.SaveScene(scene, ScenePath);
             Debug.Log($"씬을 만들었습니다: {ScenePath}\n재생 버튼을 누르고 ←/→ + Space 로 확인하세요.\n" +
                       "수치는 Assets/_Game/Tuning.asset 인스펙터에서 재생 중에도 바꿀 수 있습니다.");
+        }
+
+        /// 강아지. 구워진 스프라이트가 있으면 쓰고, 없으면 임시 네모로 떨어진다.
+        /// 스프라이트 피벗이 발바닥에 있어서 Art 를 (0,0) 에 두면 발이 몸 위치에 맞는다.
+        static GameObject MakeDog(Tuning tuning, out DogVisual visual)
+        {
+            var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(
+                $"Assets/_Game/Art/Dog/Generated/{DefaultBreed}.asset");
+
+            if (set == null)
+            {
+                Debug.LogWarning($"{DefaultBreed} 스프라이트 세트가 없어 임시 네모를 씁니다. " +
+                                 "UpTogether ▸ Import Dog Art 를 먼저 실행하세요.");
+                visual = null;
+                return MakeBody("Dog", new Color(0.85f, 0.62f, 0.40f), 0.30f, 0.30f, tuning);
+            }
+
+            var go = new GameObject("Dog");
+            var body = go.AddComponent<CharacterBody>();
+            body.tuning = tuning;
+
+            var art = new GameObject("Art");
+            art.transform.SetParent(go.transform, false);   // 피벗이 발이라 오프셋 없음
+
+            var sr = art.AddComponent<SpriteRenderer>();
+            sr.sprite = set.Frame(4);                       // idle 첫 장
+            sr.sortingOrder = 10;
+
+            visual = go.AddComponent<DogVisual>();
+            visual.spriteSet = set;
+            visual.target = sr;
+            visual.body = body;
+            return go;
         }
 
         static GameObject MakeBody(string name, Color color, float w, float h, Tuning tuning)
