@@ -13,11 +13,9 @@ namespace UpTogether.EditorTools
         const int ExpectedVersion = 2;
 
         /// ★ JSON 의 ppu(48)를 쓰지 않는다 ★
-        /// 48이면 48px 셀이 1유닛이라 강아지 키가 0.83유닛이 되는데,
-        /// 발판 세로 간격이 0.68~1.02유닛이라 말이 안 된다.
-        /// 135면 40px 몸통이 0.30유닛으로 프로토타입 강아지(~0.28)와 맞고,
-        /// 세로 8유닛 화면이 1080px일 때 유닛당 135px이라 픽셀아트가 1:1로 찍힌다.
-        public const float PixelsPerUnit = 135f;
+        /// JSON 이 말하는 규칙("강아지와 주인공이 같은 PPU")은 지키되 절대값만 우리 월드에 맞춘다.
+        /// 값과 근거는 SheetSlicer.CharacterPixelsPerUnit 참고.
+        const float PixelsPerUnit = SheetSlicer.CharacterPixelsPerUnit;
 
         /// 출처: dog_sprites.json (v2). JSON 이 바뀌면 여기도 고쳐야 한다.
         /// 아래 Version 검사가 불일치를 잡아준다.

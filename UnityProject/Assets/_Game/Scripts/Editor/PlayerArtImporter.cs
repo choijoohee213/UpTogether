@@ -12,12 +12,8 @@ namespace UpTogether.EditorTools
         const string OutDir = "Assets/_Game/Art/Player/Generated";
 
         /// ★ JSON 의 ppu(48)를 쓰지 않는다 ★
-        /// JSON 이 말하는 규칙 — "강아지와 같은 PPU 여야 픽셀 크기가 맞는다" — 은 그대로 지킨다.
-        /// 다만 절대값이 다르다. 우리 월드는 PPU 100(프로토타입 px) 기준이라 48이면
-        /// 64px 셀이 1.33유닛이 되어 주인공이 발판 간격보다 커진다.
-        /// 강아지와 같은 135 를 쓰면 몸통 50~56px 이 0.37~0.41유닛으로
-        /// 프로토타입 주인공(~0.44)과 맞고, 강아지와의 상대 크기도 아트 의도대로 유지된다.
-        const float PixelsPerUnit = DogArtImporter.PixelsPerUnit;
+        /// 값과 근거는 SheetSlicer.CharacterPixelsPerUnit 참고.
+        const float PixelsPerUnit = SheetSlicer.CharacterPixelsPerUnit;
 
         /// ★ JSON 의 pivot y(3/64)를 쓰지 않는다 ★
         /// 8캐릭터 전부 접지 프레임의 바닥 여백이 2px 이다 (강아지는 3px 이라 JSON 과 맞았다).
