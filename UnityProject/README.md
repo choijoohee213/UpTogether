@@ -6,7 +6,7 @@
 > 아래에서 참조하는 `PROJECT.md` / `SUMMARY.md` 는 기획 문서로, 저장소에 넣지 않고
 > 로컬에만 둔다. 수치와 방침의 출처를 표시하기 위해 이름만 남겨둔 것이다.
 
-Unity 6000.6.2f1, Built-in 렌더 파이프라인.
+Unity 6000.6.2f1, **URP 2D** (Built-in은 Unity 6.5부터 deprecated라 옮겼다).
 
 ---
 
@@ -22,6 +22,8 @@ Unity Hub ▸ Add ▸ 이 폴더를 열고 `Assets/_Game/Playground.unity` 재�
 | **UpTogether ▸ Bake Stages** | 스테이지 3개를 다시 굽는다 (+ 발판 제약 검사) |
 | **UpTogether ▸ Build Play Scene** | `Playground.unity` 를 다시 만든다 (기존 씬을 덮어쓴다) |
 | **UpTogether ▸ Verify Jump Heights** | 점프 높이가 프로토타입과 같은지 잰다 |
+| **UpTogether ▸ Build for Web** | 웹 빌드 (아이폰 사파리 확인용) |
+| **UpTogether ▸ Switch to URP 2D** | 렌더 파이프라인 설정. 이미 적용돼 있어서 다시 쓸 일은 없다 |
 
 ### 설치된 플랫폼 모듈
 Android Build Support (+ SDK & NDK Tools, OpenJDK), Web. iOS는 아직 없다.
@@ -115,6 +117,7 @@ Assets/_Game/
     SceneBuilder.cs       UpTogether ▸ Build Play Scene
     JumpVerifier.cs       UpTogether ▸ Verify Jump Heights
     WebBuilder.cs         UpTogether ▸ Build for Web
+    UrpSetup.cs           UpTogether ▸ Switch to URP 2D
 ```
 
 ---
@@ -140,6 +143,11 @@ Unity는 반대다. `CharacterBody`는 전부 Unity 기준으로 뒤집어 놨�
 **생성기의 난수 소비 순서를 건드리지 말 것.** 원본 JS의 `&&` 단축 평가 때문에
 움직이는 발판이 없는 스테이지에서는 해당 `R()`이 호출되지 않는다.
 이걸 무심코 "정리"하면 맵이 통째로 달라진다.
+
+**렌더 파이프라인은 URP 2D다.** 3D용 `UniversalRendererData`가 아니라 `Renderer2DData`를 쓴다.
+설정 에셋은 `Assets/_Game/Rendering/` 에 있고 Graphics 설정에 물려 있다.
+Quality 단계별 `renderPipeline` 은 비워둔 게 정상이다 — 비면 Graphics의 기본값(= URP)을 따른다.
+나중에 2D Light를 쓸 수 있다 (스테이지 3 '별빛 언덕'에 쓸만하다).
 
 **실행 순서가 고정돼 있다.** 입력(-200) → 발판 이동(-100) → 플레이어(0) → 강아지(10).
 강아지가 플레이어보다 먼저 돌면 한 프레임 낡은 상태를 읽는다.
