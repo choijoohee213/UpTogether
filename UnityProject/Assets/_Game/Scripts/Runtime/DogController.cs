@@ -23,9 +23,6 @@ namespace UpTogether
         const float AimTolerancePx = 10f;
         /// 목표 발판 위로 이만큼 여유를 두고 뛴다
         const float ClearancePx = 12f;
-        /// 따라잡을 때 이만큼 아래에서 뛰어올라 들어온다.
-        /// 옆에 그냥 생겨나면 "갑자기 팍 나타난" 느낌이 난다.
-        const float CatchUpEntryDropPx = 90f;
 
         public Tuning tuning;
         public StageRunner stage;
@@ -175,11 +172,10 @@ namespace UpTogether
             if (Mathf.Abs(dx) > tuning.DogTeleportXU || cantReach || plummeting)
             {
                 TeleportCount++;
-                // 옆에 툭 생겨나면 튄다. 아래에서 솟아올라 착지하게 한다 —
-                // 발판은 원웨이라 아래에서 통과해 올라간다.
-                float drop = Px.U(CatchUpEntryDropPx);
-                body.Teleport(p.X - Px.U(24f) * p.face, p.Y - drop);
-                body.vy = JumpSpeedFor(drop + Px.U(ClearancePx));
+                // 플레이어 옆에 바로 놓는다.
+                // 예전엔 아래에서 솟아오르게 했는데, 그 점프가 위 발판에 착지해버려
+                // 강아지가 플레이어보다 높이 올라가는 일이 있었다.
+                body.Teleport(p.X - Px.U(24f) * p.face, p.Y);
                 body.face = p.face;
                 hasStep = false;
             }

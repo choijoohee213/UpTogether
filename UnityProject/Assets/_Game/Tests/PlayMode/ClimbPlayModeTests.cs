@@ -513,5 +513,20 @@ namespace UpTogether.Tests
             Assert.AreEqual(before, dog.TeleportCount,
                 $"평소 등반 중에 따라붙기가 {dog.TeleportCount - before}회 터졌다");
         }
+
+        [UnityTest]
+        public IEnumerator 따라붙은_뒤_플레이어보다_높이_올라가지_않는다()
+        {
+            // 아래에서 솟아오르게 했을 때, 그 점프가 위 발판에 착지해
+            // 강아지가 플레이어를 앞질러 올라가는 일이 있었다.
+            var body = dog.GetComponent<CharacterBody>();
+            yield return Steps(30);
+
+            body.Teleport(player.Body.X, player.Body.Y - Px.U(320f));
+            yield return Steps(90);
+
+            float above = (dog.transform.position.y - player.Body.Y) * Px.PPU;
+            Assert.Less(above, 40f, $"강아지가 플레이어보다 {above:F0}px 위에 있다");
+        }
     }
 }
