@@ -39,20 +39,15 @@ namespace UpTogether
         [Tooltip("걷기 속도(px/frame). 플레이어(3.6)보다 느리면 계속 뒤처져서 " +
                  "발판 끝이 아니라 가운데에서 뛰게 되고, 가로 거리가 모자라 못 닿는다.")]
         public float dogSpeed = 4.2f;
-        [Tooltip("공중에서의 가로 속도(px/frame). 강아지는 플레이어처럼 발판 끝에서 뛰지 못하고 " +
-                 "뒤(가운데)에서 뛰게 된다. 가운데에서 다음 발판까지는 최대 153px 이라 " +
-                 "이 속도가 낮으면 늘 못 닿고 떨어진다. 9.0 이면 약 173px 을 간다.")]
-        public float dogAirSpeed = 9.0f;
         public float dogTrailDistance = 26f;
-        public float dogJumpTrigger = 34f;
-        public float dogJumpSpeed = 12.2f;
-        public float dogTeleportX = 640f;
-        [Tooltip("한 번 뛰어 닿는 높이보다 이만큼(px) 더 벌어지면 바로 따라붙는다. " +
-                 "강아지는 '지금 칸에서 다음 칸'만 스스로 오르고, 그보다 멀어지면 " +
-                 "한 칸씩 기어오르지 않고 그냥 쫓아온다.")]
-        public float dogCatchUpBuffer = 12f;
-        [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
-        public float dogSyncJumpRange = 170f;
+        [Tooltip("플레이어가 마지막으로 디딘 발판보다 이만큼(px) 높이 차이가 나면 워프 대상. " +
+                 "발판 한 칸이 68~102px 이라 그보다 작게 잡아야 다른 칸으로 갔을 때 따라온다.")]
+        public float dogWarpHeight = 45f;
+        [Tooltip("가로로 이만큼(px) 멀어지면 워프 대상.")]
+        public float dogWarpDistance = 260f;
+        [Tooltip("멀어진 상태가 이만큼(초) 이어져야 워프한다. " +
+                 "0 이면 잠깐 스쳐도 튀어서 툭툭 끊겨 보인다.")]
+        public float dogWarpDelay = 0.35f;
         public float dogClingFallSpeed = 7f;
         [Tooltip("마지막으로 서 있던 높이보다 이만큼(px) 아래로 내려가야 안는다. " +
                  "없으면 높이 뛰었다 내려오는 것만으로도 안겨버린다. " +
@@ -73,13 +68,9 @@ namespace UpTogether
         public float WallMarginU     => Px.U(wallMargin);
         public float GrabMarginU     => Px.U(platformGrabMargin);
         public float DogSpeedV       => Px.V(dogSpeed);
-        public float DogAirSpeedV    => Px.V(dogAirSpeed);
         public float DogTrailU       => Px.U(dogTrailDistance);
-        public float DogJumpTrigU    => Px.U(dogJumpTrigger);
-        public float DogJumpV        => Px.V(dogJumpSpeed);
-        public float DogTeleportXU   => Px.U(dogTeleportX);
-        public float DogCatchUpBufferU => Px.U(dogCatchUpBuffer);
-        public float DogSyncJumpRangeU => Px.U(dogSyncJumpRange);
+        public float DogWarpHeightU  => Px.U(dogWarpHeight);
+        public float DogWarpDistanceU => Px.U(dogWarpDistance);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);
         public float DogClingMinDropU => Px.U(dogClingMinDrop);
         public float DogClingOffXU   => Px.U(dogClingOffsetX);

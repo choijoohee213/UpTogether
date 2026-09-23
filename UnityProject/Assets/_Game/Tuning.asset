@@ -26,12 +26,10 @@ MonoBehaviour:
   camFollow: 0.12
   camViewportY: 0.58
   dogSpeed: 4.2
-  dogAirSpeed: 9
   dogTrailDistance: 26
-  dogJumpTrigger: 34
-  dogJumpSpeed: 12.2
-  dogTeleportX: 640
-  dogCatchUpBuffer: 12
+  dogWarpHeight: 45
+  dogWarpDistance: 260
+  dogWarpDelay: 0.35
   dogClingMinDrop: 70
   dogClingFallSpeed: 7
   dogClingLerp: 0.35
