@@ -4,34 +4,38 @@ namespace UpTogether
 {
     /// 강아지. 메이플스토리 펫 방식이다 (레퍼런스 영상 분석).
     ///
-    /// ★ 중력도 발판 충돌도 없다 ★
-    /// 영상에서 펫은 발판이 없는 허공에 떠서 플레이어 쪽으로 가로질러 온다.
-    /// 그래서 떨어질 수도, 막힐 수도, 앞서 나갈 수도 없다.
-    /// 발판을 밟고 따라오게 만들었을 때 끝없이 나던 문제들이 구조적으로 사라진다.
+    /// 걷고 뛴다. 다만 ★경로를 계산하지 않는다★.
+    /// 어느 발판을 밟고 어떻게 올라갈지 따지지 않고, 그냥 플레이어 쪽으로 걷다가
+    /// 위에 있으면 폴짝 뛴다. 성공하든 못 하든 상관없다 —
+    /// 못 따라가면 워프가 덮어준다. 그래서 갇히거나 앞서 나갈 일이 없다.
     ///
-    /// 목표는 '플레이어의 발밑'이라, 평지에서는 걸어다니는 것처럼 보이고
-    /// 플레이어가 뛰어오를 때만 떠서 따라온다.
+    /// 예전에 발판을 골라 경로를 짜게 만들었더니 헛뛰고 떨어지거나,
+    /// 한 칸씩 기계적으로 기어오르거나, 플레이어보다 먼저 도착하는 문제가 끝없이 나왔다.
     [DefaultExecutionOrder(10)]
     [RequireComponent(typeof(CharacterBody))]
     public class DogController : MonoBehaviour
     {
         /// 이 안에 들어오면 멈춘다. 없으면 제자리에서 덜덜 떤다.
-        const float SettleDistancePx = 6f;
-        /// 멀수록 빨리 따라온다. 이 거리에서 최고 속도.
-        const float FullSpeedDistancePx = 220f;
-        /// 걷는 것처럼 보이게 하는 최저 속도
-        const float MinSpeedPx = 2.0f;
+        const float FollowDeadzonePx = 10f;
+        /// 발판 가장자리에서 이만큼 안쪽까지만 걸어간다
+        const float EdgeInsetPx = 6f;
+        /// 연달아 뛰지 않도록 두는 간격
+        const float HopInterval = 0.45f;
+        /// 워프 직후 잠깐은 다시 워프하지 않는다
+        const float WarpCooldown = 0.3f;
 
         public Tuning tuning;
         public StageRunner stage;
         public PlayerController player;
 
         public bool IsClinging { get; private set; }
-        /// 계측용. 너무 멀어 즉시 붙은 횟수.
+        /// 계측용
         public int TeleportCount { get; private set; }
 
         CharacterBody body;
-        float bobPhase;
+        float farSince = -1f;
+        float lastWarp = -99f;
+        float lastHop = -99f;
 
         void Awake()
         {
@@ -39,8 +43,6 @@ namespace UpTogether
             body = GetComponent<CharacterBody>();
             body.tuning = tuning;
             body.Bind(stage);
-            // 물리를 쓰지 않는다. 애니메이션이 걷기/대기를 고르도록 접지 상태만 유지한다.
-            body.grounded = true;
         }
 
         void FixedUpdate()
@@ -49,7 +51,9 @@ namespace UpTogether
             var p = player.Body;
 
             if (UpdateCling(dt, p)) return;
+
             Follow(dt, p);
+            WarpIfLeftBehind(p);
         }
 
         /// 크게 떨어질 때 달려와 품에 안긴다. 이 게임만의 동작이라 그대로 둔다.
@@ -67,58 +71,57 @@ namespace UpTogether
             body.Y += ((p.Y + tuning.DogClingOffYU) - body.Y) * k;
             body.face = p.face;
             body.vx = 0f; body.vy = 0f;
-            body.grounded = true;
             if (p.grounded) IsClinging = false;
             return true;
         }
 
-        /// 플레이어 발밑을 목표로 곧장 간다. 발판은 무시한다.
+        /// 플레이어 뒤를 따라 걷고, 위에 있으면 폴짝 뛴다. 어디에 착지할지는 따지지 않는다.
         void Follow(float dt, CharacterBody p)
         {
-            Vector2 target = new Vector2(p.X - tuning.DogTrailU * p.face, p.Y);
-            Vector2 here = new Vector2(body.X, body.Y);
-            Vector2 to = target - here;
-            float dist = to.magnitude;
+            float want = p.X - tuning.DogTrailU * p.face;
 
-            if (dist > tuning.DogWarpDistanceU)
+            // 딛고 선 발판 밖으로는 걸어 나가지 않는다.
+            // 목표가 발판 끝을 넘어가면 그대로 걸어 나가 떨어진다.
+            if (body.groundIndex >= 0)
             {
-                // 화면 밖으로 벗어날 만큼 멀면 그냥 옆에 놓는다
-                body.Teleport(target.x, target.y);
-                TeleportCount++;
-                body.grounded = true;
-                return;
+                var cur = stage.GetPlatform(body.groundIndex);
+                float inset = Px.U(EdgeInsetPx);
+                float lo = cur.left + inset, hi = cur.right - inset;
+                if (lo <= hi) want = Mathf.Clamp(want, lo, hi);
             }
 
-            float settle = Px.U(SettleDistancePx);
-            if (dist < settle)
+            float dead = Px.U(FollowDeadzonePx);
+            int dir = body.X > want + dead ? -1 : (body.X < want - dead ? 1 : 0);
+            body.Step(dt, dir, tuning.DogSpeedV);
+
+            // 플레이어가 위에 있으면 뛴다. 착지 지점은 따지지 않는다 —
+            // 못 올라가면 워프가 덮어준다.
+            bool playerAbove = player.LastGroundedY - body.Y > tuning.DogJumpTrigU;
+            if (body.grounded && playerAbove && Time.time - lastHop > HopInterval)
             {
-                body.vx = 0f;
-                Bob(dt, false);
-                return;
+                body.vy = tuning.DogJumpV;
+                lastHop = Time.time;
             }
-
-            // 멀수록 빠르게. 가까우면 살살 붙어서 덜덜 떨지 않는다.
-            float t = Mathf.Clamp01(dist / Px.U(FullSpeedDistancePx));
-            float speed = Mathf.Lerp(Px.V(MinSpeedPx), tuning.DogSpeedV, t);
-            Vector2 next = here + to / dist * Mathf.Min(speed * dt, dist);
-
-            body.vx = (next.x - here.x) / dt;   // 걷기 애니메이션 판정에 쓰인다
-            if (Mathf.Abs(to.x) > settle) body.face = to.x > 0f ? 1 : -1;
-
-            body.X = next.x;
-            body.Y = next.y;
-            body.vy = 0f;
-            body.grounded = true;
-            Bob(dt, Mathf.Abs(body.vx) > Px.V(0.4f));
         }
 
-        /// 떠 있을 때 살짝 위아래로 흔들어 붕 떠 보이게 한다.
-        void Bob(float dt, bool moving)
+        /// 같은 높이로 못 오는 상태가 잠깐 이어지면 플레이어 옆으로 옮겨간다.
+        void WarpIfLeftBehind(CharacterBody p)
         {
-            bobPhase += dt * (moving ? 9f : 4f);
-            float amount = Px.U(moving ? 1.5f : 1.0f);
-            transform.position = new Vector3(
-                body.X, body.Y + Mathf.Sin(bobPhase) * amount, transform.position.z);
+            // 플레이어 점프 정점으로 판단하면 안 된다. 마지막으로 디딘 발판을 기준으로 본다.
+            float dx = Mathf.Abs(p.X - body.X);
+            float dy = Mathf.Abs(player.LastGroundedY - body.Y);
+            bool far = dy > tuning.DogWarpHeightU || dx > tuning.DogWarpDistanceU;
+
+            if (!far) { farSince = -1f; return; }
+            if (farSince < 0f) farSince = Time.time;
+            if (Time.time - farSince < tuning.dogWarpDelay) return;
+            if (Time.time - lastWarp < WarpCooldown) return;
+
+            body.Teleport(p.X - Px.U(24f) * p.face, p.Y);
+            body.face = p.face;
+            TeleportCount++;
+            farSince = -1f;
+            lastWarp = Time.time;
         }
     }
 }

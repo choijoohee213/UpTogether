@@ -40,6 +40,10 @@ namespace UpTogether
                  "발판 끝이 아니라 가운데에서 뛰게 되고, 가로 거리가 모자라 못 닿는다.")]
         public float dogSpeed = 4.2f;
         public float dogTrailDistance = 26f;
+        [Tooltip("플레이어가 이만큼(px) 위에 있으면 폴짝 뛴다.")]
+        public float dogJumpTrigger = 34f;
+        [Tooltip("뛰는 세기(px/frame). 경로를 계산하지 않으므로 못 올라가도 상관없다 — 워프가 덮는다.")]
+        public float dogJumpSpeed = 12.2f;
         [Tooltip("플레이어가 마지막으로 디딘 발판보다 이만큼(px) 높이 차이가 나면 워프 대상. " +
                  "발판 한 칸이 68~102px 이라 그보다 작게 잡아야 다른 칸으로 갔을 때 따라온다.")]
         public float dogWarpHeight = 45f;
@@ -69,6 +73,8 @@ namespace UpTogether
         public float GrabMarginU     => Px.U(platformGrabMargin);
         public float DogSpeedV       => Px.V(dogSpeed);
         public float DogTrailU       => Px.U(dogTrailDistance);
+        public float DogJumpTrigU    => Px.U(dogJumpTrigger);
+        public float DogJumpV        => Px.V(dogJumpSpeed);
         public float DogWarpHeightU  => Px.U(dogWarpHeight);
         public float DogWarpDistanceU => Px.U(dogWarpDistance);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);

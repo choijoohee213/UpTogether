@@ -27,6 +27,8 @@ MonoBehaviour:
   camViewportY: 0.58
   dogSpeed: 4.2
   dogTrailDistance: 26
+  dogJumpTrigger: 34
+  dogJumpSpeed: 12.2
   dogWarpHeight: 45
   dogWarpDistance: 260
   dogWarpDelay: 0.35
