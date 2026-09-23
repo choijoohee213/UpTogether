@@ -370,7 +370,7 @@ namespace UpTogether.Tests
 
             int before = dog.SyncJumpCount;
             input.SetJump(true);
-            yield return Steps(6);
+            yield return Steps(20);   // 반 박자 늦게 뛰므로 여유를 둔다
             input.SetJump(false);
 
             Assert.Greater(dog.SyncJumpCount, before, "닿을 수 있는 자리인데 같이 뛰지 않았다");

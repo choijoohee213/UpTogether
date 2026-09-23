@@ -23,6 +23,9 @@ namespace UpTogether
         const float AimTolerancePx = 10f;
         /// 목표 발판 위로 이만큼 여유를 두고 뛴다
         const float ClearancePx = 12f;
+        /// 플레이어를 따라 뛸 때의 여유. 크게 잡아 체공을 늘린다 —
+        /// 목표에 딱 맞게 뛰면 플레이어보다 먼저 도착해 버린다.
+        const float SyncClearancePx = 55f;
 
         public Tuning tuning;
         public StageRunner stage;
@@ -79,12 +82,13 @@ namespace UpTogether
 
             // ★ 지금 자리에서 그 발판까지 실제로 닿는지 본다 ★
             // 플레이어는 발판 끝에서 뛰지만 강아지는 뒤에 있다.
-            // 닿지 않는데 덩달아 뛰면 그대로 떨어진다 — 여기서는 넘기고
-            // 걸어가서 제자리에 섰을 때 뛴다.
+            // 닿지 않는데 덩달아 뛰면 그대로 떨어진다.
             float rise = stepY - body.Y;
             if (Mathf.Abs(stepLandX - body.X) > HorizontalReach(rise)) return;
 
-            body.vy = JumpSpeedFor(rise + Px.U(ClearancePx));
+            // 목표에 딱 맞게 뛰면 플레이어보다 먼저 도착해 버린다.
+            // 조금 더 높이 띄워 체공을 늘리면 나란히 도착한다.
+            body.vy = JumpSpeedFor(rise + Px.U(SyncClearancePx));
             SyncJumpCount++;
         }
 
@@ -179,12 +183,11 @@ namespace UpTogether
             // 같이 떨어진다 — 다음 발판으로 뛸 때마다 강아지가 떨어지던 원인이다.
             float dyGround = player.LastGroundedY - body.Y;
 
-            // 땅에 있을 때: 여기서 한 번에 못 닿으면 바로
-            bool cantReach = body.grounded && dyGround > reach + tuning.DogCatchUpBufferU;
-            // 떨어지는 중일 때: 이미 두 칸 넘게 벌어졌으면 착지를 기다리지 않는다.
-            bool plummeting = !body.grounded && body.vy < 0f && dyGround > reach * 2f;
+            // 한 번에 못 닿는 높이면 바로 따라붙는다. 공중이어도 마찬가지다 —
+            // 땅에 있을 때만 보면, 뛰는 동안에는 안 터져서 한 칸씩 기어오르게 된다.
+            bool cantReach = dyGround > reach + tuning.DogCatchUpBufferU;
 
-            if (Mathf.Abs(dx) > tuning.DogTeleportXU || cantReach || plummeting)
+            if (Mathf.Abs(dx) > tuning.DogTeleportXU || cantReach)
             {
                 TeleportCount++;
                 // 플레이어 옆에 바로 놓는다.
