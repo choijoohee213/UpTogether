@@ -73,13 +73,18 @@ namespace UpTogether
             if (IsClinging || !body.grounded) return;
             if (Mathf.Abs(player.Body.X - body.X) > tuning.DogSyncJumpRangeU) return;
 
-            // 목표 발판을 먼저 잡는다. 이게 없으면 그냥 위로만 뛰었다가
-            // 착지할 곳이 없어 떨어진다 — 플레이어를 따라 뛸 때 제일 자주 나던 문제.
+            // 목표 발판을 먼저 잡는다. 없으면 뛰어봐야 착지할 곳이 없다.
             if (!hasStep) hasStep = TryPickStep(player.Body);
+            if (!hasStep) return;
 
-            body.vy = hasStep
-                ? JumpSpeedFor(stepY - body.Y + Px.U(ClearancePx))
-                : tuning.DogJumpV;
+            // ★ 지금 자리에서 그 발판까지 실제로 닿는지 본다 ★
+            // 플레이어는 발판 끝에서 뛰지만 강아지는 뒤에 있다.
+            // 닿지 않는데 덩달아 뛰면 그대로 떨어진다 — 여기서는 넘기고
+            // 걸어가서 제자리에 섰을 때 뛴다.
+            float rise = stepY - body.Y;
+            if (Mathf.Abs(stepLandX - body.X) > HorizontalReach(rise)) return;
+
+            body.vy = JumpSpeedFor(rise + Px.U(ClearancePx));
             SyncJumpCount++;
         }
 
@@ -118,7 +123,11 @@ namespace UpTogether
             // ★ 땅에서는 반드시 다시 고른다 ★ — 예전엔 '목표에 도달했을 때만' 갱신해서,
             //   한 번 떨어져 목표가 사거리(최대 108px) 밖으로 벗어나면
             //   영원히 그 목표만 보고 헛뛰었다.
-            if (body.grounded)
+            // ★ 막 뛴 프레임에는 건드리지 않는다 ★
+            // 플레이어와 같이 뛴 직후에는 아직 grounded 가 true 다. 여기서 목표를 다시 고르면
+            // 그 순간 플레이어가 위에 있지 않아 climbing 이 false 가 되고 목표가 지워진다.
+            // 그러면 강아지는 올바른 속도로 뛰어놓고 공중에서 엉뚱한 데로 방향을 틀어 떨어진다.
+            if (body.grounded && body.vy <= 0f)
                 hasStep = climbing && TryPickStep(p);
 
             if (hasStep)

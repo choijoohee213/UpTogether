@@ -354,18 +354,26 @@ namespace UpTogether.Tests
         }
 
         [UnityTest]
-        public IEnumerator 플레이어가_뛰면_강아지도_같이_뛴다()
+        public IEnumerator 닿을_수_있는_자리면_플레이어와_같이_뛴다()
         {
-            // 예전에는 플레이어가 34px 위로 올라간 뒤에야 반응해서 한 박자 늦었다.
-            yield return Steps(30);
-            Assert.IsTrue(dog.GetComponent<CharacterBody>().grounded, "강아지가 땅에 있지 않다");
+            // 예전엔 자리를 안 보고 무조건 같이 뛰었다. 플레이어는 발판 끝에서 뛰지만
+            // 강아지는 뒤에 있어서, 덩달아 뛰면 가로로 못 닿고 그대로 떨어졌다.
+            // 이제는 닿을 수 있을 때만 같이 뛴다.
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+            var first = plats[1];
+            float under = first.x + first.width * 0.5f;
+
+            player.Body.Teleport(under, stage.Data.groundY);
+            dog.GetComponent<CharacterBody>().Teleport(under, stage.Data.groundY);
+            yield return Steps(40);
 
             int before = dog.SyncJumpCount;
             input.SetJump(true);
             yield return Steps(6);
             input.SetJump(false);
 
-            Assert.Greater(dog.SyncJumpCount, before, "플레이어가 뛰었는데 강아지가 안 뛰었다");
+            Assert.Greater(dog.SyncJumpCount, before, "닿을 수 있는 자리인데 같이 뛰지 않았다");
         }
 
         [UnityTest]
@@ -555,6 +563,61 @@ namespace UpTogether.Tests
             input.SetRight(false);
 
             Assert.IsTrue(sawApex, "점프가 일어나지 않았다");
+        }
+
+        /// 실제 플레이처럼: 플레이어가 발판 끝에서 다음 발판으로 뛴다.
+        /// 강아지는 뒤(발판 가운데)에 있다. 이게 진짜 상황이다.
+        /// 여기서 순간이동이 나오면 강아지가 제 발로 못 따라온다는 뜻이다.
+        [UnityTest]
+        public IEnumerator 실제_점프로_이동할_때_강아지가_제_발로_따라온다()
+        {
+            var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
+            plats.Sort((a, b) => a.y.CompareTo(b.y));
+
+            var body = dog.GetComponent<CharacterBody>();
+            var log = new System.Text.StringBuilder("[진단-실제점프] 발판 끝에서 다음 발판으로\n");
+            int failed = 0, tele = 0;
+
+            for (int n = 0; n < plats.Count - 1; n++)
+            {
+                var from = plats[n];
+                var to = plats[n + 1];
+                bool goRight = to.x + to.width * 0.5f > from.x + from.width * 0.5f;
+
+                // 플레이어는 다음 발판 쪽 끝에, 강아지는 가운데에
+                float edge = goRight ? from.Right - Px.U(10f) : from.x + Px.U(10f);
+                player.Body.Teleport(Mathf.Clamp(edge, from.x, from.Right), from.y);
+                body.Teleport(from.x + from.width * 0.5f, from.y);
+                yield return Steps(20);
+
+                int teleBefore = dog.TeleportCount;
+
+                // 끝에서 다음 발판 쪽으로 최대 홀드 점프
+                if (goRight) input.SetRight(true); else input.SetLeft(true);
+                input.SetJump(true);
+                for (int i = 0; i < 100; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (i > 20 && player.Body.grounded) break;
+                }
+                input.SetJump(false); input.SetRight(false); input.SetLeft(false);
+
+                // 강아지가 따라올 시간
+                yield return Steps(120);
+
+                float gap = (player.Body.Y - body.Y) * Px.PPU;
+                int t = dog.TeleportCount - teleBefore;
+                tele += t;
+                bool ok = gap < 60f;
+                if (!ok) failed++;
+                log.AppendLine($"  #{n,2}→{n + 1,2} 플레이어 y={player.Body.Y:F2}, 강아지 간격 {gap,5:F0}px," +
+                               $" 순간이동 {t}회 {(ok ? "" : " <-- 못 따라옴")}");
+            }
+
+            log.AppendLine($"  못 따라온 구간 {failed} / {plats.Count - 1}, 순간이동 총 {tele}회");
+            Debug.Log(log.ToString());
+            Assert.AreEqual(0, failed, "강아지가 못 따라온 구간이 있다. 위 로그 참고.");
+            Assert.AreEqual(0, tele, $"강아지가 제 발로 못 가고 {tele}번 순간이동했다. 위 로그 참고.");
         }
     }
 }

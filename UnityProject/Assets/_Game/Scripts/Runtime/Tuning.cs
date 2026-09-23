@@ -36,10 +36,13 @@ namespace UpTogether
         public float camViewportY = 0.58f;
 
         [Header("강아지 AI")]
-        public float dogSpeed = 3.3f;
-        [Tooltip("공중에서의 가로 속도(px/frame). 걷기보다 빨라야 발판 사이를 건넌다. " +
-                 "발판 가로 간격이 최대 68px 인데 걷기 속도로는 점프 중 47px 밖에 못 간다.")]
-        public float dogAirSpeed = 6.6f;
+        [Tooltip("걷기 속도(px/frame). 플레이어(3.6)보다 느리면 계속 뒤처져서 " +
+                 "발판 끝이 아니라 가운데에서 뛰게 되고, 가로 거리가 모자라 못 닿는다.")]
+        public float dogSpeed = 4.2f;
+        [Tooltip("공중에서의 가로 속도(px/frame). 강아지는 플레이어처럼 발판 끝에서 뛰지 못하고 " +
+                 "뒤(가운데)에서 뛰게 된다. 가운데에서 다음 발판까지는 최대 153px 이라 " +
+                 "이 속도가 낮으면 늘 못 닿고 떨어진다. 9.0 이면 약 173px 을 간다.")]
+        public float dogAirSpeed = 9.0f;
         public float dogTrailDistance = 26f;
         public float dogJumpTrigger = 34f;
         public float dogJumpSpeed = 12.2f;
