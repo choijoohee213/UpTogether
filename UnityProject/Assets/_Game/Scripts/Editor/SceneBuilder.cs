@@ -115,6 +115,16 @@ namespace UpTogether.EditorTools
             session.bond = bond;
             session.narration = narration;
 
+            // 런타임에 선택된 캐릭터·강아지를 적용한다 (씬은 빌드 시점 스프라이트로 굳어 있으므로)
+            if (playerVisual != null)
+            {
+                var applier = sysGo.AddComponent<SelectionApplier>();
+                applier.playerVisual = playerVisual;
+                applier.dogVisual = dogVisual;
+                applier.characters = LoadEntries("Assets/_Game/Art/Player/Generated");
+                applier.breeds = LoadEntries("Assets/_Game/Art/Dog/Generated");
+            }
+
             var follow = camGo.AddComponent<FollowCamera>();
             follow.tuning = tuning;
             follow.stage = runner;
@@ -160,12 +170,15 @@ namespace UpTogether.EditorTools
         /// 주인공. 구워진 스프라이트가 있으면 쓰고, 없으면 임시 네모로 떨어진다.
         static GameObject MakePlayer(Tuning tuning, out PlayerVisual visual)
         {
+            string id = Selection.Character;
             var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(
+                $"Assets/_Game/Art/Player/Generated/{id}.asset")
+                ?? AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(
                 $"Assets/_Game/Art/Player/Generated/{DefaultCharacter}.asset");
 
             if (set == null)
             {
-                Debug.LogWarning($"{DefaultCharacter} 스프라이트 세트가 없어 임시 네모를 씁니다. " +
+                Debug.LogWarning($"주인공 스프라이트 세트가 없어 임시 네모를 씁니다. " +
                                  "UpTogether ▸ Import Player Art 를 먼저 실행하세요.");
                 visual = null;
                 return MakeBody("Player", new Color(0.99f, 0.78f, 0.45f), 0.26f, 0.56f, tuning);
@@ -200,12 +213,15 @@ namespace UpTogether.EditorTools
         /// 스프라이트 피벗이 발바닥에 있어서 Art 를 (0,0) 에 두면 발이 몸 위치에 맞는다.
         static GameObject MakeDog(Tuning tuning, out DogVisual visual)
         {
+            string breed = Selection.Breed;
             var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(
+                $"Assets/_Game/Art/Dog/Generated/{breed}.asset")
+                ?? AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(
                 $"Assets/_Game/Art/Dog/Generated/{DefaultBreed}.asset");
 
             if (set == null)
             {
-                Debug.LogWarning($"{DefaultBreed} 스프라이트 세트가 없어 임시 네모를 씁니다. " +
+                Debug.LogWarning($"강아지 스프라이트 세트가 없어 임시 네모를 씁니다. " +
                                  "UpTogether ▸ Import Dog Art 를 먼저 실행하세요.");
                 visual = null;
                 return MakeBody("Dog", new Color(0.85f, 0.62f, 0.40f), 0.30f, 0.30f, tuning);
@@ -275,6 +291,21 @@ namespace UpTogether.EditorTools
 
             flag.cloth = cloth.transform;
             return flag;
+        }
+
+        /// 폴더의 모든 CharacterSpriteSet 을 id(파일명)와 함께 모은다. 빌드에 포함된다.
+        static SelectionApplier.Entry[] LoadEntries(string dir)
+        {
+            var list = new System.Collections.Generic.List<SelectionApplier.Entry>();
+            foreach (var guid in AssetDatabase.FindAssets("t:CharacterSpriteSet", new[] { dir }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(path);
+                if (set == null) continue;
+                string id = System.IO.Path.GetFileNameWithoutExtension(path);
+                list.Add(new SelectionApplier.Entry { id = id, set = set });
+            }
+            return list.ToArray();
         }
 
         static Font LoadFont()

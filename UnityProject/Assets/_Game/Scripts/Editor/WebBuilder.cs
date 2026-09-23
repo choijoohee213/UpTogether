@@ -32,7 +32,8 @@ namespace UpTogether.EditorTools
 
             var options = new BuildPlayerOptions
             {
-                scenes = new[] { "Assets/_Game/Playground.unity" },
+                // Build Settings 에 등록된 순서를 쓴다. Select 가 첫 씬, Playground 가 다음.
+                scenes = EnabledScenes(),
                 locationPathName = path,
                 target = BuildTarget.WebGL,
                 options = BuildOptions.None,
@@ -59,6 +60,16 @@ namespace UpTogether.EditorTools
         /// 2) 캐시 무력화 — 파일명이 매 빌드 같아서 브라우저가 옛 loader 와 새 wasm 을
         ///    섞어 들면 "call_indirect to a signature that does not match" 로 죽는다.
         ///    빌드마다 다른 쿼리를 붙여 그런 조합이 생길 수 없게 한다.
+        /// Build Settings 의 활성 씬 경로들. 없으면 Playground 하나로 떨어진다.
+        static string[] EnabledScenes()
+        {
+            var list = new System.Collections.Generic.List<string>();
+            foreach (var sc in EditorBuildSettings.scenes)
+                if (sc.enabled) list.Add(sc.path);
+            if (list.Count == 0) list.Add("Assets/_Game/Playground.unity");
+            return list.ToArray();
+        }
+
         static string ReplaceFirst(string text, string from, string to)
         {
             int i = text.IndexOf(from, System.StringComparison.Ordinal);
