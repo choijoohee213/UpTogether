@@ -416,9 +416,10 @@ namespace UpTogether.Tests
         }
 
         [UnityTest]
-        public IEnumerator 많이_뒤처지면_워프해서_따라온다()
+        public IEnumerator 많이_뒤처져도_금방_옆에_온다()
         {
-            // 플레이어는 위쪽 발판, 강아지는 바닥. 펫은 잠깐 뒤 워프해서 옆에 온다.
+            // 펫은 발판을 밟지 않고 공중을 가로질러 온다.
+            // 날아오든 워프하든, 결과적으로 옆에 와 있으면 된다.
             var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
             plats.Sort((a, b) => a.y.CompareTo(b.y));
             var high = plats[5];
@@ -426,16 +427,13 @@ namespace UpTogether.Tests
             var body = dog.GetComponent<CharacterBody>();
             body.Teleport(high.x + high.width * 0.5f, stage.Data.groundY);
             player.Body.Teleport(high.x + high.width * 0.5f, high.y);
-            yield return Steps(10);
 
-            int before = dog.TeleportCount;
-            yield return Steps(60);   // 워프 지연(0.35초)보다 넉넉히
+            yield return Steps(150);   // 2.5초
 
-            Assert.Greater(dog.TeleportCount, before, "많이 뒤처졌는데 워프하지 않았다");
-
-            yield return Steps(20);
-            float gap = Mathf.Abs(player.Body.Y - dog.transform.position.y) * Px.PPU;
-            Assert.Less(gap, 60f, $"워프했는데도 {gap:F0}px 떨어져 있다");
+            float gap = Vector2.Distance(
+                new Vector2(player.Body.X, player.Body.Y),
+                dog.transform.position) * Px.PPU;
+            Assert.Less(gap, 70f, $"2.5초가 지나도 {gap:F0}px 떨어져 있다");
         }
 
         [UnityTest]

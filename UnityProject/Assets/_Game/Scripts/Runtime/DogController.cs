@@ -2,33 +2,36 @@ using UnityEngine;
 
 namespace UpTogether
 {
-    /// 강아지. 메이플스토리 펫 방식이다.
+    /// 강아지. 메이플스토리 펫 방식이다 (레퍼런스 영상 분석).
     ///
-    /// ★ 스스로 경로를 판단하지 않는다 ★
-    /// 발판을 고르고 점프해서 따라오게 만들었더니 문제가 끝없이 나왔다 —
-    /// 헛뛰고 떨어지거나, 한 칸씩 기계적으로 기어오르거나, 플레이어보다 먼저 도착했다.
-    /// 펫은 판단하지 않는다. 그냥 옆에서 따라 걷고, 못 따라가면 워프한다.
-    /// 그래서 앞서 나갈 수도, 실패할 수도 없다.
+    /// ★ 중력도 발판 충돌도 없다 ★
+    /// 영상에서 펫은 발판이 없는 허공에 떠서 플레이어 쪽으로 가로질러 온다.
+    /// 그래서 떨어질 수도, 막힐 수도, 앞서 나갈 수도 없다.
+    /// 발판을 밟고 따라오게 만들었을 때 끝없이 나던 문제들이 구조적으로 사라진다.
+    ///
+    /// 목표는 '플레이어의 발밑'이라, 평지에서는 걸어다니는 것처럼 보이고
+    /// 플레이어가 뛰어오를 때만 떠서 따라온다.
     [DefaultExecutionOrder(10)]
     [RequireComponent(typeof(CharacterBody))]
     public class DogController : MonoBehaviour
     {
         /// 이 안에 들어오면 멈춘다. 없으면 제자리에서 덜덜 떤다.
-        const float FollowDeadzonePx = 10f;
-        /// 워프한 직후 잠깐은 다시 워프하지 않는다
-        const float WarpCooldown = 0.25f;
+        const float SettleDistancePx = 6f;
+        /// 멀수록 빨리 따라온다. 이 거리에서 최고 속도.
+        const float FullSpeedDistancePx = 220f;
+        /// 걷는 것처럼 보이게 하는 최저 속도
+        const float MinSpeedPx = 2.0f;
 
         public Tuning tuning;
         public StageRunner stage;
         public PlayerController player;
 
         public bool IsClinging { get; private set; }
-        /// 계측용
+        /// 계측용. 너무 멀어 즉시 붙은 횟수.
         public int TeleportCount { get; private set; }
 
         CharacterBody body;
-        float farSince = -1f;      // 멀어진 채로 유지된 시작 시각
-        float lastWarp = -99f;
+        float bobPhase;
 
         void Awake()
         {
@@ -36,6 +39,8 @@ namespace UpTogether
             body = GetComponent<CharacterBody>();
             body.tuning = tuning;
             body.Bind(stage);
+            // 물리를 쓰지 않는다. 애니메이션이 걷기/대기를 고르도록 접지 상태만 유지한다.
+            body.grounded = true;
         }
 
         void FixedUpdate()
@@ -44,9 +49,7 @@ namespace UpTogether
             var p = player.Body;
 
             if (UpdateCling(dt, p)) return;
-
             Follow(dt, p);
-            WarpIfLeftBehind(p);
         }
 
         /// 크게 떨어질 때 달려와 품에 안긴다. 이 게임만의 동작이라 그대로 둔다.
@@ -57,7 +60,6 @@ namespace UpTogether
             bool reallyFalling = !p.grounded && p.vy < -tuning.DogClingFallV
                                  && p.Y < player.LastGroundedY - tuning.DogClingMinDropU;
             if (reallyFalling) IsClinging = true;
-
             if (!IsClinging) return false;
 
             float k = Px.Smoothing(tuning.dogClingLerp, dt);
@@ -65,50 +67,58 @@ namespace UpTogether
             body.Y += ((p.Y + tuning.DogClingOffYU) - body.Y) * k;
             body.face = p.face;
             body.vx = 0f; body.vy = 0f;
+            body.grounded = true;
             if (p.grounded) IsClinging = false;
             return true;
         }
 
-        /// 플레이어 뒤를 따라 걷는다. 점프는 하지 않는다.
+        /// 플레이어 발밑을 목표로 곧장 간다. 발판은 무시한다.
         void Follow(float dt, CharacterBody p)
         {
-            float want = p.X - tuning.DogTrailU * p.face;
+            Vector2 target = new Vector2(p.X - tuning.DogTrailU * p.face, p.Y);
+            Vector2 here = new Vector2(body.X, body.Y);
+            Vector2 to = target - here;
+            float dist = to.magnitude;
 
-            // 딛고 선 발판 밖으로는 걸어 나가지 않는다.
-            // 목표가 발판 끝을 넘어가면 그대로 걸어 나가 떨어진다.
-            if (body.groundIndex >= 0)
+            if (dist > tuning.DogWarpDistanceU)
             {
-                var cur = stage.GetPlatform(body.groundIndex);
-                float inset = Px.U(6f);
-                float lo = cur.left + inset, hi = cur.right - inset;
-                if (lo <= hi) want = Mathf.Clamp(want, lo, hi);
+                // 화면 밖으로 벗어날 만큼 멀면 그냥 옆에 놓는다
+                body.Teleport(target.x, target.y);
+                TeleportCount++;
+                body.grounded = true;
+                return;
             }
 
-            float dead = Px.U(FollowDeadzonePx);
-            int dir = body.X > want + dead ? -1 : (body.X < want - dead ? 1 : 0);
-            body.Step(dt, dir, tuning.DogSpeedV);
+            float settle = Px.U(SettleDistancePx);
+            if (dist < settle)
+            {
+                body.vx = 0f;
+                Bob(dt, false);
+                return;
+            }
+
+            // 멀수록 빠르게. 가까우면 살살 붙어서 덜덜 떨지 않는다.
+            float t = Mathf.Clamp01(dist / Px.U(FullSpeedDistancePx));
+            float speed = Mathf.Lerp(Px.V(MinSpeedPx), tuning.DogSpeedV, t);
+            Vector2 next = here + to / dist * Mathf.Min(speed * dt, dist);
+
+            body.vx = (next.x - here.x) / dt;   // 걷기 애니메이션 판정에 쓰인다
+            if (Mathf.Abs(to.x) > settle) body.face = to.x > 0f ? 1 : -1;
+
+            body.X = next.x;
+            body.Y = next.y;
+            body.vy = 0f;
+            body.grounded = true;
+            Bob(dt, Mathf.Abs(body.vx) > Px.V(0.4f));
         }
 
-        /// 같은 자리로 못 가는 상태가 잠깐 이어지면 플레이어 옆으로 옮겨간다.
-        void WarpIfLeftBehind(CharacterBody p)
+        /// 떠 있을 때 살짝 위아래로 흔들어 붕 떠 보이게 한다.
+        void Bob(float dt, bool moving)
         {
-            // 플레이어가 점프 중일 때의 순간적인 높이 차이로 판단하면 안 된다.
-            // 마지막으로 디딘 발판을 기준으로 본다.
-            float dx = Mathf.Abs(p.X - body.X);
-            float dy = Mathf.Abs(player.LastGroundedY - body.Y);
-            bool far = dy > tuning.DogWarpHeightU || dx > tuning.DogWarpDistanceU;
-
-            if (!far) { farSince = -1f; return; }
-
-            if (farSince < 0f) farSince = Time.time;
-            if (Time.time - farSince < tuning.dogWarpDelay) return;
-            if (Time.time - lastWarp < WarpCooldown) return;
-
-            body.Teleport(p.X - Px.U(24f) * p.face, p.Y);
-            body.face = p.face;
-            TeleportCount++;
-            farSince = -1f;
-            lastWarp = Time.time;
+            bobPhase += dt * (moving ? 9f : 4f);
+            float amount = Px.U(moving ? 1.5f : 1.0f);
+            transform.position = new Vector3(
+                body.X, body.Y + Mathf.Sin(bobPhase) * amount, transform.position.z);
         }
     }
 }
