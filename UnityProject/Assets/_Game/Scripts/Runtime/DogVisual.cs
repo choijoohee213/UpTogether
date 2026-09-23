@@ -17,6 +17,10 @@ namespace UpTogether
 
         SpriteClip current;
         int frame;
+
+        // 워프로 나타날 때 살짝 부풀었다 돌아오는 연출
+        const float PopDuration = 0.16f;
+        float popUntil = -1f;
         float elapsed;
         bool wasGrounded = true;
         float landLockUntil;
@@ -27,6 +31,9 @@ namespace UpTogether
             Play("idle");
         }
 
+        /// 워프 직후에 부른다. 작게 나타났다 제 크기로 돌아온다.
+        public void PopIn() => popUntil = Time.time + PopDuration;
+
         void Update()
         {
             string want = Choose();
@@ -34,6 +41,19 @@ namespace UpTogether
             Advance(Time.deltaTime);
 
             if (body.face != 0) target.flipX = body.face < 0;
+
+            // 팝: 0.6배에서 1배로. 끝나면 건드리지 않는다.
+            if (popUntil > 0f)
+            {
+                float left = popUntil - Time.time;
+                if (left <= 0f) { target.transform.localScale = Vector3.one; popUntil = -1f; }
+                else
+                {
+                    float t = 1f - left / PopDuration;
+                    float k = Mathf.Lerp(0.6f, 1f, Mathf.Sin(t * Mathf.PI * 0.5f));
+                    target.transform.localScale = new Vector3(k, k, 1f);
+                }
+            }
         }
 
         string Choose()

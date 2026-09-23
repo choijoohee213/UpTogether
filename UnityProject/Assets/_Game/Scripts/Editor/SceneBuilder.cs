@@ -87,6 +87,8 @@ namespace UpTogether.EditorTools
             dog.tuning = tuning;
             dog.stage = runner;
             dog.player = player;
+            dog.puffs = puffs;
+            dog.visual = dogVisual;
             dogGo.transform.position = new Vector3(0.50f, stage.groundY, 0f);
 
             // 안기 3겹: 주인공 본체 → 강아지 → 앞팔. PlayerVisual 이 켜고 끈다.
@@ -124,6 +126,7 @@ namespace UpTogether.EditorTools
             if (playerVisual != null && playerVisual.spriteSet == null) missing.Add("PlayerVisual.spriteSet");
             if (playerVisual != null && playerVisual.overlay == null)   missing.Add("PlayerVisual.overlay");
             if (playerVisual != null && playerVisual.dogSpriteSet == null) missing.Add("PlayerVisual.dogSpriteSet");
+            if (dog.puffs == null)           missing.Add("Dog.puffs");
             if (missing.Count > 0)
             {
                 Debug.LogError("씬 참조 연결 실패 — 저장하지 않았습니다: " + string.Join(", ", missing));

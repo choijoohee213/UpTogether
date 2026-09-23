@@ -28,6 +28,10 @@ namespace UpTogether
         public StageRunner stage;
         public PlayerController player;
 
+        [Header("워프 연출")]
+        public Puffs puffs;
+        public DogVisual visual;
+
         public bool IsClinging { get; private set; }
         /// 계측용
         public int TeleportCount { get; private set; }
@@ -117,8 +121,17 @@ namespace UpTogether
             if (Time.time - farSince < tuning.dogWarpDelay) return;
             if (Time.time - lastWarp < WarpCooldown) return;
 
-            body.Teleport(p.X - Px.U(24f) * p.face, p.Y);
+            // 사라진 자리와 나타난 자리 양쪽에 먼지를 남긴다.
+            // 아무 연출 없이 옮기면 툭 하고 생겨난 것처럼 보인다.
+            var from = new Vector2(body.X, body.Y);
+            var to = new Vector2(p.X - Px.U(24f) * p.face, p.Y);
+            puffs?.Burst(from, 8, 20f, 4f, 2f);
+
+            body.Teleport(to.x, to.y);
             body.face = p.face;
+
+            puffs?.Burst(to, 10, 24f, 4.5f, 2.4f);
+            visual?.PopIn();
             TeleportCount++;
             farSince = -1f;
             lastWarp = Time.time;
