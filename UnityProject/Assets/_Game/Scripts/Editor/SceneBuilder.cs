@@ -12,6 +12,7 @@ namespace UpTogether.EditorTools
     {
         const string TuningPath = "Assets/_Game/Tuning.asset";
         const string ScenePath = "Assets/_Game/Playground.unity";
+        const string FontPath = "Assets/_Game/Fonts/Jua-Regular.ttf";
         /// 기본 견종. Art/Dog/Generated 에 구워진 것 중에서 고른다.
         const string DefaultBreed = "shiba";
         /// 기본 주인공. Art/Player/Generated 에 구워진 것 중에서 고른다.
@@ -100,12 +101,27 @@ namespace UpTogether.EditorTools
                 playerVisual.dogSpriteSet = dogVisual.spriteSet;
             }
 
+            // ── 깃발 ──
+            var flag = MakeFlag(runner);
+
+            // ── 게임 흐름 ──
+            var sysGo = new GameObject("Systems");
+            var bond = sysGo.AddComponent<Bond>();
+            var narration = sysGo.AddComponent<Narration>();
+            var session = sysGo.AddComponent<StageSession>();
+            session.player = player;
+            session.dog = dog;
+            session.stage = runner;
+            session.bond = bond;
+            session.narration = narration;
+
             var follow = camGo.AddComponent<FollowCamera>();
             follow.tuning = tuning;
             follow.stage = runner;
             follow.player = player;
 
             BuildTouchUi(input);
+            BuildHud(session, bond, narration);
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -127,6 +143,9 @@ namespace UpTogether.EditorTools
             if (playerVisual != null && playerVisual.overlay == null)   missing.Add("PlayerVisual.overlay");
             if (playerVisual != null && playerVisual.dogSpriteSet == null) missing.Add("PlayerVisual.dogSpriteSet");
             if (dog.puffs == null)           missing.Add("Dog.puffs");
+            if (session.player == null)      missing.Add("Session.player");
+            if (session.bond == null)        missing.Add("Session.bond");
+            if (flag.stage == null)          missing.Add("GoalFlag.stage");
             if (missing.Count > 0)
             {
                 Debug.LogError("씬 참조 연결 실패 — 저장하지 않았습니다: " + string.Join(", ", missing));
@@ -227,6 +246,146 @@ namespace UpTogether.EditorTools
             sr.color = color;
             sr.sortingOrder = 10;
             return go;
+        }
+
+        /// 꼭대기 깃발. 장대와 천을 네모로 짜 맞춘다 — 원본도 도형으로 그렸다.
+        static GoalFlag MakeFlag(StageRunner runner)
+        {
+            var go = new GameObject("GoalFlag");
+            var flag = go.AddComponent<GoalFlag>();
+            flag.stage = runner;
+
+            var pole = new GameObject("Pole");
+            pole.transform.SetParent(go.transform, false);
+            pole.transform.localPosition = new Vector3(0f, Px.U(2f), 0f);
+            pole.transform.localScale = new Vector3(Px.U(5f), Px.U(56f), 1f);
+            var ps = pole.AddComponent<SpriteRenderer>();
+            ps.sprite = ProceduralArt.Square;
+            ps.color = new Color(0.54f, 0.35f, 0.22f);
+            ps.sortingOrder = 4;
+
+            var cloth = new GameObject("Cloth");
+            cloth.transform.SetParent(go.transform, false);
+            cloth.transform.localPosition = new Vector3(Px.U(11f), Px.U(22f), 0f);
+            cloth.transform.localScale = new Vector3(Px.U(22f), Px.U(14f), 1f);
+            var cs = cloth.AddComponent<SpriteRenderer>();
+            cs.sprite = ProceduralArt.Square;
+            cs.color = new Color(0.95f, 0.38f, 0.49f);
+            cs.sortingOrder = 5;
+
+            flag.cloth = cloth.transform;
+            return flag;
+        }
+
+        static Font LoadFont()
+        {
+            var f = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
+            if (f == null) Debug.LogWarning($"{FontPath} 를 못 찾았습니다. 한글이 깨집니다.");
+            return f;
+        }
+
+        static Text MakeText(Transform parent, string name, Font font, int size,
+                             TextAnchor anchor, Vector2 anchorMin, Vector2 anchorMax,
+                             Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin; rt.offsetMax = offsetMax;
+
+            var t = go.GetComponent<Text>();
+            t.font = font;
+            t.fontSize = size;
+            t.alignment = anchor;
+            t.color = Color.white;
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
+            return t;
+        }
+
+        static Image MakeImage(Transform parent, string name, Color color,
+                               Vector2 anchorMin, Vector2 anchorMax,
+                               Vector2 offsetMin, Vector2 offsetMax)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin; rt.offsetMax = offsetMax;
+            var img = go.GetComponent<Image>();
+            img.color = color;
+            // 스프라이트가 없으면 Filled 타입의 fillAmount 가 무시된다 (바가 늘 꽉 차 보인다).
+            img.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            img.type = Image.Type.Sliced;
+            return img;
+        }
+
+        /// 친밀도 바, 높이, 서사 한 줄, 클리어 화면.
+        static void BuildHud(StageSession session, Bond bond, Narration narration)
+        {
+            var font = LoadFont();
+
+            var canvasGo = new GameObject("HUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var canvas = canvasGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 10;          // 조작 버튼보다 위
+            var scaler = canvasGo.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+
+            var hud = canvasGo.AddComponent<GameHud>();
+            hud.session = session; hud.bond = bond; hud.narration = narration;
+
+            // 친밀도 바 (좌상단)
+            MakeImage(canvasGo.transform, "BondBack", new Color(0f, 0f, 0f, 0.25f),
+                      new Vector2(0f, 1f), new Vector2(0f, 1f),
+                      new Vector2(40f, -96f), new Vector2(460f, -56f));
+            var fill = MakeImage(canvasGo.transform, "BondFill", new Color(0.97f, 0.45f, 0.56f),
+                      new Vector2(0f, 1f), new Vector2(0f, 1f),
+                      new Vector2(40f, -96f), new Vector2(460f, -56f));
+            fill.type = Image.Type.Filled;   // Sliced 기본값을 덮어쓴다
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillAmount = 0f;
+            hud.bondFill = fill;
+
+            hud.bondLabel = MakeText(canvasGo.transform, "BondLabel", font, 30, TextAnchor.MiddleLeft,
+                      new Vector2(0f, 1f), new Vector2(0f, 1f),
+                      new Vector2(40f, -146f), new Vector2(560f, -100f));
+
+            // 높이 (우상단)
+            hud.heightLabel = MakeText(canvasGo.transform, "Height", font, 44, TextAnchor.MiddleRight,
+                      new Vector2(1f, 1f), new Vector2(1f, 1f),
+                      new Vector2(-320f, -110f), new Vector2(-40f, -50f));
+
+            // 서사 한 줄 (가운데 아래쪽)
+            var sayGo = new GameObject("Say", typeof(RectTransform), typeof(CanvasGroup));
+            sayGo.transform.SetParent(canvasGo.transform, false);
+            var sayRt = (RectTransform)sayGo.transform;
+            sayRt.anchorMin = new Vector2(0.5f, 0f); sayRt.anchorMax = new Vector2(0.5f, 0f);
+            sayRt.sizeDelta = new Vector2(900f, 150f);
+            sayRt.anchoredPosition = new Vector2(0f, 620f);
+            hud.sayGroup = sayGo.GetComponent<CanvasGroup>();
+            hud.sayGroup.blocksRaycasts = false;
+
+            MakeImage(sayGo.transform, "SayBack", new Color(0f, 0f, 0f, 0.45f),
+                      Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            hud.sayText = MakeText(sayGo.transform, "SayText", font, 34, TextAnchor.MiddleCenter,
+                      Vector2.zero, Vector2.one, new Vector2(24f, 12f), new Vector2(-24f, -12f));
+
+            // 클리어 화면
+            var clearGo = new GameObject("Clear", typeof(RectTransform), typeof(CanvasGroup));
+            clearGo.transform.SetParent(canvasGo.transform, false);
+            var clearRt = (RectTransform)clearGo.transform;
+            clearRt.anchorMin = Vector2.zero; clearRt.anchorMax = Vector2.one;
+            clearRt.offsetMin = Vector2.zero; clearRt.offsetMax = Vector2.zero;
+            hud.clearGroup = clearGo.GetComponent<CanvasGroup>();
+
+            MakeImage(clearGo.transform, "Dim", new Color(0f, 0f, 0f, 0.55f),
+                      Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            hud.clearText = MakeText(clearGo.transform, "ClearText", font, 46, TextAnchor.MiddleCenter,
+                      new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                      new Vector2(-460f, -260f), new Vector2(460f, 260f));
         }
 
         static void BuildTouchUi(GameInput input)

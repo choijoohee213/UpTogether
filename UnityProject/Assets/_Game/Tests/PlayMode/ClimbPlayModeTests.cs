@@ -12,6 +12,8 @@ namespace UpTogether.Tests
     public class ClimbPlayModeTests
     {
         PlayerController player;
+        StageSession session;
+        Bond bond;
         PlayerVisual playerVisual;
         DogController dog;
         StageRunner stage;
@@ -27,6 +29,8 @@ namespace UpTogether.Tests
             player = Object.FindFirstObjectByType<PlayerController>();
             dog    = Object.FindFirstObjectByType<DogController>();
             playerVisual = Object.FindFirstObjectByType<PlayerVisual>();
+            session = Object.FindFirstObjectByType<StageSession>();
+            bond = Object.FindFirstObjectByType<Bond>();
             stage  = Object.FindFirstObjectByType<StageRunner>();
             input  = Object.FindFirstObjectByType<GameInput>();
             cam    = Camera.main;
@@ -501,6 +505,87 @@ namespace UpTogether.Tests
             Debug.Log(log.ToString());
             // 펫 방식이라 워프는 정상 동작이다. 결과적으로 옆에 와 있으면 된다.
             Assert.AreEqual(0, failed, "강아지가 못 따라온 구간이 있다. 위 로그 참고.");
+        }
+
+        // ── 게임 흐름: 클리어 / 친밀도 / 서사 ──────────────────
+
+        [UnityTest]
+        public IEnumerator 깃발에_닿으면_클리어된다()
+        {
+            Assert.IsNotNull(session, "씬에 StageSession 이 없다");
+            Assert.IsFalse(session.Cleared, "시작부터 클리어 상태다");
+
+            string cleared = null;
+            session.OnCleared += n => cleared = n;
+
+            var goal = stage.Data.goal;
+            player.Body.Teleport(goal.x, goal.y);
+            yield return Steps(5);
+
+            Assert.IsTrue(session.Cleared, "깃발에 닿았는데 클리어가 안 됐다");
+            Assert.AreEqual(stage.Data.displayName, cleared);
+        }
+
+        [UnityTest]
+        public IEnumerator 높이_구간을_넘으면_서사가_뜨고_친밀도가_오른다()
+        {
+            Assert.IsNotNull(bond, "씬에 Bond 가 없다");
+            var narration = Object.FindFirstObjectByType<Narration>();
+
+            bond.Add(-1000f);              // 친밀도는 PlayerPrefs 라 테스트끼리 공유된다. 초기화한다.
+            string said = null;
+            narration.Say += t => said = t;
+            float before = bond.Value;
+
+            // 첫 서사 구간은 10m. 그보다 위로 올린다.
+            float y = stage.Data.groundY + Px.U(12f * Px.PxPerMeter);
+            player.Body.Teleport(player.Body.X, y);
+            yield return Steps(5);
+
+            Assert.AreEqual(Narration.Default[0].text, said, "첫 서사가 안 떴다");
+            Assert.Greater(bond.Value, before, "친밀도가 안 올랐다");
+        }
+
+        [UnityTest]
+        public IEnumerator 크게_떨어지면_친밀도가_깎인다()
+        {
+            Assert.IsNotNull(bond);
+            bond.Add(-1000f);              // 테스트끼리 공유되므로 초기화
+            bond.Add(50f);                 // 깎일 여지를 만든다
+
+            float reported = -1f;
+            player.Landed += m => reported = m;
+
+            // 친밀도가 깎이려면 8m(208px) 넘게 떨어져야 한다. 넉넉히 8유닛 위에서 떨어뜨린다.
+            player.Body.Teleport(player.Body.X, stage.Data.groundY + 8f);
+            player.Body.grounded = false;
+
+            // ★ 올라가는 것만으로 높이 구간 보상(+5)이 들어온다 ★
+            // 그게 정산된 뒤부터 재야 낙하로 깎인 것을 볼 수 있다.
+            yield return Steps(3);
+            float before = bond.Value;
+            for (int i = 0; i < 400; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (player.Body.grounded && i > 5) break;
+            }
+
+            Assert.Greater(reported, 8f, $"낙하 거리가 {reported:F1}m 로 보고됐다 (8m 초과여야 깎인다)");
+            Assert.Less(bond.Value, before, $"{reported:F1}m 떨어졌는데 친밀도가 안 깎였다");
+        }
+
+        [UnityTest]
+        public IEnumerator 친밀도_단계_이름이_값에_따라_바뀐다()
+        {
+            Assert.IsNotNull(bond);
+            bond.Add(-100f);
+            Assert.AreEqual("서먹서먹", bond.StageName);
+            bond.Add(21f);
+            Assert.AreEqual("조금 친해짐", bond.StageName);
+            bond.Add(80f);
+            Assert.AreEqual("영혼의 단짝", bond.StageName);
+            bond.Add(-100f);   // 테스트끼리 영향 주지 않도록 되돌린다
+            yield return null;
         }
     }
 }
