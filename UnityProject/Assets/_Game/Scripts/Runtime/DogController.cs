@@ -125,13 +125,13 @@ namespace UpTogether
             // 아무 연출 없이 옮기면 툭 하고 생겨난 것처럼 보인다.
             var from = new Vector2(body.X, body.Y);
             var to = new Vector2(p.X - Px.U(24f) * p.face, p.Y);
-            // 워프는 확실히 보여야 한다. 점프 먼지보다 크고 많게.
-            puffs?.Burst(from, 18, 34f, 6f, 3f, sizePx: 16f, sizeVarPx: 12f, life: 0.9f);
+            // 점프 먼지보다는 크되 과하지 않게.
+            puffs?.Burst(from, 9, 24f, 4.5f, 2f, sizePx: 7f, sizeVarPx: 5f, life: 0.5f);
 
             body.Teleport(to.x, to.y);
             body.face = p.face;
 
-            puffs?.Burst(to, 20, 36f, 6.5f, 3.5f, sizePx: 18f, sizeVarPx: 14f, life: 0.9f);
+            puffs?.Burst(to, 11, 26f, 5f, 2.4f, sizePx: 8f, sizeVarPx: 6f, life: 0.5f);
             visual?.PopIn();
             TeleportCount++;
             farSince = -1f;
