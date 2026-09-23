@@ -22,8 +22,8 @@ namespace UpTogether
         public string gameScene = "Playground";
 
         [Header("연결")]
-        public SpriteRenderer charPreview;
-        public SpriteRenderer dogPreview;
+        public Image charPreview;
+        public Image dogPreview;
         public Text charName;
         public Text dogName;
         /// 선택된 칸에 테두리를 씌우기 위해, 버튼 인덱스별 하이라이트
