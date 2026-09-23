@@ -74,10 +74,10 @@ namespace UpTogether.EditorTools
 
             // 캐릭터 선택 줄
             screen.charHighlights = MakeRow(canvasGo.transform, font, chars, -1020f,
-                i => screen.PickCharacter(i));
+                screen, SelectTap.Kind.Character);
             // 강아지 선택 줄
             screen.dogHighlights = MakeRow(canvasGo.transform, font, dogs, -1360f,
-                i => screen.PickBreed(i));
+                screen, SelectTap.Kind.Breed);
 
             // 시작 버튼
             StartButton(canvasGo.transform, font, screen);
@@ -193,7 +193,7 @@ namespace UpTogether.EditorTools
         }
 
         static Image[] MakeRow(Transform parent, Font font, List<SelectScreen.Option> opts,
-                               float y, System.Action<int> onPick)
+                               float y, SelectScreen screen, SelectTap.Kind kind)
         {
             const float cell = 130f, gap = 14f;
             float total = opts.Count * cell + (opts.Count - 1) * gap;
@@ -203,7 +203,7 @@ namespace UpTogether.EditorTools
             for (int i = 0; i < opts.Count; i++)
             {
                 float x = x0 + i * (cell + gap);
-                var btnGo = new GameObject($"opt{i}", typeof(RectTransform), typeof(Image), typeof(Button));
+                var btnGo = new GameObject($"opt{i}", typeof(RectTransform), typeof(Image), typeof(SelectTap));
                 btnGo.transform.SetParent(parent, false);
                 var rt = (RectTransform)btnGo.transform;
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
@@ -234,15 +234,17 @@ namespace UpTogether.EditorTools
                 iimg.preserveAspect = true;
                 iimg.raycastTarget = false;
 
-                int idx = i;
-                btnGo.GetComponent<Button>().onClick.AddListener(() => onPick(idx));
+                var tap = btnGo.GetComponent<SelectTap>();
+                tap.screen = screen;
+                tap.kind = kind;
+                tap.index = i;
             }
             return highlights;
         }
 
         static void StartButton(Transform parent, Font font, SelectScreen screen)
         {
-            var go = new GameObject("StartButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            var go = new GameObject("StartButton", typeof(RectTransform), typeof(Image), typeof(SelectTap));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
@@ -254,7 +256,9 @@ namespace UpTogether.EditorTools
                 new Vector2(0.5f, 0.5f), new Vector2(-280f, -75f), new Vector2(280f, 75f));
             t.text = "시작";
 
-            go.GetComponent<Button>().onClick.AddListener(screen.StartGame);
+            var tap = go.GetComponent<SelectTap>();
+            tap.screen = screen;
+            tap.kind = SelectTap.Kind.Start;
         }
 
         static Text Label(Transform parent, Font font, int size, TextAnchor anchor,

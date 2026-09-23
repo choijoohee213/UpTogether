@@ -82,13 +82,39 @@ namespace UpTogether.Tests
         }
 
         [Test]
-        public void 선택_버튼에_핸들러가_연결돼_있다()
+        public void 저장된_씬의_탭들이_화면을_참조한다()
         {
-            int wired = 0;
-            foreach (var btn in Object.FindObjectsByType<Button>(FindObjectsSortMode.None))
-                if (btn.onClick.GetPersistentEventCount() >= 0 && btn.name.StartsWith("opt"))
-                    wired++;
-            Assert.Greater(wired, 0, "선택 칸 버튼(opt*)이 하나도 없다");
+            // ★ 원래 버그를 잡는 검사 ★
+            // 예전엔 Button.onClick 에 람다를 AddListener 했는데, 그건 씬 저장 때 사라져
+            // 빌드된 씬의 버튼이 아무 반응도 안 했다. SelectTap 은 screen 참조를 직렬화한다.
+            var taps = Object.FindObjectsByType<SelectTap>(FindObjectsSortMode.None);
+            Assert.AreEqual(8 + 7 + 1, taps.Length, "칸 8+7 + 시작 1 = 16개여야 한다");
+
+            int chars = 0, breeds = 0, starts = 0;
+            foreach (var t in taps)
+            {
+                Assert.IsNotNull(t.screen, $"{t.name}({t.kind}) 이 screen 참조를 잃었다 (직렬화 실패)");
+                if (t.kind == SelectTap.Kind.Character) chars++;
+                else if (t.kind == SelectTap.Kind.Breed) breeds++;
+                else starts++;
+            }
+            Assert.AreEqual(8, chars);
+            Assert.AreEqual(7, breeds);
+            Assert.AreEqual(1, starts);
+        }
+
+        [UnityTest]
+        public IEnumerator 탭하면_실제로_선택이_바뀐다()
+        {
+            // 컴포넌트의 OnPointerDown 을 직접 호출 — 버튼 배선 전체를 탄다
+            SelectTap target = null;
+            foreach (var t in Object.FindObjectsByType<SelectTap>(FindObjectsSortMode.None))
+                if (t.kind == SelectTap.Kind.Breed && t.index == 4) { target = t; break; }
+            Assert.IsNotNull(target, "5번째 견종 탭을 못 찾았다");
+
+            target.OnPointerDown(null);
+            yield return null;
+            Assert.AreEqual(screen.breeds[4].id, screen.CurrentBreedId, "탭했는데 선택이 안 바뀌었다");
         }
     }
 }
