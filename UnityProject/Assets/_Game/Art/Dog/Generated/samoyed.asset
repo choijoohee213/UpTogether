@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
   displayName: samoyed
   frames:
-  - {fileID: 1437686527, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 627164788, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 560537150, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: -682383668, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 631567415, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: -648345524, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 1454463351, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 758496043, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 899136581, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: -469455803, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 1264662083, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: -214640665, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
-  - {fileID: 1423689795, guid: 213d0b9534f10488fbe7103f4031fbc9, type: 3}
+  - {fileID: -449736251, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -1588828366, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -1383667071, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -1159440262, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: 1401403102, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -1648101403, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: 665983038, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -158885448, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: 1163198906, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: 1565683195, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -751990758, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: 60534752, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
+  - {fileID: -489306230, guid: 4d74070196f064b8a8ae0cfd4d02d969, type: 3}
   clips:
   - name: walk
     frames: 00000000010000000200000003000000i

@@ -1,0 +1,104 @@
+{
+  "version": 2,
+  "cellWidth": 48,
+  "cellHeight": 48,
+  "columns": 13,
+  "rows": 1,
+  "ppu": 48,
+  "pivot": [
+    0.47,
+    0.0625
+  ],
+  "pivotPixels": [
+    22.5,
+    3
+  ],
+  "facing": "right",
+  "fileNamePattern": "{breed}48_sheet.png",
+  "breeds": [
+    "shiba",
+    "retriever",
+    "maltese",
+    "bordercollie",
+    "samoyed",
+    "bernese",
+    "poodle"
+  ],
+  "states": {
+    "walk": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "loop": true,
+      "durations": [
+        0.13,
+        0.13,
+        0.13,
+        0.13
+      ]
+    },
+    "idle": {
+      "frames": [
+        4,
+        5
+      ],
+      "loop": true,
+      "durations": [
+        1.5,
+        0.15
+      ]
+    },
+    "jump": {
+      "frames": [
+        6
+      ],
+      "loop": false,
+      "durations": [
+        0
+      ]
+    },
+    "fall": {
+      "frames": [
+        7,
+        8
+      ],
+      "loop": true,
+      "durations": [
+        0.1,
+        0.1
+      ]
+    },
+    "land": {
+      "frames": [
+        9
+      ],
+      "loop": false,
+      "durations": [
+        0.12
+      ]
+    },
+    "held": {
+      "frames": [
+        10
+      ],
+      "loop": false,
+      "durations": [
+        0
+      ]
+    },
+    "happy": {
+      "frames": [
+        11,
+        12
+      ],
+      "loop": true,
+      "durations": [
+        0.12,
+        0.12
+      ]
+    }
+  }
+}

@@ -5,10 +5,10 @@ using UnityEngine;
 namespace UpTogether.EditorTools
 {
     /// 강아지 스프라이트 시트를 잘라서 견종별 CharacterSpriteSet 을 만든다.
-    /// 시트는 Art/Dog/dog_sprites_v2/{breed}48_sheet.png, 메타는 같은 폴더의 dog_sprites.json.
+    /// 시트는 Art/dog_platformer_sprites_v3/sprites/dogs/{breed}48_sheet.png, 메타는 같은 폴더의 dog_sprites.json.
     public static class DogArtImporter
     {
-        const string SheetDir = "Assets/_Game/Art/Dog/dog_sprites_v2";
+        const string SheetDir = "Assets/_Game/Art/dog_platformer_sprites_v3/sprites/dogs";
         const string OutDir = "Assets/_Game/Art/Dog/Generated";
         const int ExpectedVersion = 2;
 
