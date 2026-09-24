@@ -384,10 +384,10 @@ namespace UpTogether.EditorTools
                       new Vector2(0f, 1f), new Vector2(0f, 1f),
                       new Vector2(40f, -146f), new Vector2(560f, -100f));
 
-            // 높이 (우상단)
+            // 높이 (우상단 — 일시정지 버튼과 겹치지 않게 왼쪽으로 비켜둔다)
             hud.heightLabel = MakeText(canvasGo.transform, "Height", font, 44, TextAnchor.MiddleRight,
                       new Vector2(1f, 1f), new Vector2(1f, 1f),
-                      new Vector2(-320f, -110f), new Vector2(-40f, -50f));
+                      new Vector2(-460f, -110f), new Vector2(-170f, -50f));
 
             // 서사 한 줄 (가운데 아래쪽)
             var sayGo = new GameObject("Say", typeof(RectTransform), typeof(CanvasGroup));
@@ -417,6 +417,94 @@ namespace UpTogether.EditorTools
             hud.clearText = MakeText(clearGo.transform, "ClearText", font, 46, TextAnchor.MiddleCenter,
                       new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                       new Vector2(-460f, -260f), new Vector2(460f, 260f));
+
+            // 일시정지 버튼 + 오버레이 (맨 위 형제라 다른 HUD 위에 그려진다)
+            BuildPause(canvasGo, font);
+        }
+
+        /// 우상단 일시정지 버튼과, 누르면 뜨는 오버레이(계속하기 / 메인으로).
+        static void BuildPause(GameObject canvasGo, Font font)
+        {
+            var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            var pause = canvasGo.AddComponent<Pause>();
+
+            // 버튼 (우상단 모서리)
+            var btn = new GameObject("PauseButton", typeof(RectTransform), typeof(Image), typeof(PauseTap));
+            btn.transform.SetParent(canvasGo.transform, false);
+            var brt = (RectTransform)btn.transform;
+            brt.anchorMin = brt.anchorMax = brt.pivot = new Vector2(1f, 1f);
+            brt.sizeDelta = new Vector2(96f, 96f);
+            brt.anchoredPosition = new Vector2(-36f, -36f);
+            var bimg = btn.GetComponent<Image>();
+            bimg.sprite = box; bimg.type = Image.Type.Sliced;
+            bimg.color = new Color(1f, 1f, 1f, 0.5f);
+            var ptap = btn.GetComponent<PauseTap>();
+            ptap.pause = pause; ptap.kind = PauseTap.Kind.Open;
+            PauseBar(btn.transform, -13f);   // ‖ 아이콘 (글리프 없이 막대 두 개)
+            PauseBar(btn.transform, 13f);
+
+            // 오버레이 패널 (처음엔 꺼둔다)
+            var panel = new GameObject("PausePanel", typeof(RectTransform));
+            panel.transform.SetParent(canvasGo.transform, false);
+            var prt = (RectTransform)panel.transform;
+            prt.anchorMin = Vector2.zero; prt.anchorMax = Vector2.one;
+            prt.offsetMin = prt.offsetMax = Vector2.zero;
+            pause.panel = panel;
+
+            // 딤 — 뒤의 조작 버튼 탭을 막는다
+            MakeImage(panel.transform, "Dim", new Color(0f, 0f, 0f, 0.55f),
+                      Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            MakeImage(panel.transform, "Card", new Color(1f, 1f, 1f, 0.96f),
+                      new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                      new Vector2(-360f, -320f), new Vector2(360f, 320f));
+
+            var title = MakeText(panel.transform, "PauseTitle", font, 54, TextAnchor.MiddleCenter,
+                      new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                      new Vector2(-320f, 150f), new Vector2(320f, 300f));
+            title.text = "잠깐 쉬어가기";
+            title.color = new Color(0.24f, 0.27f, 0.34f);
+
+            PauseMenuButton(panel.transform, font, box, "계속하기",
+                            new Color(0.97f, 0.45f, 0.56f), Color.white, 30f, pause, PauseTap.Kind.Resume);
+            PauseMenuButton(panel.transform, font, box, "메인으로",
+                            new Color(0.90f, 0.92f, 0.95f, 1f), new Color(0.3f, 0.34f, 0.4f),
+                            -130f, pause, PauseTap.Kind.Home);
+
+            panel.SetActive(false);
+        }
+
+        static void PauseBar(Transform parent, float x)
+        {
+            var go = new GameObject("bar", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(14f, 44f);
+            rt.anchoredPosition = new Vector2(x, 0f);
+            var img = go.GetComponent<Image>();
+            img.color = new Color(0.24f, 0.27f, 0.34f);
+            img.raycastTarget = false;
+        }
+
+        static void PauseMenuButton(Transform parent, Font font, Sprite box, string label,
+                                    Color bg, Color fg, float y, Pause pause, PauseTap.Kind kind)
+        {
+            var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(PauseTap));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(520f, 128f);
+            rt.anchoredPosition = new Vector2(0f, y);
+            var img = go.GetComponent<Image>();
+            img.sprite = box; img.type = Image.Type.Sliced; img.color = bg;
+
+            var t = MakeText(go.transform, "T", font, 44, TextAnchor.MiddleCenter,
+                             Vector2.zero, Vector2.one, new Vector2(20f, 8f), new Vector2(-20f, -8f));
+            t.text = label; t.color = fg; t.raycastTarget = false;
+
+            var tap = go.GetComponent<PauseTap>();
+            tap.pause = pause; tap.kind = kind;
         }
 
         static void BuildTouchUi(GameInput input)

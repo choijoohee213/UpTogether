@@ -5,10 +5,10 @@ using UnityEngine;
 namespace UpTogether.EditorTools
 {
     /// 주인공 스프라이트 시트를 잘라서 캐릭터별 CharacterSpriteSet 을 만든다.
-    /// 시트는 Art/Player/hero_sprites_v2/{character}64_sheet.png, 메타는 같은 폴더의 hero_sprites.json.
+    /// 시트는 Art/dog_platformer_sprites_v3/sprites/characters/{character}64_sheet.png, 메타는 같은 폴더의 hero_sprites.json.
     public static class PlayerArtImporter
     {
-        const string SheetDir = "Assets/_Game/Art/Player/hero_sprites_v2";
+        const string SheetDir = "Assets/_Game/Art/dog_platformer_sprites_v3/sprites/characters";
         const string OutDir = "Assets/_Game/Art/Player/Generated";
 
         /// ★ JSON 의 ppu(48)를 쓰지 않는다 ★
@@ -53,6 +53,14 @@ namespace UpTogether.EditorTools
                 durations = new[] { .1f, .1f }, loop = true,
                 dogFrame = 10, dogPivotOffsetPx = new Vector2(10.5f, -1f),
             },
+            // 포옹(친밀도 연출). 게임 조작에는 안 쓰고 타이틀 화면에서 쓴다.
+            // 강아지는 happy(11,12)를 마주보게 뒤집어 붙인다 (TitleHug 가 직접 처리).
+            new SpriteClip
+            {
+                name = "hug", frames = new[] { 18, 19 }, overlay = new[] { 20, 21 },
+                durations = new[] { .42f, .42f }, loop = true,
+                dogFrame = 11, dogPivotOffsetPx = new Vector2(28.5f, -7f),
+            },
         };
 
         [MenuItem("UpTogether/Import Player Art")]
@@ -63,9 +71,9 @@ namespace UpTogether.EditorTools
             if (json == null) { Debug.LogError($"{jsonPath} 를 찾을 수 없습니다."); return; }
 
             var meta = JsonUtility.FromJson<Meta>(json.text);
-            if (meta.columns != 18 || meta.cellWidth != 64)
+            if (meta.columns != 22 || meta.cellWidth != 64)
             {
-                Debug.LogError($"시트 규격이 {meta.cellWidth}px x {meta.columns}칸 입니다 (코드는 64px x 18칸 기준). " +
+                Debug.LogError($"시트 규격이 {meta.cellWidth}px x {meta.columns}칸 입니다 (코드는 64px x 22칸 기준). " +
                                "PlayerArtImporter.Clips() 의 프레임 표를 JSON 과 맞춰야 합니다.");
                 return;
             }

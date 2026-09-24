@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
   displayName: bordercollie
   frames:
-  - {fileID: 676115551, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -1185945362, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 259037849, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 1385529736, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -635935233, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 512798265, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -1353917033, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -739604793, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 1967150851, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -429412502, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: -1707701440, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 2059411935, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
-  - {fileID: 1907915931, guid: 45f99ea994e95477286e4d5a3ec195c0, type: 3}
+  - {fileID: -606947235, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -975733031, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -1449996913, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -1970022395, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -509849100, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: 837337044, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -1008014343, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: 1740622799, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -527723690, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: 13303732, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -1917655761, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -758645591, guid: 875276669e6004a22be6ffae2e889030, type: 3}
+  - {fileID: -1744807626, guid: 875276669e6004a22be6ffae2e889030, type: 3}
   clips:
   - name: walk
     frames: 00000000010000000200000003000000i

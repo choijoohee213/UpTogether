@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
   displayName: retriever
   frames:
-  - {fileID: 1774718116, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 567320163, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 1818699415, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: -116422072, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 744246159, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: -640405591, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 2125591787, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: -1980385438, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 1589112777, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 1366195049, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: -885381985, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 144433532, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
-  - {fileID: 1961284831, guid: 19b492d041f6a4eeaa8f0de4c8dc3f49, type: 3}
+  - {fileID: -1905743220, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1440195722, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1815841590, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1659762847, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1977501644, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -211743952, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: 1653439124, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: 1460025820, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: 673697314, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: 1861274703, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1660545271, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: -1453659071, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
+  - {fileID: 2116576650, guid: b4db3102015df4b7b84558d1901225c0, type: 3}
   clips:
   - name: walk
     frames: 00000000010000000200000003000000i
