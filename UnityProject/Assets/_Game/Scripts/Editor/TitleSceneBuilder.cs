@@ -48,15 +48,16 @@ namespace UpTogether.EditorTools
             // 3겹: 본체 → 강아지 → 앞팔. 강아지는 본체의 자식이라 위치·크기가 같이 따라간다.
             // 스프라이트는 TitleHug 가 런타임에 Selection 으로 채운다. 여기 건 에디터 미리보기용.
             var bodyGo = new GameObject("Character");
-            bodyGo.transform.position = new Vector3(-0.5f, -1.2f, 0f);
+            bodyGo.transform.position = new Vector3(-0.5f, -1.45f, 0f);   // 발이 초록 언덕 위에 서게
             bodyGo.transform.localScale = Vector3.one * 2.5f;
             var body = bodyGo.AddComponent<SpriteRenderer>();
             body.sortingOrder = 5;
 
             var dogGo = new GameObject("Dog");
             dogGo.transform.SetParent(bodyGo.transform, false);
-            // 캐릭터 피벗 기준 (28.5, -7)px. Px.PPU 로 유닛 변환 (게임의 안기 오프셋과 같은 규칙).
-            dogGo.transform.localPosition = new Vector3(28.5f / Px.PPU, -7f / Px.PPU, 0f);
+            // 오른쪽으로 나란히. 오프셋은 스프라이트와 같은 PPU(108) 로 환산한다.
+            // y 는 0 — 사람·강아지 발을 같은 바닥선에 둔다(타이틀은 둘 다 땅에 서는 그림).
+            dogGo.transform.localPosition = new Vector3(28.5f / SheetSlicer.CharacterPixelsPerUnit, 0f, 0f);
             dogGo.transform.localScale = new Vector3(-1f, 1f, 1f);   // 마주보게 뒤집기
             var dog = dogGo.AddComponent<SpriteRenderer>();
             dog.sortingOrder = 6;
