@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -43,13 +44,37 @@ namespace UpTogether.EditorTools
             WorldSprite("HillBack", box, new Vector3(0f, -4.4f, 0f), 1f, Hsl(120f, 0.32f, 0.72f), -20, new Vector2(26f, 6f));
             WorldSprite("HillFront", box, new Vector3(0f, -3.7f, 0f), 1f, Hsl(112f, 0.40f, 0.62f), -10, new Vector2(28f, 5f));
 
-            // ── 캐릭터 + 강아지 (마지막에 고른 것) ──
-            var charSet = LoadSet(CharDir, Selection.Character, Selection.DefaultCharacter);
-            var dogSet = LoadSet(DogDir, Selection.Breed, Selection.DefaultBreed);
-            WorldSprite("Character", charSet != null ? charSet.Frame(4) : null,
-                new Vector3(-0.85f, -0.15f, 0f), 2.5f, Color.white, 5);
-            WorldSprite("Dog", dogSet != null ? dogSet.Frame(4) : null,
-                new Vector3(0.9f, -0.7f, 0f), 2.0f, Color.white, 6);
+            // ── 포옹 그룹 (마지막에 고른 캐릭터·강아지) ──
+            // 3겹: 본체 → 강아지 → 앞팔. 강아지는 본체의 자식이라 위치·크기가 같이 따라간다.
+            // 스프라이트는 TitleHug 가 런타임에 Selection 으로 채운다. 여기 건 에디터 미리보기용.
+            var bodyGo = new GameObject("Character");
+            bodyGo.transform.position = new Vector3(-0.5f, -1.2f, 0f);
+            bodyGo.transform.localScale = Vector3.one * 2.5f;
+            var body = bodyGo.AddComponent<SpriteRenderer>();
+            body.sortingOrder = 5;
+
+            var dogGo = new GameObject("Dog");
+            dogGo.transform.SetParent(bodyGo.transform, false);
+            // 캐릭터 피벗 기준 (28.5, -7)px. Px.PPU 로 유닛 변환 (게임의 안기 오프셋과 같은 규칙).
+            dogGo.transform.localPosition = new Vector3(28.5f / Px.PPU, -7f / Px.PPU, 0f);
+            dogGo.transform.localScale = new Vector3(-1f, 1f, 1f);   // 마주보게 뒤집기
+            var dog = dogGo.AddComponent<SpriteRenderer>();
+            dog.sortingOrder = 6;
+
+            var armsGo = new GameObject("Arms");
+            armsGo.transform.SetParent(bodyGo.transform, false);
+            var arms = armsGo.AddComponent<SpriteRenderer>();
+            arms.sortingOrder = 7;
+
+            var cset0 = LoadSet(CharDir, Selection.Character, Selection.DefaultCharacter);
+            var dset0 = LoadSet(DogDir, Selection.Breed, Selection.DefaultBreed);
+            if (cset0 != null) { body.sprite = cset0.Frame(18); arms.sprite = cset0.Frame(20); }
+            if (dset0 != null) dog.sprite = dset0.Frame(11);
+
+            var hug = bodyGo.AddComponent<TitleHug>();
+            hug.body = body; hug.dog = dog; hug.arms = arms;
+            hug.characters = LoadEntries(CharDir);
+            hug.breeds = LoadEntries(DogDir);
 
             // ── UI ──
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -128,6 +153,21 @@ namespace UpTogether.EditorTools
             var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>($"{dir}/{id}.asset");
             if (set == null) set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>($"{dir}/{fallback}.asset");
             return set;
+        }
+
+        /// 폴더의 모든 세트를 id 와 함께 모은다(빌드에 포함). TitleHug 가 런타임에 고른다.
+        static SelectionApplier.Entry[] LoadEntries(string dir)
+        {
+            var list = new List<SelectionApplier.Entry>();
+            foreach (var guid in AssetDatabase.FindAssets("t:CharacterSpriteSet", new[] { dir }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var set = AssetDatabase.LoadAssetAtPath<CharacterSpriteSet>(path);
+                if (set == null) continue;
+                list.Add(new SelectionApplier.Entry
+                { id = System.IO.Path.GetFileNameWithoutExtension(path), set = set });
+            }
+            return list.ToArray();
         }
 
         static Text Label(Transform parent, Font font, int size, Vector2 anchor,
