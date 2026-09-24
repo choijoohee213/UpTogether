@@ -1,0 +1,154 @@
+{
+  "cellWidth": 64,
+  "cellHeight": 64,
+  "columns": 18,
+  "ppu": 48,
+  "pivot": [
+    0.5,
+    0.046875
+  ],
+  "pivotPixels": [
+    32,
+    3
+  ],
+  "facing": "right",
+  "fileNamePattern": "{character}64_sheet.png",
+  "holdLayerOrder": [
+    "character",
+    "dog",
+    "overlay"
+  ],
+  "characters": [
+    "girl",
+    "boy",
+    "pigtail",
+    "ponytail",
+    "bun",
+    "beanie",
+    "glasses",
+    "strawhat"
+  ],
+  "characterNames": {
+    "girl": "단발+후드티",
+    "boy": "캡모자+티셔츠",
+    "pigtail": "양갈래+멜빵바지",
+    "ponytail": "포니테일+노란 우비",
+    "bun": "똥머리+스트라이프 티+치마",
+    "beanie": "비니+니트 스웨터",
+    "glasses": "곱슬머리+안경+민트 후드",
+    "strawhat": "밀짚모자+반바지 탐험가"
+  },
+  "states": {
+    "walk": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "loop": true,
+      "durations": [
+        0.13,
+        0.13,
+        0.13,
+        0.13
+      ]
+    },
+    "idle": {
+      "frames": [
+        4,
+        5
+      ],
+      "loop": true,
+      "durations": [
+        1.5,
+        0.15
+      ]
+    },
+    "jump": {
+      "frames": [
+        6
+      ],
+      "loop": false,
+      "durations": [
+        0
+      ]
+    },
+    "fall": {
+      "frames": [
+        7,
+        8
+      ],
+      "loop": true,
+      "durations": [
+        0.1,
+        0.1
+      ]
+    },
+    "land": {
+      "frames": [
+        9
+      ],
+      "loop": false,
+      "durations": [
+        0.12
+      ]
+    },
+    "climb": {
+      "frames": [
+        10,
+        11
+      ],
+      "loop": true,
+      "durations": [
+        0.18,
+        0.18
+      ]
+    },
+    "hold_idle": {
+      "frames": [
+        12
+      ],
+      "overlay": [
+        15
+      ],
+      "loop": false,
+      "durations": [
+        0
+      ],
+      "dogFrame": 10,
+      "dogCellOffset": [
+        20,
+        19
+      ],
+      "dogPivotOffsetPx": [
+        10.5,
+        -3
+      ]
+    },
+    "hold_fall": {
+      "frames": [
+        13,
+        14
+      ],
+      "overlay": [
+        16,
+        17
+      ],
+      "loop": true,
+      "durations": [
+        0.1,
+        0.1
+      ],
+      "dogFrame": 10,
+      "dogCellOffset": [
+        20,
+        17
+      ],
+      "dogPivotOffsetPx": [
+        10.5,
+        -1
+      ]
+    }
+  }
+}

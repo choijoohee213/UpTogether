@@ -27,6 +27,10 @@ namespace UpTogether
         public float platformGrabMargin = 6f;
 
         [Header("카메라")]
+        [Tooltip("화면 세로에 담을 월드 높이(px). 프로토타입은 800이었는데 캐릭터가 화면의 6%라 작아 보인다. " +
+                 "줄이면 캐릭터가 커지고 위를 덜 보게 된다. 발판 세로 간격이 68~102px 이라 " +
+                 "너무 줄이면 다음 발판이 안 보인다.")]
+        public float cameraViewHeightPx = 500f;
         public float camFollow = 0.12f;
         [Tooltip("플레이어를 화면 세로 몇 % 지점에 둘지")]
         public float camViewportY = 0.58f;
@@ -38,6 +42,8 @@ namespace UpTogether
         public float dogJumpSpeed = 12.2f;
         public float dogTeleportX = 640f;
         public float dogTeleportY = 460f;
+        [Tooltip("플레이어가 점프할 때 강아지도 같이 뛰는 가로 거리(px). 이보다 멀면 무시하고 제 갈 길 간다.")]
+        public float dogSyncJumpRange = 170f;
         public float dogClingFallSpeed = 7f;
         public float dogClingLerp = 0.35f;
         public float dogClingOffsetX = 10f;
@@ -50,6 +56,7 @@ namespace UpTogether
         public float Jump2V          => Px.V(jump2);
         public float MaxFallV        => Px.V(maxFall);
         public float WalkSpeedV      => Px.V(walkSpeed);
+        public float CameraOrthoSize => Px.U(cameraViewHeightPx) * 0.5f;
         public float MapWidthU       => Px.U(mapWidth);
         public float WallMarginU     => Px.U(wallMargin);
         public float GrabMarginU     => Px.U(platformGrabMargin);
@@ -59,6 +66,7 @@ namespace UpTogether
         public float DogJumpV        => Px.V(dogJumpSpeed);
         public float DogTeleportXU   => Px.U(dogTeleportX);
         public float DogTeleportYU   => Px.U(dogTeleportY);
+        public float DogSyncJumpRangeU => Px.U(dogSyncJumpRange);
         public float DogClingFallV   => Px.V(dogClingFallSpeed);
         public float DogClingOffXU   => Px.U(dogClingOffsetX);
         public float DogClingOffYU   => Px.U(dogClingOffsetY);

@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad3201bbaa374421f98740e797c3b71a, type: 3}
+  m_Name: boy
+  m_EditorClassIdentifier: UpTogether::UpTogether.CharacterSpriteSet
+  displayName: boy
+  frames:
+  - {fileID: -964923143, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -231326964, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -1356829972, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -488924897, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -379965640, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 551975418, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -870921730, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -275315003, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 1266536308, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -106802679, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -736570548, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -78923154, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 1274817357, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -1575637342, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 262941970, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 1349503544, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: 220736125, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  - {fileID: -680244996, guid: 06d748bd2c828448592b7ccbc71e306a, type: 3}
+  clips:
+  - name: walk
+    frames: 00000000010000000200000003000000i
+    durations:
+    - 0.13
+    - 0.13
+    - 0.13
+    - 0.13
+    loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: idle
+    frames: 0400000005000000i
+    durations:
+    - 1.5
+    - 0.15
+    loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: jump
+    frames: 06000000i
+    durations:
+    - 0
+    loop: 0
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: fall
+    frames: 0700000008000000i
+    durations:
+    - 0.1
+    - 0.1
+    loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: land
+    frames: 09000000i
+    durations:
+    - 0.12
+    loop: 0
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: climb
+    frames: 0a0000000b000000i
+    durations:
+    - 0.18
+    - 0.18
+    loop: 1
+    overlay: 
+    dogPivotOffsetPx: {x: 0, y: 0}
+    dogFrame: -1
+  - name: hold_idle
+    frames: 0c000000i
+    durations:
+    - 0
+    loop: 0
+    overlay: 0f000000i
+    dogPivotOffsetPx: {x: 10.5, y: -3}
+    dogFrame: 10
+  - name: hold_fall
+    frames: 0d0000000e000000i
+    durations:
+    - 0.1
+    - 0.1
+    loop: 1
+    overlay: 1000000011000000i
+    dogPivotOffsetPx: {x: 10.5, y: -1}
+    dogFrame: 10
