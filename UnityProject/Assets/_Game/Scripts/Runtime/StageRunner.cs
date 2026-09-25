@@ -41,6 +41,13 @@ namespace UpTogether
         const float ShakeTime = 0.45f;
         const float GoneTime = 1.6f;
 
+        // 돌아가는 톱니
+        Vector2[] sawPos;
+        Transform[] sawVisuals;
+        public int SawCount => sawPos?.Length ?? 0;
+        public Vector2 SawPos(int i) => sawPos[i];
+        public float SawBlade(int i) => Data.saws[i].blade;
+
         float clock;
 
         void Awake()
@@ -88,8 +95,11 @@ namespace UpTogether
             vanishState = new VanishState[vanishers.Length];
             vanishTimer = new float[vanishers.Length];
 
+            sawPos = new Vector2[OrEmpty(data.saws).Length];
+
             BuildVisuals();
             UpdateMovers(0f);
+            UpdateSaws(0f);
         }
 
         /// 사라지는 발판을 밟았다고 알린다 (CharacterBody가 부른다).
@@ -187,18 +197,50 @@ namespace UpTogether
 
             BuildSpikes();
             BuildWinds();
+            BuildSaws();
+            BuildRings();
         }
 
         void BuildSpikes()
         {
             foreach (var s in OrEmpty(Data.spikes))
             {
-                var go = new GameObject("Spikes");
+                var go = new GameObject(s.down ? "HangThorns" : "Spikes");
                 go.transform.SetParent(platformRoot, false);
                 go.transform.localPosition = new Vector3(s.x + s.width * 0.5f, s.y, 0f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Spikes(Mathf.RoundToInt(s.width * Px.PPU));
+                sr.sprite = ProceduralArt.Spikes(Mathf.RoundToInt(s.width * Px.PPU), s.down);
                 sr.sortingOrder = -8;
+            }
+        }
+
+        void BuildSaws()
+        {
+            var saws = OrEmpty(Data.saws);
+            sawVisuals = new Transform[saws.Length];
+            for (int i = 0; i < saws.Length; i++)
+            {
+                var s = saws[i];
+                var go = new GameObject("Saw");
+                go.transform.SetParent(platformRoot, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = ProceduralArt.Saw(Mathf.RoundToInt(s.blade * 2f * Px.PPU));
+                sr.sortingOrder = -6;
+                sawVisuals[i] = go.transform;
+            }
+        }
+
+        void BuildRings()
+        {
+            foreach (var r in OrEmpty(Data.rings))
+            {
+                if (!r.thorny) continue;   // 평범한 링은 Collectibles 가 그린다
+                var go = new GameObject("ThornRing");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(r.x, r.y, 0f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = ProceduralArt.Ring(Mathf.RoundToInt(r.radius * 2f * Px.PPU), true);
+                sr.sortingOrder = -6;
             }
         }
 
@@ -242,6 +284,23 @@ namespace UpTogether
             clock += Time.fixedDeltaTime;
             UpdateMovers(Time.fixedDeltaTime);
             UpdateVanishers(Time.fixedDeltaTime);
+            UpdateSaws(Time.fixedDeltaTime);
+        }
+
+        void UpdateSaws(float dt)
+        {
+            var saws = OrEmpty(Data.saws);
+            for (int i = 0; i < saws.Length; i++)
+            {
+                var s = saws[i];
+                float a = clock * s.speed;
+                sawPos[i] = new Vector2(s.x + Mathf.Cos(a) * s.orbit, s.y + Mathf.Sin(a) * s.orbit);
+                if (sawVisuals != null && sawVisuals[i] != null)
+                {
+                    sawVisuals[i].localPosition = new Vector3(sawPos[i].x, sawPos[i].y, 0f);
+                    sawVisuals[i].localRotation = Quaternion.Euler(0f, 0f, -clock * 260f);  // 스핀
+                }
+            }
         }
 
         void UpdateMovers(float dt)
