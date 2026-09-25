@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -14,14 +15,18 @@ namespace UpTogether.EditorTools
         [MenuItem("UpTogether/Build for Web")]
         public static void Build()
         {
-            // Brotli 로 줄이되, 디컴프레션 폴백을 켠다.
-            // 폴백이 있으면 서버가 Content-Encoding 헤더를 안 맞춰줘도 열린다 —
-            // GitHub Pages 처럼 헤더를 못 건드리는 정적 호스팅과 로컬 http.server 양쪽에서 통한다.
-            // 대가는 시작이 조금 느려지는 것인데, 42MB 를 모바일 데이터로 받는 것보다 낫다.
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            // Gzip + 디컴프레션 폴백.
+            // GitHub Pages 는 Content-Encoding 헤더를 못 맞춰줘서 브라우저가 아니라
+            // 로더가 JS 로 직접 압축을 푼다. 이때 Brotli-JS 는 폰에서 아주 느리다.
+            // Gzip 은 파일이 조금 더 크지만 JS 해제가 훨씬 빨라서 모바일 첫 로딩이 짧다.
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.WebGL.template = "APPLICATION:Default";
             PlayerSettings.runInBackground = true;
+
+            // 코드 줄이기 — wasm 을 얇게 해서 다운로드·해제 둘 다 빨라진다.
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.WebGL, ManagedStrippingLevel.High);
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
 
             // 세로 화면 기준으로 만들었다
             PlayerSettings.defaultWebScreenWidth = 450;
