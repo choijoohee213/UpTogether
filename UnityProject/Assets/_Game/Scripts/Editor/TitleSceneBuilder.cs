@@ -38,6 +38,8 @@ namespace UpTogether.EditorTools
                 typeof(UnityEngine.EventSystems.EventSystem),
                 typeof(UnityEngine.EventSystems.StandaloneInputModule));
 
+            AudioSetup.Attach();   // BGM + 효과음
+
             var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
 
             // 언덕 두 겹 (뒤가 옅다)

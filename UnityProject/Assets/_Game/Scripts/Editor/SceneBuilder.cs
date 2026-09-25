@@ -115,6 +115,14 @@ namespace UpTogether.EditorTools
             session.bond = bond;
             session.narration = narration;
 
+            // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
+            AudioSetup.Attach();
+            var gameAudio = sysGo.AddComponent<GameAudio>();
+            gameAudio.player = player;
+            gameAudio.bond = bond;
+            gameAudio.session = session;
+            gameAudio.dog = dog;
+
             // 런타임에 선택된 캐릭터·강아지를 적용한다 (씬은 빌드 시점 스프라이트로 굳어 있으므로)
             if (playerVisual != null)
             {

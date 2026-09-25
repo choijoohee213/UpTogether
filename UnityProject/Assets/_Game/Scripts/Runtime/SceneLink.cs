@@ -13,6 +13,7 @@ namespace UpTogether
 
         public void OnPointerDown(PointerEventData e)
         {
+            Sfx.I?.UiClick();
             if (!string.IsNullOrEmpty(scene)) SceneManager.LoadScene(scene);
         }
     }

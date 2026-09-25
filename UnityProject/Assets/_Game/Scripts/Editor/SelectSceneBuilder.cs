@@ -14,7 +14,7 @@ namespace UpTogether.EditorTools
         const string FontPath = "Assets/_Game/Fonts/Jua-Regular.ttf";
         const string CharDir = "Assets/_Game/Art/Player/Generated";
         const string DogDir = "Assets/_Game/Art/Dog/Generated";
-        const string HeroJson = "Assets/_Game/Art/Player/hero_sprites_v2/hero_sprites.json";
+        const string HeroJson = "Assets/_Game/Art/Player/hero_sprites_v3/hero_sprites.json";
 
         static Sprite box;   // 둥근 사각 (빌트인 UISprite)
 
@@ -47,6 +47,8 @@ namespace UpTogether.EditorTools
             new GameObject("EventSystem",
                 typeof(UnityEngine.EventSystems.EventSystem),
                 typeof(UnityEngine.EventSystems.StandaloneInputModule));
+
+            AudioSetup.Attach();
 
             // ── 캔버스 ──
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
