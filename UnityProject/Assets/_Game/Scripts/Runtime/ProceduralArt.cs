@@ -134,8 +134,9 @@ namespace UpTogether
             }, Spring, pivotY: (h - 2) / (float)h);
         }
 
-        /// 가시. 밑변이 바닥면(피벗)에 닿고 위로 뾰족하게 솟는 톱니.
-        public static Sprite Spikes(int widthPx)
+        /// 가시. 밑변이 바닥면(피벗)에 닿고 뾰족하게 솟는 톱니.
+        /// down=true 면 아래로 뻗는 매달린 가시(피벗을 윗변에 둔다).
+        public static Sprite Spikes(int widthPx, bool down = false)
         {
             int tooth = 12;                       // 톱니 하나 폭
             int n = Mathf.Max(1, widthPx / tooth);
@@ -144,10 +145,74 @@ namespace UpTogether
             {
                 float lx = x % tooth;             // 톱니 안에서의 x
                 float half = tooth * 0.5f;
-                float slope = 1f - Mathf.Abs(lx - half) / half;  // 가운데가 가장 높다
+                float slope = 1f - Mathf.Abs(lx - half) / half;  // 가운데가 가장 뾰족
                 float top = slope * (h - 1);      // 이 x 에서 가시 높이
-                return top - y + 0.5f;            // 삼각형 아래를 채운다
-            }, SpikeGray, pivotY: 0f);
+                float yy = down ? (h - 1 - y) : y;   // 아래로 뻗으면 위아래를 뒤집는다
+                return top - yy + 0.5f;
+            }, SpikeGray, pivotY: down ? 1f : 0f);
+        }
+
+        static readonly Color SawSteel = Rgb(0x8A, 0x93, 0x9E);
+        static readonly Color TreatBeige = Rgb(0xF2, 0xDF, 0xC2);
+
+        /// 돌아가는 톱니 — 이가 달린 원판. 회전은 Transform 이 한다.
+        public static Sprite Saw(int diaPx)
+        {
+            int d = Mathf.Max(16, diaPx); float R = d * 0.5f;
+            const int teeth = 9; float depth = R * 0.22f;
+            return Make(d, d, (x, y) =>
+            {
+                float dx = x - R, dy = y - R, r = Mathf.Sqrt(dx * dx + dy * dy);
+                float ang = Mathf.Atan2(dy, dx);
+                float edge = R - depth * (0.5f + 0.5f * Mathf.Cos(ang * teeth));  // 톱니 가장자리
+                float disc = edge - r + 0.5f;               // 원판 안쪽
+                float hub = r - R * 0.18f;                   // 가운데 구멍
+                return Mathf.Min(disc, hub);
+            }, SawSteel);
+        }
+
+        /// 통과하는 링(고리). thorny 면 바깥에 가시가 돋는다.
+        public static Sprite Ring(int diaPx, bool thorny)
+        {
+            int d = Mathf.Max(20, diaPx); float R = d * 0.5f - 2f;
+            float thick = Mathf.Max(2.5f, d * 0.06f);
+            var color = thorny ? SawSteel : Rgb(0xFF, 0xC8, 0x4A);
+            const int teeth = 16; float depth = R * 0.16f;
+            return Make(d, d, (x, y) =>
+            {
+                float dx = x - d * 0.5f, dy = y - d * 0.5f, r = Mathf.Sqrt(dx * dx + dy * dy);
+                float band = thick - Mathf.Abs(r - R);       // 링 테두리
+                if (thorny)
+                {
+                    float ang = Mathf.Atan2(dy, dx);
+                    float spikeR = R + depth * (0.5f + 0.5f * Mathf.Cos(ang * teeth));
+                    float spike = depth * 0.5f - Mathf.Abs(r - spikeR);
+                    return Mathf.Max(band, spike);
+                }
+                return band;
+            }, color);
+        }
+
+        /// 강아지 간식 — 가로 뼈다귀.
+        public static Sprite Treat(int px)
+        {
+            int w = Mathf.Max(16, px), h = Mathf.RoundToInt(w * 0.62f);
+            float cy = h * 0.5f, lobe = h * 0.26f;
+            return Make(w, h, (x, y) =>
+            {
+                // 가운데 막대
+                float bar = Mathf.Min(y - (cy - h * 0.16f), (cy + h * 0.16f) - y);
+                bar = Mathf.Min(bar, Mathf.Min(x - lobe, (w - lobe) - x)) + 2f;
+                // 양 끝 두 쌍의 둥근 혹
+                float best = bar;
+                foreach (var cx in new[] { lobe, w - lobe })
+                    foreach (var oy in new[] { cy - lobe * 0.9f, cy + lobe * 0.9f })
+                    {
+                        float dx = x - cx, dy = y - oy;
+                        best = Mathf.Max(best, lobe - Mathf.Sqrt(dx * dx + dy * dy) + 0.5f);
+                    }
+                return best;
+            }, TreatBeige);
         }
 
         static readonly Sprite[] buttons = new Sprite[3];

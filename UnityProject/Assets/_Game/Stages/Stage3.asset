@@ -78,40 +78,54 @@ MonoBehaviour:
     range: 0.36813694
     speed: 0.88554484
     phase: 0.073899716
+    vertical: 0
   - x: 6.9002976
     y: 7.8901463
     width: 0.83215207
     range: 0.27833447
     speed: 0.7927044
     phase: 1.5258524
+    vertical: 0
   - x: 4.615063
     y: 9.755365
     width: 0.9293791
     range: 0.4055506
     speed: 0.7860963
     phase: 5.2431746
+    vertical: 0
   - x: 5.936106
     y: 12.362294
     width: 0.9633434
     range: 0.3726027
     speed: 0.5475239
     phase: 2.935798
+    vertical: 0
   - x: 5.082899
     y: 14.80055
     width: 1.0416973
     range: 0.43188924
     speed: 0.6087197
     phase: 1.7178619
+    vertical: 0
   - x: 6.3985457
     y: 17.3557
     width: 1.2368171
     range: 0.25123703
     speed: 1.0973798
     phase: 0.73287195
+    vertical: 0
   - x: 1.2308404
     y: 20.626534
     width: 1.158652
     range: 0.4395114
     speed: 0.92004263
     phase: 0.027537264
+    vertical: 0
+  bouncers: []
+  vanishers: []
+  spikes: []
+  winds: []
+  saws: []
+  rings: []
+  treats: []
   goal: {x: 1.8101665, y: 20.926535}

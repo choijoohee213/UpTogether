@@ -115,11 +115,18 @@ namespace UpTogether.EditorTools
             session.bond = bond;
             session.narration = narration;
 
-            // 장애물 — 가시·바람 (발판 계열은 StageRunner가 처리)
+            // 장애물 — 가시·바람·톱니·가시 링 (발판 계열은 StageRunner가 처리)
+            var body = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
             var hazards = sysGo.AddComponent<Hazards>();
-            hazards.player = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
+            hazards.player = body;
             hazards.stage = runner;
             hazards.bond = bond;
+
+            // 수집 — 간식·통과 링 (친밀도 상승)
+            var collectibles = sysGo.AddComponent<Collectibles>();
+            collectibles.player = body;
+            collectibles.stage = runner;
+            collectibles.bond = bond;
 
             // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
             AudioSetup.Attach();
@@ -128,6 +135,8 @@ namespace UpTogether.EditorTools
             gameAudio.bond = bond;
             gameAudio.session = session;
             gameAudio.dog = dog;
+            gameAudio.hazards = hazards;
+            gameAudio.collectibles = collectibles;
 
             // 런타임에 선택된 캐릭터·강아지를 적용한다 (씬은 빌드 시점 스프라이트로 굳어 있으므로)
             if (playerVisual != null)

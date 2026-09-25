@@ -40,12 +40,25 @@ namespace UpTogether
         public struct Vanisher { public float x, y, width; public float Right => x + width; }
 
         /// 가시. y 는 가시가 솟은 바닥면. 닿으면 튕겨나가고 친밀도가 깎인다.
+        /// down=true 면 천장/발판 밑에 매달린 가시(아래로 뻗음).
         [Serializable]
-        public struct Spike { public float x, y, width; public float Right => x + width; }
+        public struct Spike { public float x, y, width; public bool down; public float Right => x + width; }
 
         /// 바람 지대. 안에 있으면 옆으로 밀린다. force 부호가 방향(+오른쪽).
         [Serializable]
         public struct Wind { public float x, y, width, height, force; }
+
+        /// 돌아가는 톱니. (x,y) 중심을 orbit 반지름으로 돌고, blade 반지름 안에 닿으면 아프다.
+        [Serializable]
+        public struct Saw { public float x, y, blade, orbit, speed; }
+
+        /// 통과하는 링. thorny=true 면 테두리에 닿을 때 아프고, 아니면 가운데를 지나면 친밀도가 오른다.
+        [Serializable]
+        public struct Ring { public float x, y, radius; public bool thorny; }
+
+        /// 강아지 간식. 주우면 친밀도가 오르고 사라진다.
+        [Serializable]
+        public struct Treat { public float x, y; }
 
         public string displayName;
         [Tooltip("원본 생성에 쓴 시드. 다시 구우려면 필요하다.")]
@@ -61,6 +74,9 @@ namespace UpTogether
         public Vanisher[] vanishers;
         public Spike[] spikes;
         public Wind[] winds;
+        public Saw[] saws;
+        public Ring[] rings;
+        public Treat[] treats;
         public Vector2 goal;
 
         /// 월드 y → 게임에 표시되는 높이(m). 프로토타입: 26px = 1m

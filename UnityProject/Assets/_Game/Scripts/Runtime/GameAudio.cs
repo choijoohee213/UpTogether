@@ -11,6 +11,8 @@ namespace UpTogether
         public Bond bond;
         public StageSession session;
         public DogController dog;
+        public Hazards hazards;
+        public Collectibles collectibles;
 
         const float StepInterval = 0.28f;
         const float WalkThresholdPx = 0.4f;
@@ -30,6 +32,8 @@ namespace UpTogether
             }
             if (bond != null) bond.Changed += OnBond;
             if (session != null) session.OnCleared += OnClear;
+            if (hazards != null) hazards.Hurt += OnHurt;
+            if (collectibles != null) collectibles.Collected += OnCollect;
         }
 
         void OnDisable()
@@ -41,9 +45,13 @@ namespace UpTogether
             }
             if (bond != null) bond.Changed -= OnBond;
             if (session != null) session.OnCleared -= OnClear;
+            if (hazards != null) hazards.Hurt -= OnHurt;
+            if (collectibles != null) collectibles.Collected -= OnCollect;
         }
 
-        void OnBounce() => Sfx.I?.Jump();   // 튕김 — 점프음 재활용
+        void OnBounce() => Sfx.I?.Jump();    // 튕김 — 점프음 재활용
+        void OnHurt() => Sfx.I?.Whine();     // 찔림 — 강아지가 걱정
+        void OnCollect() => Sfx.I?.Reward(); // 간식·링 — 보상음
 
         void Start()
         {
