@@ -14,6 +14,7 @@ namespace UpTogether
         public void OnPointerDown(PointerEventData e)
         {
             if (pause == null) return;
+            if (kind == Kind.Open) Sfx.I?.UiPopup(); else Sfx.I?.UiClick();
             switch (kind)
             {
                 case Kind.Open: pause.Open(); break;

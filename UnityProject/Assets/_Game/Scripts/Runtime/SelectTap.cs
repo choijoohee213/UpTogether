@@ -20,6 +20,7 @@ namespace UpTogether
 
         public void OnPointerDown(PointerEventData e)
         {
+            Sfx.I?.UiClick();
             if (screen == null) return;
             switch (kind)
             {
