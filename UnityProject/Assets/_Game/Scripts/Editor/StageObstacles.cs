@@ -77,16 +77,57 @@ namespace UpTogether.EditorTools
             // 튕김판: 바닥 근처에 두는 '장난감' 하나 (주 경로 밖, 눌러보게)
             bouncers.Add(new StageData.Bouncer { x = 6.4f, y = ground.y + 0.55f, width = 0.7f });
 
+            // ── 창의 장애물 (공중에 얹으므로 발판 변환과 안 겹친다) ──
+            var saws = new List<StageData.Saw>();
+            var rings = new List<StageData.Ring>();
+            var treats = new List<StageData.Treat>();
+
+            int iThorn = Mathf.Clamp(n / 5, 0, n - 1);
+            int iSaw = Mathf.Clamp(n * 2 / 5, 0, n - 1);
+            int iRingT = Mathf.Clamp(n * 3 / 5, 0, n - 1);
+            int iRingP = Mathf.Clamp(n / 6, 0, n - 1);
+
+            // 매달린 가시덩굴 — 발판 위 공중에 늘어뜨려 지나갈 때 피하게
+            var pt = up[iThorn];
+            spikes.Add(new StageData.Spike {
+                x = pt.x + pt.width * 0.25f, y = pt.y + 1.0f, width = pt.width * 0.5f, down = true });
+
+            // 돌아가는 톱니 — 공중에서 궤도로 빙빙
+            var ps = up[iSaw];
+            saws.Add(new StageData.Saw {
+                x = ps.x + ps.width * 0.5f, y = ps.y + 0.75f, blade = 0.22f, orbit = 0.5f, speed = 2.4f });
+
+            // 가시 링 — 가운데 구멍으로 통과 (테두리는 아픔)
+            var pr = up[iRingT];
+            rings.Add(new StageData.Ring {
+                x = pr.x + pr.width * 0.5f, y = pr.y + 0.95f, radius = 0.5f, thorny = true });
+
+            // 평범한 링 — 통과하면 친밀도 보너스
+            var pp = up[iRingP];
+            rings.Add(new StageData.Ring {
+                x = pp.x + pp.width * 0.5f, y = pp.y + 0.8f, radius = 0.5f, thorny = false });
+
+            // 강아지 간식 — 발판 위에 살짝 띄워 세 개
+            foreach (int idx in new[] { 2, Mathf.Clamp(n / 2 + 2, 0, n - 1), Mathf.Clamp(n - 3, 0, n - 1) })
+            {
+                var p = up[idx];
+                treats.Add(new StageData.Treat { x = p.x + p.width * 0.5f, y = p.y + 0.35f });
+            }
+
             s.platforms = keep.ToArray();
             s.movers = movers.ToArray();
             s.vanishers = vanishers.ToArray();
             s.spikes = spikes.ToArray();
             s.winds = winds.ToArray();
             s.bouncers = bouncers.ToArray();
+            s.saws = saws.ToArray();
+            s.rings = rings.ToArray();
+            s.treats = treats.ToArray();
 
             EditorUtility.SetDirty(s);
             AssetDatabase.SaveAssets();
-            Debug.Log($"Stage1 장애물 배치: 사라짐 {vanishers.Count} / 세로이동 1 / 가시 {spikes.Count} / 바람 {winds.Count} / 튕김판 {bouncers.Count}");
+            Debug.Log($"Stage1 장애물: 사라짐 {vanishers.Count} / 세로이동 1 / 가시 {spikes.Count} / 바람 {winds.Count} / " +
+                      $"튕김판 {bouncers.Count} / 톱니 {saws.Count} / 링 {rings.Count} / 간식 {treats.Count}");
         }
     }
 }
