@@ -115,6 +115,12 @@ namespace UpTogether.EditorTools
             session.bond = bond;
             session.narration = narration;
 
+            // 장애물 — 가시·바람 (발판 계열은 StageRunner가 처리)
+            var hazards = sysGo.AddComponent<Hazards>();
+            hazards.player = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
+            hazards.stage = runner;
+            hazards.bond = bond;
+
             // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
             AudioSetup.Attach();
             var gameAudio = sysGo.AddComponent<GameAudio>();
