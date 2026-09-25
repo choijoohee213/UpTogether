@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UpTogether
@@ -30,6 +31,9 @@ namespace UpTogether
         // 홀드 점프 — 플레이어만 쓴다. 강아지는 항상 기본 중력.
         [HideInInspector] public bool holding;
         [HideInInspector] public float holdTime;
+
+        /// 튕김판을 밟은 순간. 소리가 여기에 붙는다.
+        public event Action Bounced;
 
         StageRunner stage;
 
@@ -70,14 +74,28 @@ namespace UpTogether
                 for (int i = 0; i < n; i++)
                 {
                     var p = stage.GetPlatform(i);
+                    if (!p.active) continue;                 // 사라진 발판은 건너뛴다
+                    // 세로로 움직이는 발판은 이미 움직인 뒤라, 이번에 오른 만큼(deltaY)을
+                    // 빼서 '움직이기 전 높이'와 비교해야 위로 밀어올려도 발을 붙잡는다.
+                    float py0 = p.y - p.deltaY;
                     if (X > p.left - grab && X < p.right + grab &&
-                        prevY >= p.y - SnapEpsilon && Y <= p.y + SnapEpsilon)
+                        prevY >= py0 - SnapEpsilon && Y <= p.y + SnapEpsilon)
                     {
-                        Y = p.y;
-                        vy = 0f;
-                        grounded = true;
-                        groundIndex = i;
-                        X += p.deltaX; // 움직이는 발판에 실려 간다
+                        if (p.kind == StageRunner.Kind.Bounce)
+                        {
+                            Y = p.y;
+                            vy = tuning.Jump1V * 1.7f;        // 튕김판 — 점프보다 훨씬 높이
+                            Bounced?.Invoke();
+                        }
+                        else
+                        {
+                            Y = p.y;
+                            vy = 0f;
+                            grounded = true;
+                            groundIndex = i;
+                            X += p.deltaX;                   // 움직이는 발판에 실려 간다
+                            if (p.kind == StageRunner.Kind.Vanish) stage.NotifyStand(i);
+                        }
                         break;
                     }
                 }

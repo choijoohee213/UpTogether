@@ -23,17 +23,27 @@ namespace UpTogether
 
         void OnEnable()
         {
-            if (player != null) { player.Jumped += OnJump; player.Landed += OnLanded; }
+            if (player != null)
+            {
+                player.Jumped += OnJump; player.Landed += OnLanded;
+                if (player.Body != null) player.Body.Bounced += OnBounce;
+            }
             if (bond != null) bond.Changed += OnBond;
             if (session != null) session.OnCleared += OnClear;
         }
 
         void OnDisable()
         {
-            if (player != null) { player.Jumped -= OnJump; player.Landed -= OnLanded; }
+            if (player != null)
+            {
+                player.Jumped -= OnJump; player.Landed -= OnLanded;
+                if (player.Body != null) player.Body.Bounced -= OnBounce;
+            }
             if (bond != null) bond.Changed -= OnBond;
             if (session != null) session.OnCleared -= OnClear;
         }
+
+        void OnBounce() => Sfx.I?.Jump();   // 튕김 — 점프음 재활용
 
         void Start()
         {

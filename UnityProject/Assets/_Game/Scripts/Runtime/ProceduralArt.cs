@@ -99,6 +99,57 @@ namespace UpTogether
         }
 
 
+        // 장애물 색
+        public static readonly Color Spring = Rgb(0xFF, 0xB0, 0x3A);   // 튕김판
+        public static readonly Color SpikeGray = Rgb(0x9A, 0xA3, 0xAD); // 가시
+
+        static Sprite windChevron;
+        /// 바람 방향 표시용 갈매기(>) 하나. flipX 로 왼쪽도 만든다.
+        public static Sprite WindChevron => windChevron ??= MakeChevron();
+
+        static Sprite MakeChevron()
+        {
+            const int W = 18, H = 22;
+            return Make(W, H, (x, y) =>
+            {
+                // 두 획으로 '>' 모양. 중심에서 벌어지는 대각선 두 줄.
+                float cy = H * 0.5f;
+                float arm = Mathf.Abs(y - cy);            // 위/아래로 갈수록
+                float edge = 3f + arm * 0.7f;             // 오른쪽으로 뻗는 획 위치
+                return 2.2f - Mathf.Abs(x - edge);        // 두께 ~2px
+            }, new Color(1f, 1f, 1f, 0.75f));
+        }
+
+        /// 튕김판. 발판 윗면(피벗)에 얹히는 밝은 스프링 패드.
+        public static Sprite BouncePad(int widthPx)
+        {
+            int w = Mathf.Max(10, widthPx), h = 14;
+            return Make(w, h, (x, y) =>
+            {
+                // 위 3px 는 더 밝은 띠, 나머지는 패드. 좌우 2px 는 둥글게 깎는다.
+                float edge = Mathf.Min(x, w - x);
+                float round = Mathf.Clamp01(edge - 1f);
+                float body = (y < h - 3) ? 1f : 0.0f;
+                return round * (body > 0 ? 1f : 0f);
+            }, Spring, pivotY: (h - 2) / (float)h);
+        }
+
+        /// 가시. 밑변이 바닥면(피벗)에 닿고 위로 뾰족하게 솟는 톱니.
+        public static Sprite Spikes(int widthPx)
+        {
+            int tooth = 12;                       // 톱니 하나 폭
+            int n = Mathf.Max(1, widthPx / tooth);
+            int w = n * tooth, h = 14;
+            return Make(w, h, (x, y) =>
+            {
+                float lx = x % tooth;             // 톱니 안에서의 x
+                float half = tooth * 0.5f;
+                float slope = 1f - Mathf.Abs(lx - half) / half;  // 가운데가 가장 높다
+                float top = slope * (h - 1);      // 이 x 에서 가시 높이
+                return top - y + 0.5f;            // 삼각형 아래를 채운다
+            }, SpikeGray, pivotY: 0f);
+        }
+
         static readonly Sprite[] buttons = new Sprite[3];
 
         /// 화면 조작 버튼. dir: -1 왼쪽, +1 오른쪽, 0 위(점프).

@@ -24,11 +24,28 @@ namespace UpTogether
             public float x;      // 왕복의 중심
             public float y;
             public float width;
-            public float range;  // 중심에서 좌우로 이 만큼
+            public float range;  // 중심에서 이 만큼
             public float speed;  // rad/s
             public float phase;
+            public bool vertical; // true 면 위아래로 왕복한다
             public float Right => x + width;
         }
+
+        /// 튕김판. 밟으면 위로 크게 튄다.
+        [Serializable]
+        public struct Bouncer { public float x, y, width; public float Right => x + width; }
+
+        /// 사라지는 발판. 밟으면 잠깐 흔들리다 사라지고, 잠시 뒤 되살아난다.
+        [Serializable]
+        public struct Vanisher { public float x, y, width; public float Right => x + width; }
+
+        /// 가시. y 는 가시가 솟은 바닥면. 닿으면 튕겨나가고 친밀도가 깎인다.
+        [Serializable]
+        public struct Spike { public float x, y, width; public float Right => x + width; }
+
+        /// 바람 지대. 안에 있으면 옆으로 밀린다. force 부호가 방향(+오른쪽).
+        [Serializable]
+        public struct Wind { public float x, y, width, height, force; }
 
         public string displayName;
         [Tooltip("원본 생성에 쓴 시드. 다시 구우려면 필요하다.")]
@@ -40,6 +57,10 @@ namespace UpTogether
 
         public Platform[] platforms;
         public Mover[] movers;
+        public Bouncer[] bouncers;
+        public Vanisher[] vanishers;
+        public Spike[] spikes;
+        public Wind[] winds;
         public Vector2 goal;
 
         /// 월드 y → 게임에 표시되는 높이(m). 프로토타입: 26px = 1m
