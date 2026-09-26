@@ -154,8 +154,8 @@ namespace UpTogether.EditorTools
             follow.stage = runner;
             follow.player = player;
 
-            BuildTouchUi(input);
-            BuildHud(session, bond, narration);
+            BuildTouchUi(input, lib);
+            BuildHud(session, bond, narration, lib);
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -405,7 +405,7 @@ namespace UpTogether.EditorTools
         }
 
         /// 친밀도 바, 높이, 서사 한 줄, 클리어 화면.
-        static void BuildHud(StageSession session, Bond bond, Narration narration)
+        static void BuildHud(StageSession session, Bond bond, Narration narration, SpriteLib lib)
         {
             var font = LoadFont();
 
@@ -420,13 +420,22 @@ namespace UpTogether.EditorTools
             var hud = canvasGo.AddComponent<GameHud>();
             hud.session = session; hud.bond = bond; hud.narration = narration;
 
-            // 친밀도 바 (좌상단)
-            MakeImage(canvasGo.transform, "BondBack", new Color(0f, 0f, 0f, 0.25f),
+            // 친밀도 게이지 (좌상단): 하트 아이콘 + 나무 게이지
+            if (lib != null && lib.heartIcon != null && lib.heartIcon.Length > 0)
+            {
+                var heart = MakeImage(canvasGo.transform, "BondHeart", Color.white,
                       new Vector2(0f, 1f), new Vector2(0f, 1f),
-                      new Vector2(40f, -96f), new Vector2(460f, -56f));
+                      new Vector2(40f, -98f), new Vector2(88f, -52f));
+                heart.sprite = lib.heartIcon[0]; heart.type = Image.Type.Simple;
+            }
+            var back = MakeImage(canvasGo.transform, "BondBack", new Color(0f, 0f, 0f, 0.25f),
+                      new Vector2(0f, 1f), new Vector2(0f, 1f),
+                      new Vector2(96f, -92f), new Vector2(470f, -60f));
+            if (lib != null && lib.gaugeFrame != null) { back.sprite = lib.gaugeFrame; back.color = Color.white; }
             var fill = MakeImage(canvasGo.transform, "BondFill", new Color(0.97f, 0.45f, 0.56f),
                       new Vector2(0f, 1f), new Vector2(0f, 1f),
-                      new Vector2(40f, -96f), new Vector2(460f, -56f));
+                      new Vector2(104f, -88f), new Vector2(462f, -64f));
+            if (lib != null && lib.gaugeFill != null) fill.sprite = lib.gaugeFill;
             fill.type = Image.Type.Filled;   // Sliced 기본값을 덮어쓴다
             fill.fillMethod = Image.FillMethod.Horizontal;
             fill.fillAmount = 0f;
@@ -471,11 +480,11 @@ namespace UpTogether.EditorTools
                       new Vector2(-460f, -260f), new Vector2(460f, 260f));
 
             // 일시정지 버튼 + 오버레이 (맨 위 형제라 다른 HUD 위에 그려진다)
-            BuildPause(canvasGo, font);
+            BuildPause(canvasGo, font, lib);
         }
 
         /// 우상단 일시정지 버튼과, 누르면 뜨는 오버레이(계속하기 / 메인으로).
-        static void BuildPause(GameObject canvasGo, Font font)
+        static void BuildPause(GameObject canvasGo, Font font, SpriteLib lib)
         {
             var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
             var pause = canvasGo.AddComponent<Pause>();
@@ -488,12 +497,20 @@ namespace UpTogether.EditorTools
             brt.sizeDelta = new Vector2(96f, 96f);
             brt.anchoredPosition = new Vector2(-36f, -36f);
             var bimg = btn.GetComponent<Image>();
-            bimg.sprite = box; bimg.type = Image.Type.Sliced;
-            bimg.color = new Color(1f, 1f, 1f, 0.5f);
             var ptap = btn.GetComponent<PauseTap>();
             ptap.pause = pause; ptap.kind = PauseTap.Kind.Open;
-            PauseBar(btn.transform, -13f);   // ‖ 아이콘 (글리프 없이 막대 두 개)
-            PauseBar(btn.transform, 13f);
+            if (lib != null && lib.btnPause != null && lib.btnPause.Length > 0)
+            {
+                bimg.sprite = lib.btnPause[0]; bimg.type = Image.Type.Simple;
+                bimg.color = Color.white;
+            }
+            else
+            {
+                bimg.sprite = box; bimg.type = Image.Type.Sliced;
+                bimg.color = new Color(1f, 1f, 1f, 0.5f);
+                PauseBar(btn.transform, -13f);   // ‖ 아이콘 (글리프 없이 막대 두 개)
+                PauseBar(btn.transform, 13f);
+            }
 
             // 오버레이 패널 (처음엔 꺼둔다)
             var panel = new GameObject("PausePanel", typeof(RectTransform));
@@ -507,9 +524,10 @@ namespace UpTogether.EditorTools
             MakeImage(panel.transform, "Dim", new Color(0f, 0f, 0f, 0.55f),
                       Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            MakeImage(panel.transform, "Card", new Color(1f, 1f, 1f, 0.96f),
+            var card = MakeImage(panel.transform, "Card", new Color(1f, 1f, 1f, 0.96f),
                       new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                       new Vector2(-360f, -320f), new Vector2(360f, 320f));
+            if (lib != null && lib.panelWood != null) { card.sprite = lib.panelWood; card.color = Color.white; }
 
             var title = MakeText(panel.transform, "PauseTitle", font, 54, TextAnchor.MiddleCenter,
                       new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
@@ -559,7 +577,7 @@ namespace UpTogether.EditorTools
             tap.pause = pause; tap.kind = kind;
         }
 
-        static void BuildTouchUi(GameInput input)
+        static void BuildTouchUi(GameInput input, SpriteLib lib)
         {
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
@@ -574,12 +592,12 @@ namespace UpTogether.EditorTools
             // 엄지로 누르기엔 충분하면서 플레이 화면을 덜 가린다.
             // (230px 일 때는 세 개가 폭의 64% 를 먹었다)
             // 실기기에서 반드시 다시 만질 것 (PROJECT.md 열린 과제)
-            MakeButton(canvasGo.transform, "Left",  TouchButton.Kind.Left,  -1, new Vector2(0f, 0f), new Vector2( 140f, 165f));
-            MakeButton(canvasGo.transform, "Right", TouchButton.Kind.Right,  1, new Vector2(0f, 0f), new Vector2( 330f, 165f));
-            MakeButton(canvasGo.transform, "Jump",  TouchButton.Kind.Jump,   0, new Vector2(1f, 0f), new Vector2(-175f, 180f));
+            MakeButton(canvasGo.transform, "Left",  TouchButton.Kind.Left,  -1, new Vector2(0f, 0f), new Vector2( 140f, 165f), lib);
+            MakeButton(canvasGo.transform, "Right", TouchButton.Kind.Right,  1, new Vector2(0f, 0f), new Vector2( 330f, 165f), lib);
+            MakeButton(canvasGo.transform, "Jump",  TouchButton.Kind.Jump,   0, new Vector2(1f, 0f), new Vector2(-175f, 180f), lib);
         }
 
-        static void MakeButton(Transform parent, string label, TouchButton.Kind kind, int dir, Vector2 anchor, Vector2 pos)
+        static void MakeButton(Transform parent, string label, TouchButton.Kind kind, int dir, Vector2 anchor, Vector2 pos, SpriteLib lib)
         {
             var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(TouchButton));
             go.transform.SetParent(parent, false);
@@ -591,9 +609,19 @@ namespace UpTogether.EditorTools
             rt.anchoredPosition = pos;
 
             var img = go.GetComponent<Image>();
-            img.sprite = ProceduralArt.Button(dir);
             img.color = Color.white;
-            go.GetComponent<TouchButton>().kind = kind;
+            var tb = go.GetComponent<TouchButton>();
+            tb.kind = kind;
+
+            Sprite[] frames = lib == null ? null :
+                (kind == TouchButton.Kind.Left ? lib.btnLeft :
+                 kind == TouchButton.Kind.Right ? lib.btnRight : lib.btnUp);
+            if (frames != null && frames.Length > 0 && frames[0] != null)
+            {
+                img.sprite = frames[0];
+                if (frames.Length > 1) tb.pressedSprite = frames[1];
+            }
+            else img.sprite = ProceduralArt.Button(dir);
         }
 
         static Sprite cached;

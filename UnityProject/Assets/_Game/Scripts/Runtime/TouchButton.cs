@@ -10,16 +10,20 @@ namespace UpTogether
     {
         public enum Kind { Left, Right, Jump }
         public Kind kind;
-        [Tooltip("눌렸을 때 살짝 진해지는 정도")]
+        [Tooltip("눌렸을 때 살짝 진해지는 정도(스프라이트 눌림장이 없을 때만)")]
         public float pressedAlpha = 0.6f;
+        [Tooltip("눌렸을 때 바뀔 스프라이트. 있으면 알파 대신 이걸 쓴다.")]
+        public Sprite pressedSprite;
 
         Image img;
+        Sprite normalSprite;
         float idleAlpha;
 
         void Awake()
         {
             img = GetComponent<Image>();
             idleAlpha = img.color.a;
+            normalSprite = img.sprite;
         }
 
         public void OnPointerDown(PointerEventData e) => Set(true);
@@ -37,9 +41,14 @@ namespace UpTogether
                 case Kind.Right: GameInput.I.SetRight(on); break;
                 case Kind.Jump:  GameInput.I.SetJump(on);  break;
             }
-            var c = img.color;
-            c.a = on ? pressedAlpha : idleAlpha;
-            img.color = c;
+            if (pressedSprite != null)
+                img.sprite = on ? pressedSprite : normalSprite;
+            else
+            {
+                var c = img.color;
+                c.a = on ? pressedAlpha : idleAlpha;
+                img.color = c;
+            }
         }
     }
 }
