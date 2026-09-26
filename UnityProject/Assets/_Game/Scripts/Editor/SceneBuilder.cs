@@ -57,6 +57,7 @@ namespace UpTogether.EditorTools
             platformRoot.SetParent(stageGo.transform, false);
             runner.startStage = stage;
             runner.platformRoot = platformRoot;
+            runner.tiles = LoadTiles("Assets/_Game/Art/Map/forest_tileset_16px.png");
 
             // ── 플레이어 / 강아지 ──
             // ── 배경 (숲 테마 3겹) ──
@@ -326,6 +327,17 @@ namespace UpTogether.EditorTools
                 list.Add(new SelectionApplier.Entry { id = id, set = set });
             }
             return list.ToArray();
+        }
+
+        /// 슬라이스된 숲 타일 32칸을 forest_0..31 순서로 모은다.
+        static Sprite[] LoadTiles(string path)
+        {
+            var byName = new System.Collections.Generic.Dictionary<string, Sprite>();
+            foreach (var o in AssetDatabase.LoadAllAssetsAtPath(path))
+                if (o is Sprite s) byName[s.name] = s;
+            var arr = new Sprite[32];
+            for (int i = 0; i < 32; i++) byName.TryGetValue($"forest_{i}", out arr[i]);
+            return arr;
         }
 
         static Font LoadFont()
