@@ -11,6 +11,7 @@ namespace UpTogether
         public CharacterBody player;
         public StageRunner stage;
         public Bond bond;
+        public SpriteLib lib;
 
         /// 뭔가 주운 순간. 소리가 붙는다.
         public event Action Collected;
@@ -41,7 +42,13 @@ namespace UpTogether
                 go.transform.SetParent(transform, false);
                 go.transform.localPosition = new Vector3(rings[i].x, rings[i].y, 0f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Ring(Mathf.RoundToInt(rings[i].radius * 2f * Px.PPU), false);
+                if (lib != null && lib.ringFlower != null)
+                {
+                    sr.sprite = lib.ringFlower;
+                    float vis = lib.ringFlower.rect.height / lib.ringFlower.pixelsPerUnit;
+                    go.transform.localScale = Vector3.one * (rings[i].radius * 2f / vis);
+                }
+                else sr.sprite = ProceduralArt.Ring(Mathf.RoundToInt(rings[i].radius * 2f * Px.PPU), false);
                 sr.sortingOrder = -6;
                 ringVis[i] = go.transform;
             }
@@ -58,8 +65,16 @@ namespace UpTogether
                 go.transform.SetParent(transform, false);
                 go.transform.localPosition = new Vector3(treats[i].x, treats[i].y, 0f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Treat(Mathf.RoundToInt(0.32f * Px.PPU));
                 sr.sortingOrder = -5;
+                // 뼈다귀·하트·별을 번갈아 (반짝임 2프레임)
+                Sprite[] kinds = lib == null ? null :
+                    (i % 3 == 0 ? lib.treatBone : i % 3 == 1 ? lib.treatHeart : lib.treatStar);
+                if (kinds != null && kinds.Length > 0 && kinds[0] != null)
+                {
+                    sr.sprite = kinds[0];
+                    if (kinds.Length > 1) { var a = go.AddComponent<SpriteAnim>(); a.frames = kinds; a.fps = 3f; }
+                }
+                else sr.sprite = ProceduralArt.Treat(Mathf.RoundToInt(0.32f * Px.PPU));
                 treatVis[i] = go.transform;
             }
         }

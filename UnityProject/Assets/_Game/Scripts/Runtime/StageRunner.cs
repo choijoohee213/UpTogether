@@ -29,6 +29,8 @@ namespace UpTogether
         public Transform platformRoot;
         /// 숲 타일셋 32칸(위-왼쪽부터 0번). SceneBuilder 가 채운다. 비면 절차적 발판으로 떨어진다.
         public Sprite[] tiles;
+        /// 장애물 스프라이트. 비면 절차적 도형으로 떨어진다.
+        public SpriteLib lib;
 
         float TileU => (tiles != null && tiles.Length > 0 && tiles[0] != null)
             ? tiles[0].rect.width / tiles[0].pixelsPerUnit : Px.U(16f);
@@ -179,7 +181,9 @@ namespace UpTogether
                     var pad = new GameObject("pad");
                     pad.transform.SetParent(go.transform, false);
                     var pr = pad.AddComponent<SpriteRenderer>();
-                    pr.sprite = ProceduralArt.BouncePad(Mathf.RoundToInt(width * Px.PPU));
+                    if (lib != null && lib.bounceMushroom != null && lib.bounceMushroom.Length > 0)
+                        pr.sprite = lib.bounceMushroom[0];   // 버섯 트램폴린 (피벗 하단)
+                    else pr.sprite = ProceduralArt.BouncePad(Mathf.RoundToInt(width * Px.PPU));
                     pr.sortingOrder = -9;
                 }
 
@@ -275,9 +279,41 @@ namespace UpTogether
                 var go = new GameObject(s.down ? "HangThorns" : "Spikes");
                 go.transform.SetParent(platformRoot, false);
                 go.transform.localPosition = new Vector3(s.x + s.width * 0.5f, s.y, 0f);
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Spikes(Mathf.RoundToInt(s.width * Px.PPU), s.down);
-                sr.sortingOrder = -8;
+
+                Sprite[] frames = s.down ? (lib != null ? lib.thornVine : null)
+                    : (lib != null && lib.spikeFloor != null ? new[] { lib.spikeFloor } : null);
+                if (frames != null && frames.Length > 0 && frames[0] != null)
+                    TileRow(go.transform, frames, s.width, 0f, s.down ? 2.5f : 0f, -8);
+                else
+                {
+                    var sr = go.AddComponent<SpriteRenderer>();
+                    sr.sprite = ProceduralArt.Spikes(Mathf.RoundToInt(s.width * Px.PPU), s.down);
+                    sr.sortingOrder = -8;
+                }
+            }
+        }
+
+        /// 스프라이트를 발판 너비에 맞춰 가로로 여러 장 깐다(가시·매달린 가시·바람).
+        /// 피벗은 스프라이트 자체가 정한다(가시=하단, 매달린 가시=상단).
+        void TileRow(Transform parent, Sprite[] frames, float width, float y, float fps, int order)
+        {
+            float T = TileU;
+            int n = Mathf.Max(1, Mathf.RoundToInt(width / T));
+            float cw = width / n;
+            for (int k = 0; k < n; k++)
+            {
+                var g = new GameObject("t");
+                g.transform.SetParent(parent, false);
+                g.transform.localPosition = new Vector3(-width * 0.5f + cw * (k + 0.5f), y, 0f);
+                g.transform.localScale = new Vector3(cw / T, 1f, 1f);
+                var sr = g.AddComponent<SpriteRenderer>();
+                sr.sprite = frames[0];
+                sr.sortingOrder = order;
+                if (frames.Length > 1 && fps > 0f)
+                {
+                    var a = g.AddComponent<SpriteAnim>();
+                    a.frames = frames; a.fps = fps;
+                }
             }
         }
 
@@ -291,7 +327,13 @@ namespace UpTogether
                 var go = new GameObject("Saw");
                 go.transform.SetParent(platformRoot, false);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Saw(Mathf.RoundToInt(s.blade * 2f * Px.PPU));
+                if (lib != null && lib.sawLog != null)
+                {
+                    sr.sprite = lib.sawLog;
+                    float vis = lib.sawLog.rect.height / lib.sawLog.pixelsPerUnit;
+                    go.transform.localScale = Vector3.one * (s.blade * 2f / vis);  // 판정 크기에 맞춤
+                }
+                else sr.sprite = ProceduralArt.Saw(Mathf.RoundToInt(s.blade * 2f * Px.PPU));
                 sr.sortingOrder = -6;
                 sawVisuals[i] = go.transform;
             }
@@ -306,7 +348,13 @@ namespace UpTogether
                 go.transform.SetParent(platformRoot, false);
                 go.transform.localPosition = new Vector3(r.x, r.y, 0f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Ring(Mathf.RoundToInt(r.radius * 2f * Px.PPU), true);
+                if (lib != null && lib.ringThorn != null)
+                {
+                    sr.sprite = lib.ringThorn;
+                    float vis = lib.ringThorn.rect.height / lib.ringThorn.pixelsPerUnit;
+                    go.transform.localScale = Vector3.one * (r.radius * 2f / vis);
+                }
+                else sr.sprite = ProceduralArt.Ring(Mathf.RoundToInt(r.radius * 2f * Px.PPU), true);
                 sr.sortingOrder = -6;
             }
         }
@@ -330,16 +378,23 @@ namespace UpTogether
                 // 방향 갈매기 몇 개
                 int dir = w.force >= 0 ? 1 : -1;
                 int count = Mathf.Clamp(Mathf.RoundToInt(w.height / Px.U(60f)), 1, 5);
+                bool hasWind = lib != null && lib.wind != null && lib.wind.Length > 0;
                 for (int k = 0; k < count; k++)
                 {
-                    var ch = new GameObject("arrow");
+                    var ch = new GameObject("gust");
                     ch.transform.SetParent(go.transform, false);
                     float ty = Mathf.Lerp(-w.height * 0.35f, w.height * 0.35f, count == 1 ? 0.5f : k / (count - 1f));
                     ch.transform.localPosition = new Vector3(0f, ty, 0f);
                     ch.transform.localScale = new Vector3(dir, 1f, 1f);
                     var cr = ch.AddComponent<SpriteRenderer>();
-                    cr.sprite = ProceduralArt.WindChevron;
                     cr.sortingOrder = -7;
+                    if (hasWind)
+                    {
+                        cr.sprite = lib.wind[0];
+                        var a = ch.AddComponent<SpriteAnim>();
+                        a.frames = lib.wind; a.fps = 6f;
+                    }
+                    else cr.sprite = ProceduralArt.WindChevron;
                 }
             }
         }

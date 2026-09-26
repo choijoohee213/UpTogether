@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25a24c05395f8428c8fe804e9033541b, type: 3}
+  m_Name: SpriteLib
+  m_EditorClassIdentifier: UpTogether::UpTogether.SpriteLib
+  spikeFloor: {fileID: 21300000, guid: 68a819af19d4644d28204914ac79119c, type: 3}
+  thornVine:
+  - {fileID: 1766294054, guid: 01631a6ea525943538aedff1bf386bff, type: 3}
+  - {fileID: -1220975448, guid: 01631a6ea525943538aedff1bf386bff, type: 3}
+  sawLog: {fileID: 21300000, guid: e4c329739c5664dd2812ba38e4706d9e, type: 3}
+  bounceMushroom:
+  - {fileID: 2094070482, guid: 8aa7c0f7835f74775818b6e4dab01e2a, type: 3}
+  - {fileID: 1715307232, guid: 8aa7c0f7835f74775818b6e4dab01e2a, type: 3}
+  ringFlower: {fileID: 21300000, guid: 8812fd51705724829a7bc5ade47f4926, type: 3}
+  ringThorn: {fileID: 21300000, guid: 44a00ce533daa41bc8b1613c5aa9c274, type: 3}
+  wind:
+  - {fileID: -1638071069, guid: c832d45dacce3489eb612f10698c6969, type: 3}
+  - {fileID: -1460317004, guid: c832d45dacce3489eb612f10698c6969, type: 3}
+  - {fileID: -341502536, guid: c832d45dacce3489eb612f10698c6969, type: 3}
+  treatBone:
+  - {fileID: -151052092, guid: 8fa582d97510c42f7b24a4f0c7adb87a, type: 3}
+  - {fileID: 1974747004, guid: 8fa582d97510c42f7b24a4f0c7adb87a, type: 3}
+  treatHeart:
+  - {fileID: -1986753791, guid: 47a7f9cc231f74b92b7088c49236c4b4, type: 3}
+  - {fileID: -1594954001, guid: 47a7f9cc231f74b92b7088c49236c4b4, type: 3}
+  treatStar:
+  - {fileID: -1403442452, guid: 96ab73d9e4dca4df283a2adf674fdcf7, type: 3}
+  - {fileID: -259349968, guid: 96ab73d9e4dca4df283a2adf674fdcf7, type: 3}
+  dustPuff:
+  - {fileID: -801953450, guid: d73a66b795f7247b395f21c55384f202, type: 3}
+  - {fileID: 728731060, guid: d73a66b795f7247b395f21c55384f202, type: 3}
+  - {fileID: -430185185, guid: d73a66b795f7247b395f21c55384f202, type: 3}
+  - {fileID: -1305845681, guid: d73a66b795f7247b395f21c55384f202, type: 3}
+  - {fileID: 1083756905, guid: d73a66b795f7247b395f21c55384f202, type: 3}
+  warpSparkle:
+  - {fileID: 337079776, guid: 87c965e384bfd411e9140a6706f161c7, type: 3}
+  - {fileID: 2040459323, guid: 87c965e384bfd411e9140a6706f161c7, type: 3}
+  - {fileID: 1031948769, guid: 87c965e384bfd411e9140a6706f161c7, type: 3}
+  - {fileID: 1693629053, guid: 87c965e384bfd411e9140a6706f161c7, type: 3}
+  leaf:
+  - {fileID: -1397880524, guid: b3164c9dec2c047e9ba033c13bc737b5, type: 3}
+  - {fileID: -548787775, guid: b3164c9dec2c047e9ba033c13bc737b5, type: 3}
+  - {fileID: 1240933618, guid: b3164c9dec2c047e9ba033c13bc737b5, type: 3}
+  - {fileID: 1225402221, guid: b3164c9dec2c047e9ba033c13bc737b5, type: 3}
+  firefly:
+  - {fileID: -1362684599, guid: 2b413a13a133b405e8f2428dff321e7c, type: 3}
+  - {fileID: -660766871, guid: 2b413a13a133b405e8f2428dff321e7c, type: 3}
+  - {fileID: 1233308593, guid: 2b413a13a133b405e8f2428dff321e7c, type: 3}
+  doghouse:
+  - {fileID: 2139410775, guid: 1ac6fa91a232d43aea476d1cc0861470, type: 3}
+  - {fileID: -664519398, guid: 1ac6fa91a232d43aea476d1cc0861470, type: 3}
+  emoteHeart: {fileID: 21300000, guid: 406d285efeb55478c8324a5b5831559f, type: 3}
+  emoteExclaim: {fileID: 21300000, guid: 62f32fdb63852492d8b62f40d923f6ee, type: 3}
+  emoteQuestion: {fileID: 21300000, guid: 86828ab7bee5940bcb5434cc83291576, type: 3}
+  emoteNote: {fileID: 21300000, guid: 15646906f3c714038ac371d0fe7dded5, type: 3}
+  btnLeft:
+  - {fileID: 881950696, guid: 9a007217fc28d4cacb095268dc9e9ee1, type: 3}
+  - {fileID: 1869348558, guid: 9a007217fc28d4cacb095268dc9e9ee1, type: 3}
+  btnRight:
+  - {fileID: 725021420, guid: 4f290a4f13df74431851f5f3ce824a9e, type: 3}
+  - {fileID: -1615449666, guid: 4f290a4f13df74431851f5f3ce824a9e, type: 3}
+  btnUp:
+  - {fileID: -124706054, guid: 32bd6f1e9bdc54c219cee072de302be6, type: 3}
+  - {fileID: -195280901, guid: 32bd6f1e9bdc54c219cee072de302be6, type: 3}
+  btnPause:
+  - {fileID: 1931233151, guid: 7778f0304abea4187a523608989cc42a, type: 3}
+  - {fileID: -473026768, guid: 7778f0304abea4187a523608989cc42a, type: 3}
+  panelWood: {fileID: 21300000, guid: 15823ea87d719416abcdbf993f10e6aa, type: 3}
+  gaugeFrame: {fileID: 21300000, guid: c5ac1a4611bea4cfe802a5a329a8c2a5, type: 3}
+  gaugeFill: {fileID: 21300000, guid: 5b416f85937144471b99c6197f125cd5, type: 3}
+  heartIcon:
+  - {fileID: -494818272, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}
+  - {fileID: -2026394841, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}
+  - {fileID: 1196578346, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}

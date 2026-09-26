@@ -20,13 +20,13 @@ namespace UpTogether.EditorTools
             Background($"{Dir}/bg1_far.png", 40f);   // 먼 숲(위 투명)
             Background($"{Dir}/bg2_mid.png", 40f);   // 가까운 숲(위 투명)
 
-            SliceTileset($"{Dir}/forest_tileset_16px.png");
+            SliceTileset($"{Dir}/forest_tileset_16px.png", "map/forest");
 
             AssetDatabase.Refresh();
             Debug.Log("숲 배경·타일셋 임포트 완료.");
         }
 
-        static void Background(string path, float ppu)
+        internal static void Background(string path, float ppu)
         {
             var im = (TextureImporter)AssetImporter.GetAtPath(path);
             im.textureType = TextureImporterType.Sprite;
@@ -45,7 +45,7 @@ namespace UpTogether.EditorTools
             im.SaveAndReimport();
         }
 
-        static void SliceTileset(string path)
+        internal static void SliceTileset(string path, string idKey)
         {
             const int cell = 16, cols = 8, rows = 4;
             var im = (TextureImporter)AssetImporter.GetAtPath(path);
@@ -79,7 +79,7 @@ namespace UpTogether.EditorTools
                 var r = new SpriteRect
                 {
                     name = $"forest_{i}",
-                    spriteID = SheetSlicer.StableId("map/forest", i),
+                    spriteID = SheetSlicer.StableId(idKey, i),
                     rect = new Rect(col * cell, ry, cell, cell),
                     alignment = SpriteAlignment.Center,
                     pivot = new Vector2(0.5f, 0.5f),
