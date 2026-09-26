@@ -42,7 +42,7 @@ namespace UpTogether.EditorTools
             var cam = camGo.AddComponent<Camera>();
             cam.orthographic = true;
             cam.orthographicSize = tuning.CameraOrthoSize;   // Tuning.cameraViewHeightPx 에서 조절
-            cam.backgroundColor = new Color(0.68f, 0.85f, 0.95f);   // 하늘이 못 덮는 틈의 보험
+            cam.backgroundColor = new Color(0.698f, 0.871f, 0.937f);   // 하늘 스프라이트 위쪽과 맞춤(이음매 없이)
             cam.clearFlags = CameraClearFlags.SolidColor;
             camGo.transform.position = new Vector3(0, 0, -10f);
 
@@ -59,16 +59,13 @@ namespace UpTogether.EditorTools
             runner.platformRoot = platformRoot;
 
             // ── 플레이어 / 강아지 ──
-            // ── 배경 ──
-            var skyGo = new GameObject("Sky");
-            skyGo.transform.SetParent(camGo.transform, false);
-            skyGo.AddComponent<SpriteRenderer>();
-            var sky = skyGo.AddComponent<SkyBackground>();
-            sky.stage = runner;
-
+            // ── 배경 (숲 테마 3겹) ──
             var backdropGo = new GameObject("Backdrop");
-            var backdrop = backdropGo.AddComponent<Backdrop>();
-            backdrop.stage = runner;
+            var forest = backdropGo.AddComponent<ForestBackdrop>();
+            forest.stage = runner;
+            forest.sky = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/Map/bg0_sky.png");
+            forest.far = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/Map/bg1_far.png");
+            forest.mid = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/Map/bg2_mid.png");
 
             var puffsGo = new GameObject("Puffs");
             var puffs = puffsGo.AddComponent<Puffs>();
@@ -168,8 +165,8 @@ namespace UpTogether.EditorTools
             if (follow.tuning == null)       missing.Add("Camera.tuning");
             if (follow.stage == null)        missing.Add("Camera.stage");
             if (follow.player == null)       missing.Add("Camera.player");
-            if (sky.stage == null)           missing.Add("Sky.stage");
-            if (backdrop.stage == null)      missing.Add("Backdrop.stage");
+            if (forest.stage == null)        missing.Add("Backdrop.stage");
+            if (forest.sky == null)          missing.Add("Backdrop.sky (Import Map Art 실행?)");
             if (player.puffs == null)        missing.Add("Player.puffs");
             if (dogVisual != null && dogVisual.spriteSet == null) missing.Add("DogVisual.spriteSet");
             if (playerVisual != null && playerVisual.spriteSet == null) missing.Add("PlayerVisual.spriteSet");
