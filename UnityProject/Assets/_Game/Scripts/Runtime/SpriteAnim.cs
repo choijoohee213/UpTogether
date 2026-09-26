@@ -10,6 +10,7 @@ namespace UpTogether
         public Sprite[] frames;
         public float fps = 8f;
         public bool loop = true;
+        public bool destroyOnEnd;   // 루프 아닌 재생이 끝나면 오브젝트를 없앤다(1회 이펙트)
 
         SpriteRenderer sr;
         float t;
@@ -30,9 +31,33 @@ namespace UpTogether
             {
                 t -= step;
                 i++;
-                if (i >= frames.Length) { if (loop) i = 0; else { i = frames.Length - 1; enabled = false; } }
+                if (i >= frames.Length)
+                {
+                    if (loop) i = 0;
+                    else
+                    {
+                        sr.sprite = frames[frames.Length - 1];
+                        enabled = false;
+                        if (destroyOnEnd) Destroy(gameObject);
+                        return;
+                    }
+                }
                 sr.sprite = frames[i];
             }
+        }
+
+        /// 1회 재생 이펙트를 그 자리에 띄운다(끝나면 사라짐).
+        public static void Spawn(Vector3 worldPos, Sprite[] frames, float fps, float scale, int order)
+        {
+            if (frames == null || frames.Length == 0 || frames[0] == null) return;
+            var go = new GameObject("fx");
+            go.transform.position = worldPos;
+            go.transform.localScale = Vector3.one * scale;
+            var r = go.AddComponent<SpriteRenderer>();
+            r.sprite = frames[0];
+            r.sortingOrder = order;
+            var a = go.AddComponent<SpriteAnim>();
+            a.frames = frames; a.fps = fps; a.loop = false; a.destroyOnEnd = true;
         }
     }
 }
