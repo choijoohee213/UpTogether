@@ -51,11 +51,18 @@ namespace UpTogether.EditorTools
             var im = (TextureImporter)AssetImporter.GetAtPath(path);
             im.textureType = TextureImporterType.Sprite;
             im.spriteImportMode = SpriteImportMode.Multiple;
-            im.spritePixelsPerUnit = cell;
+            // 캐릭터와 같은 PPU 로 두면 강아지(48px):타일(16px)=3:1 이 그대로 나온다.
+            im.spritePixelsPerUnit = SheetSlicer.CharacterPixelsPerUnit;
             im.filterMode = FilterMode.Point;
             im.textureCompression = TextureImporterCompression.Uncompressed;
             im.mipmapEnabled = false;
             im.wrapMode = TextureWrapMode.Clamp;
+
+            // Tiled drawMode(가운데·흙 채움 반복)에 FullRect 메시가 필요하다.
+            var st = new TextureImporterSettings();
+            im.ReadTextureSettings(st);
+            st.spriteMeshType = SpriteMeshType.FullRect;
+            im.SetTextureSettings(st);
 
             var factories = new SpriteDataProviderFactories();
             factories.Init();

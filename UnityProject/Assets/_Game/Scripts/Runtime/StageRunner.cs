@@ -27,6 +27,11 @@ namespace UpTogether
 
         public StageData startStage;
         public Transform platformRoot;
+        /// 숲 타일셋 32칸(위-왼쪽부터 0번). SceneBuilder 가 채운다. 비면 절차적 발판으로 떨어진다.
+        public Sprite[] tiles;
+
+        float TileU => (tiles != null && tiles.Length > 0 && tiles[0] != null)
+            ? tiles[0].rect.width / tiles[0].pixelsPerUnit : Px.U(16f);
 
         RuntimePlatform[] platforms;
         int moverStart, bouncerStart, vanishStart;   // 배열 구간 시작점
@@ -152,9 +157,7 @@ namespace UpTogether
                     shr.sortingOrder = -12;
                 }
 
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = ProceduralArt.Ledge(Mathf.RoundToInt(width * Px.PPU), isMover, withHighlight: !isGround);
-                sr.sortingOrder = -10;
+                BuildLedge(go.transform, width, floating: !isGround);
 
                 if (isVanish)
                 {
@@ -192,6 +195,9 @@ namespace UpTogether
                     fr.sortingOrder = -11;
                 }
 
+                if (!isGround && !isVanish && !isBounce)
+                    Decorate(go.transform, width, i);
+
                 if (isMover) moverVisuals[i - moverStart] = go.transform;
             }
 
@@ -199,6 +205,67 @@ namespace UpTogether
             BuildWinds();
             BuildSaws();
             BuildRings();
+        }
+
+        /// 발판 윗줄을 타일로 깐다: 왼끝·오른끝은 낱장, 가운데는 Tiled 로 반복.
+        /// floating=true 면 떠 있는 발판 타일(4·5·6), 아니면 지면 타일(0·1·3).
+        void BuildLedge(Transform parent, float width, bool floating)
+        {
+            if (tiles == null || tiles.Length < 7 || tiles[0] == null)
+            {
+                var sr0 = parent.gameObject.AddComponent<SpriteRenderer>();
+                sr0.sprite = ProceduralArt.Ledge(Mathf.RoundToInt(width * Px.PPU), false, withHighlight: true);
+                sr0.sortingOrder = -10;
+                return;
+            }
+            float T = TileU;
+            int L = floating ? 4 : 0, M = floating ? 5 : 1, R = floating ? 6 : 3;
+            float top = -T * 0.5f;   // 타일 윗면이 발판면(y=0)에 오게
+
+            Cap(parent, tiles[L], -width * 0.5f + T * 0.5f, top);
+            Cap(parent, tiles[R], width * 0.5f - T * 0.5f, top);
+
+            float midW = width - 2f * T;
+            if (midW > T * 0.5f)
+            {
+                var g = new GameObject("mid");
+                g.transform.SetParent(parent, false);
+                g.transform.localPosition = new Vector3(0f, top, 0f);
+                var sr = g.AddComponent<SpriteRenderer>();
+                sr.sprite = tiles[M];
+                sr.drawMode = SpriteDrawMode.Tiled;
+                sr.size = new Vector2(midW, T);
+                sr.sortingOrder = -10;
+            }
+        }
+
+        void Cap(Transform parent, Sprite s, float x, float y)
+        {
+            var g = new GameObject("cap");
+            g.transform.SetParent(parent, false);
+            g.transform.localPosition = new Vector3(x, y, 0f);
+            var sr = g.AddComponent<SpriteRenderer>();
+            sr.sprite = s;
+            sr.sortingOrder = -10;
+        }
+
+        // 발판 위에 이따금 꽃·풀·버섯·바위 하나를 얹는다 (인덱스로 결정적).
+        static readonly int[] Deco = { 21, 22, 23, 24, 25, 26 };
+        void Decorate(Transform parent, float width, int seed)
+        {
+            if (tiles == null || tiles.Length < 27) return;
+            uint r = (uint)(seed * 1103515245 + 12345);
+            if (((r >> 16) & 3u) == 0u) return;   // 약 1/4 은 장식 없음
+            int idx = Deco[(int)((r >> 8) % (uint)Deco.Length)];
+            if (tiles[idx] == null) return;
+            float T = TileU;
+            float x = Mathf.Lerp(-width * 0.5f + T, width * 0.5f - T, (r & 0xFFu) / 255f);
+            var g = new GameObject("deco");
+            g.transform.SetParent(parent, false);
+            g.transform.localPosition = new Vector3(x, T * 0.5f, 0f);  // 풀 위에 앉힌다
+            var sr = g.AddComponent<SpriteRenderer>();
+            sr.sprite = tiles[idx];
+            sr.sortingOrder = -9;
         }
 
         void BuildSpikes()
