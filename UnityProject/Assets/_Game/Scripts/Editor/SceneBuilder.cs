@@ -72,6 +72,7 @@ namespace UpTogether.EditorTools
 
             var puffsGo = new GameObject("Puffs");
             var puffs = puffsGo.AddComponent<Puffs>();
+            puffs.lib = lib;
 
             // ── 플레이어 / 강아지 ──
             var playerGo = MakePlayer(tuning, out var playerVisual);
@@ -90,7 +91,11 @@ namespace UpTogether.EditorTools
             dog.player = player;
             dog.puffs = puffs;
             dog.visual = dogVisual;
+            dog.lib = lib;
             dogGo.transform.position = new Vector3(0.50f, stage.groundY, 0f);
+
+            var dogEmote = dogGo.AddComponent<DogEmote>();
+            dogEmote.dog = dog; dogEmote.player = player; dogEmote.lib = lib;
 
             // 안기 3겹: 주인공 본체 → 강아지 → 앞팔. PlayerVisual 이 켜고 끈다.
             if (playerVisual != null && dogVisual != null)
@@ -148,6 +153,9 @@ namespace UpTogether.EditorTools
                 applier.characters = LoadEntries("Assets/_Game/Art/Player/Generated");
                 applier.breeds = LoadEntries("Assets/_Game/Art/Dog/Generated");
             }
+
+            var ambience = sysGo.AddComponent<ForestAmbience>();
+            ambience.lib = lib;
 
             var follow = camGo.AddComponent<FollowCamera>();
             follow.tuning = tuning;

@@ -31,6 +31,7 @@ namespace UpTogether
         [Header("워프 연출")]
         public Puffs puffs;
         public DogVisual visual;
+        public SpriteLib lib;
 
         public bool IsClinging { get; private set; }
         /// 계측용
@@ -133,6 +134,8 @@ namespace UpTogether
 
             puffs?.Burst(to, 11, 26f, 5f, 2.4f, sizePx: 8f, sizeVarPx: 6f, life: 0.5f);
             visual?.PopIn();
+            if (lib != null)
+                SpriteAnim.Spawn(new Vector3(to.x, to.y + 0.25f, 0f), lib.warpSparkle, 12f, 2.5f, 101);
             TeleportCount++;
             farSince = -1f;
             lastWarp = Time.time;

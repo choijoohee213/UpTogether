@@ -24,6 +24,8 @@ namespace UpTogether
             public SpriteRenderer sr;
         }
 
+        public SpriteLib lib;
+
         Puff[] puffs = new Puff[Max];
         int next;
 
@@ -47,6 +49,14 @@ namespace UpTogether
         public void Burst(Vector2 at, int count, float spreadPx, float vxRangePx, float vyUpPx,
                           float sizePx = 3f, float sizeVarPx = 3f, float life = Life)
         {
+            // 먼지 스프라이트가 있으면 poof 애니 한 장으로 대체한다.
+            if (lib != null && lib.dustPuff != null && lib.dustPuff.Length > 0)
+            {
+                float sc = Mathf.Max(1f, sizePx * 0.5f);
+                SpriteAnim.Spawn(at, lib.dustPuff, 18f, sc, 100);
+                return;
+            }
+
             for (int i = 0; i < count; i++)
             {
                 var p = puffs[next];
