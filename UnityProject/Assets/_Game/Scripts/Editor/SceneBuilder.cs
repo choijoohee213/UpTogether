@@ -55,9 +55,11 @@ namespace UpTogether.EditorTools
             var runner = stageGo.AddComponent<StageRunner>();
             var platformRoot = new GameObject("Platforms").transform;
             platformRoot.SetParent(stageGo.transform, false);
+            var lib = AssetDatabase.LoadAssetAtPath<SpriteLib>("Assets/_Game/SpriteLib.asset");
             runner.startStage = stage;
             runner.platformRoot = platformRoot;
             runner.tiles = LoadTiles("Assets/_Game/Art/Map/forest_tileset_16px.png");
+            runner.lib = lib;
 
             // ── 플레이어 / 강아지 ──
             // ── 배경 (숲 테마 3겹) ──
@@ -100,7 +102,7 @@ namespace UpTogether.EditorTools
             }
 
             // ── 깃발 ──
-            var flag = MakeFlag(runner);
+            var flag = MakeFlag(runner, lib);
 
             // ── 게임 흐름 ──
             var sysGo = new GameObject("Systems");
@@ -125,6 +127,7 @@ namespace UpTogether.EditorTools
             collectibles.player = body;
             collectibles.stage = runner;
             collectibles.bond = bond;
+            collectibles.lib = lib;
 
             // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
             AudioSetup.Attach();
@@ -286,11 +289,28 @@ namespace UpTogether.EditorTools
         }
 
         /// 꼭대기 깃발. 장대와 천을 네모로 짜 맞춘다 — 원본도 도형으로 그렸다.
-        static GoalFlag MakeFlag(StageRunner runner)
+        static GoalFlag MakeFlag(StageRunner runner, SpriteLib lib)
         {
             var go = new GameObject("GoalFlag");
             var flag = go.AddComponent<GoalFlag>();
             flag.stage = runner;
+
+            // 도착점 = 강아지집 (하트 둥실). 있으면 이걸로.
+            if (lib != null && lib.doghouse != null && lib.doghouse.Length > 0)
+            {
+                var house = new GameObject("Doghouse");
+                house.transform.SetParent(go.transform, false);
+                house.transform.localPosition = new Vector3(0f, -0.30f, 0f);  // 꼭대기 발판 위
+                var hr = house.AddComponent<SpriteRenderer>();
+                hr.sprite = lib.doghouse[0];
+                hr.sortingOrder = 5;
+                if (lib.doghouse.Length > 1)
+                {
+                    var a = house.AddComponent<SpriteAnim>();
+                    a.frames = lib.doghouse; a.fps = 3f;
+                }
+                return flag;
+            }
 
             var pole = new GameObject("Pole");
             pole.transform.SetParent(go.transform, false);
