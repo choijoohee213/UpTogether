@@ -21,6 +21,7 @@ namespace UpTogether
         string prevStage;
         bool ready;
         bool wasClinging;
+        int prevTeleports;
         float stepTimer;
 
         void OnEnable()
@@ -68,6 +69,13 @@ namespace UpTogether
             {
                 if (dog.IsClinging && !wasClinging) Sfx.I.Catch();
                 wasClinging = dog.IsClinging;
+
+                // 워프로 따라붙은 순간 — 짧게 짖어 "나 여기 있어"
+                if (dog.TeleportCount != prevTeleports)
+                {
+                    if (dog.TeleportCount > prevTeleports) Sfx.I.BarkSmall();
+                    prevTeleports = dog.TeleportCount;
+                }
             }
 
             // 발소리 — 땅에서 걷는 동안 일정 간격
@@ -100,6 +108,11 @@ namespace UpTogether
             prevBond = value; prevStage = stage;
         }
 
-        void OnClear(string name) => Sfx.I?.Clear();
+        void OnClear(string name)
+        {
+            if (Sfx.I == null) return;
+            Sfx.I.Clear();
+            Sfx.I.BarkBig();   // 도착 — 강아지도 같이 신나게
+        }
     }
 }

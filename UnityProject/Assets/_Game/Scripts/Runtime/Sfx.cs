@@ -15,6 +15,7 @@ namespace UpTogether
         public AudioClip bondUp, bondDown, reward, clear;
         public AudioClip uiClick, uiPopup;
         public AudioClip step1, step2, step3;
+        public AudioClip barkSmall, barkBig;
 
         [Range(0f, 1f)] public float bgmVolume = 0.32f;
 
@@ -25,6 +26,9 @@ namespace UpTogether
             if (I != null && I != this) { Destroy(gameObject); return; }
             I = this;
             DontDestroyOnLoad(gameObject);
+
+            // 리스너가 없으면 아무 소리도 나오지 않는다 — 씬 카메라는 스크립트로 만들어 붙어 있지 않다
+            if (FindAnyObjectByType<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
 
             music = gameObject.AddComponent<AudioSource>();
             music.loop = true; music.playOnAwake = false; music.volume = bgmVolume;
@@ -47,6 +51,8 @@ namespace UpTogether
         public void BondDown() => One(bondDown, 0.7f);
         public void Reward() => One(reward, 0.8f);
         public void Clear() => One(clear, 0.9f);
+        public void BarkSmall() => One(barkSmall, 0.7f);
+        public void BarkBig() => One(barkBig, 0.85f);
         public void UiClick() => One(uiClick, 0.7f);
         public void UiPopup() => One(uiPopup, 0.7f);
 

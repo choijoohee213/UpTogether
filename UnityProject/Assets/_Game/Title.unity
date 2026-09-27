@@ -502,6 +502,8 @@ MonoBehaviour:
   step1: {fileID: 8300000, guid: 614204abf00ac488692fddf1bef1672f, type: 3}
   step2: {fileID: 8300000, guid: 97b765064caba4b83ab1d2012db0a6ba, type: 3}
   step3: {fileID: 8300000, guid: d7d169d2b38b14aef96c248d5e20130b, type: 3}
+  barkSmall: {fileID: 8300000, guid: a660bcdd4f9384370b92f2fbfffe313e, type: 3}
+  barkBig: {fileID: 8300000, guid: b2407980fe96c4462b1848d1dfb27752, type: 3}
   bgmVolume: 0.32
 --- !u!4 &1014773482
 Transform:
