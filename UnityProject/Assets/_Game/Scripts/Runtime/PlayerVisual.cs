@@ -49,7 +49,8 @@ namespace UpTogether
             if (want != null && (current == null || current.name != want)) Play(want);
             Advance(Time.deltaTime);
 
-            bool flip = body.face < 0;
+            // 밧줄은 뒷모습이라 좌우 반전하지 않는다
+            bool flip = body.face < 0 && !(player != null && player.Climbing);
             target.flipX = flip;
 
             bool holding = current != null && current.dogFrame >= 0;
@@ -58,6 +59,7 @@ namespace UpTogether
 
         string Choose()
         {
+            if (player != null && player.Climbing) return "climb";
             if (Time.time < landLockUntil) return null;
 
             bool holding = dog != null && dog.IsClinging;

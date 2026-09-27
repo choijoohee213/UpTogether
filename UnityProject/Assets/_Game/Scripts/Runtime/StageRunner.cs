@@ -209,6 +209,50 @@ namespace UpTogether
             BuildWinds();
             BuildSaws();
             BuildRings();
+            BuildVines();
+        }
+
+        void BuildVines()
+        {
+            var vines = OrEmpty(Data.vines);
+            Sprite[] vf = lib != null ? lib.thornVine : null;
+            Sprite s = vf != null && vf.Length > 0 ? vf[0] : null;
+            foreach (var v in vines)
+            {
+                var go = new GameObject("Vine");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(v.x, v.y + v.height, 0f);  // 피벗 상단
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 2;   // 발판 앞, 캐릭터(10) 뒤
+                if (s != null)
+                {
+                    sr.sprite = s;
+                    sr.drawMode = SpriteDrawMode.Tiled;
+                    float tileW = s.rect.width / s.pixelsPerUnit;
+                    sr.size = new Vector2(tileW, v.height);
+                }
+                else
+                {
+                    sr.sprite = ProceduralArt.Square;
+                    sr.color = new Color(0.42f, 0.52f, 0.30f);
+                    go.transform.localScale = new Vector3(Px.U(6f), v.height, 1f);
+                }
+            }
+        }
+
+        /// (x,y)가 밧줄에 겹치면 true. vineX=밧줄 중심, vineTop=꼭대기 y.
+        public bool TryGetVine(float x, float y, out float vineX, out float vineTop)
+        {
+            vineX = 0f; vineTop = 0f;
+            foreach (var v in OrEmpty(Data.vines))
+            {
+                if (x > v.x - 0.2f && x < v.x + 0.2f && y > v.y - 0.1f && y < v.y + v.height)
+                {
+                    vineX = v.x; vineTop = v.y + v.height;
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// 발판 윗줄을 타일로 깐다: 왼끝·오른끝은 낱장, 가운데는 Tiled 로 반복.

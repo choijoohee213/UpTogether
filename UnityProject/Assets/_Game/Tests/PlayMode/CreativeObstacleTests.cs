@@ -36,9 +36,18 @@ namespace UpTogether.Tests
             Assert.Greater(d.saws.Length, 0, "톱니");
             Assert.Greater(d.rings.Length, 0, "링");
             Assert.Greater(d.treats.Length, 0, "간식");
-            bool hangThorn = false;
-            foreach (var s in d.spikes) if (s.down) hangThorn = true;
-            Assert.IsTrue(hangThorn, "매달린 가시");
+            Assert.Greater(d.vines.Length, 0, "밧줄(가시덩굴)");
+        }
+
+        [Test]
+        public void 밧줄에서_점프를_누르면_위로_오른다()
+        {
+            var v = stage.Data.vines[0];
+            body.Teleport(v.x, v.y + 0.2f);
+            float y0 = body.Y;
+            var player = Object.FindFirstObjectByType<PlayerController>();
+            for (int i = 0; i < 15; i++) player.Tick(1f / 60f, 0, false, true);   // 점프 누른 채
+            Assert.Greater(body.Y, y0 + 0.3f, "밧줄을 타고 오르지 않았다");
         }
 
         [UnityTest]

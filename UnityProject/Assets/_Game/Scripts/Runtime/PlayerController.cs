@@ -23,6 +23,8 @@ namespace UpTogether
         /// "실제로 아래로 떨어지는 중"을 구분하는 데 쓴다.
         public float LastGroundedY { get; private set; }
         public float ShakeAmount { get; private set; }
+        /// 지금 가시덩굴(밧줄)을 타고 있는가. PlayerVisual 이 climb 그림을 쓰려고 읽는다.
+        public bool Climbing { get; private set; }
 
         float fallFromY = float.NaN;   // 0이 아니라 NaN이 센티넬이다 — Unity에서는 y=0이 실제 위치다
 
@@ -45,6 +47,25 @@ namespace UpTogether
         /// (UpTogether ▸ Verify Jump Heights)
         public void Tick(float dt, int moveDir, bool jumpPressed, bool jumpHeld)
         {
+            // ── 밧줄 타기 ── 겹친 채 점프를 누르면 붙잡고 오른다. 좌우로 떼면 놓는다.
+            float vineX = 0f, vineTop = 0f;
+            bool onVine = stage != null && stage.TryGetVine(Body.X, Body.Y, out vineX, out vineTop);
+            if (onVine && jumpHeld && moveDir == 0) Climbing = true;
+            if (Climbing && (!onVine || moveDir != 0)) Climbing = false;
+            if (Climbing)
+            {
+                Body.vx = 0f;
+                Body.X += (vineX - Body.X) * Mathf.Min(1f, 14f * dt);   // 밧줄에 정렬
+                Body.vy = jumpHeld ? tuning.WalkSpeedV * 0.9f : 0f;     // 누르는 동안만 오름
+                Body.Y += Body.vy * dt;
+                Body.grounded = false; Body.groundIndex = -1;
+                if (Body.Y >= vineTop) { Body.Y = vineTop; Climbing = false; }  // 꼭대기 도착
+                LastGroundedY = Body.Y;   // 밧줄에선 추락으로 치지 않는다
+                Body.holding = false; Squash = 0f;
+                fallFromY = float.NaN;
+                return;
+            }
+
             if (jumpPressed) TryJump();
 
             // 손을 떼거나 정점을 지나면 홀드 종료 → 그 뒤로는 기본 중력
