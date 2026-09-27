@@ -52,7 +52,7 @@ namespace UpTogether
             // 먼지 스프라이트가 있으면 poof 애니 한 장으로 대체한다.
             if (lib != null && lib.dustPuff != null && lib.dustPuff.Length > 0)
             {
-                float sc = Mathf.Max(1f, sizePx * 0.5f);
+                float sc = Mathf.Max(0.55f, sizePx * 0.25f);   // 점프·착지 작게, 워프만 조금 크게
                 SpriteAnim.Spawn(at, lib.dustPuff, 18f, sc, 100);
                 return;
             }

@@ -253,8 +253,8 @@ namespace UpTogether
             sr.sortingOrder = -10;
         }
 
-        // 발판 위에 이따금 꽃·풀·버섯·바위 하나를 얹는다 (인덱스로 결정적).
-        static readonly int[] Deco = { 21, 22, 23, 24, 25, 26 };
+        // 발판 위에 이따금 꽃·풀만 얹는다 (덤불·버섯·바위는 '잘린' 느낌이라 뺐다).
+        static readonly int[] Deco = { 21, 22, 23 };
         void Decorate(Transform parent, float width, int seed)
         {
             if (tiles == null || tiles.Length < 27) return;
@@ -283,7 +283,8 @@ namespace UpTogether
                 Sprite[] frames = s.down ? (lib != null ? lib.thornVine : null)
                     : (lib != null && lib.spikeFloor != null ? new[] { lib.spikeFloor } : null);
                 if (frames != null && frames.Length > 0 && frames[0] != null)
-                    TileRow(go.transform, frames, s.width, 0f, s.down ? 2.5f : 0f, -8);
+                    TileRow(go.transform, frames, s.width, 0f, s.down ? 2.5f : 0f, -8,
+                            yScale: s.down ? 1.7f : 1f);   // 매달린 가시는 더 길게
                 else
                 {
                     var sr = go.AddComponent<SpriteRenderer>();
@@ -295,7 +296,8 @@ namespace UpTogether
 
         /// 스프라이트를 발판 너비에 맞춰 가로로 여러 장 깐다(가시·매달린 가시·바람).
         /// 피벗은 스프라이트 자체가 정한다(가시=하단, 매달린 가시=상단).
-        void TileRow(Transform parent, Sprite[] frames, float width, float y, float fps, int order)
+        void TileRow(Transform parent, Sprite[] frames, float width, float y, float fps, int order,
+                     float yScale = 1f)
         {
             float T = TileU;
             int n = Mathf.Max(1, Mathf.RoundToInt(width / T));
@@ -305,7 +307,7 @@ namespace UpTogether
                 var g = new GameObject("t");
                 g.transform.SetParent(parent, false);
                 g.transform.localPosition = new Vector3(-width * 0.5f + cw * (k + 0.5f), y, 0f);
-                g.transform.localScale = new Vector3(cw / T, 1f, 1f);
+                g.transform.localScale = new Vector3(cw / T, yScale, 1f);
                 var sr = g.AddComponent<SpriteRenderer>();
                 sr.sprite = frames[0];
                 sr.sortingOrder = order;
