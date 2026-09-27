@@ -31,6 +31,7 @@ namespace UpTogether.EditorTools
             var saws = new List<StageData.Saw>();
             var rings = new List<StageData.Ring>();
             var treats = new List<StageData.Treat>();
+            var vines = new List<StageData.Vine>();
 
             // ── 발판 자체를 바꾸는 것(경로를 유지하도록 제자리에서) ──
             int cVanA = Idx(n * 0.40f), cVanB = Idx(n * 0.78f);   // 사라지는 다리
@@ -56,11 +57,14 @@ namespace UpTogether.EditorTools
                     spikes.Add(new StageData.Spike {
                         x = P[i].x + P[i].width * 0.30f, y = P[i].y, width = P[i].width * 0.40f });
 
-            // ── 발판 밑에 매달린 가시 (반쪽만 — 빈 쪽으로 올라타게) ──
-            foreach (int i in new[] { Idx(n * 0.30f), Idx(n * 0.70f) })
-                if (!convert.Contains(i))
-                    spikes.Add(new StageData.Spike {
-                        x = P[i].x, y = P[i].y, width = P[i].width * 0.5f, down = true });
+            // ── 타고 오르는 가시덩굴(밧줄): 두 칸 위 발판으로 오르는 지름길 ──
+            foreach (int i in new[] { Idx(n * 0.30f), Idx(n * 0.66f) })
+            {
+                int top = Mathf.Min(i + 2, n - 1);
+                float h = P[top].y - P[i].y;
+                if (h > 0.45f)
+                    vines.Add(new StageData.Vine { x = C(P[i]), y = P[i].y, height = h });
+            }
 
             // ── 착지 발판을 감싸는 링 (위로 통과해 올라선다) ──
             int iRingP = Idx(n * 0.24f);   // 평범한 링(+친밀도) — 가운데 간식도 함께
@@ -101,12 +105,13 @@ namespace UpTogether.EditorTools
             s.saws = saws.ToArray();
             s.rings = rings.ToArray();
             s.treats = treats.ToArray();
+            s.vines = vines.ToArray();
 
             EditorUtility.SetDirty(s);
             AssetDatabase.SaveAssets();
             Debug.Log($"Stage1 장애물(경로 기준): 사라짐 {vanishers.Count} / 세로이동 {movers.Count} / " +
                       $"가시 {spikes.Count} / 링 {rings.Count} / 톱니 {saws.Count} / 바람 {winds.Count} / " +
-                      $"간식 {treats.Count} / 튕김판 {bouncers.Count}");
+                      $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count}");
         }
     }
 }

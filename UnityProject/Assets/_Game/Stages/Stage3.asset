@@ -128,4 +128,5 @@ MonoBehaviour:
   saws: []
   rings: []
   treats: []
+  vines: []
   goal: {x: 1.8101665, y: 20.926535}

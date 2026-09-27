@@ -60,6 +60,10 @@ namespace UpTogether
         [Serializable]
         public struct Treat { public float x, y; }
 
+        /// 타고 오르는 가시덩굴(밧줄). x 중심, y 바닥에서 height 만큼 위로.
+        [Serializable]
+        public struct Vine { public float x, y, height; }
+
         public string displayName;
         [Tooltip("원본 생성에 쓴 시드. 다시 구우려면 필요하다.")]
         public int seed;
@@ -77,6 +81,7 @@ namespace UpTogether
         public Saw[] saws;
         public Ring[] rings;
         public Treat[] treats;
+        public Vine[] vines;
         public Vector2 goal;
 
         /// 월드 y → 게임에 표시되는 높이(m). 프로토타입: 26px = 1m
