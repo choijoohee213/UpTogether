@@ -11,9 +11,12 @@ namespace UpTogether
 
         float phase;
 
-        void Start()
+        void Start() => Reposition();
+
+        /// 현재 스테이지의 골 위치로 옮긴다 (스테이지가 바뀌면 부른다).
+        public void Reposition()
         {
-            if (stage == null || stage.Data == null) { enabled = false; return; }
+            if (stage == null || stage.Data == null) return;
             transform.position = new Vector3(stage.Data.goal.x, stage.Data.goal.y, 0f);
         }
 
