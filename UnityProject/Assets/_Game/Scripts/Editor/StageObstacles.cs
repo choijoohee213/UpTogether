@@ -64,11 +64,11 @@ namespace UpTogether.EditorTools
 
             // ── 착지 발판을 감싸는 링 (위로 통과해 올라선다) ──
             int iRingP = Idx(n * 0.24f);   // 평범한 링(+친밀도) — 가운데 간식도 함께
-            rings.Add(new StageData.Ring { x = C(P[iRingP]), y = P[iRingP].y + 0.62f, radius = 0.6f, thorny = false });
+            rings.Add(new StageData.Ring { x = C(P[iRingP]), y = P[iRingP].y + 0.55f, radius = 0.5f, thorny = false });
             treats.Add(new StageData.Treat { x = C(P[iRingP]), y = P[iRingP].y + 0.62f });
 
             int iRingT = Idx(n * 0.46f);   // 가시 링 — 가운데로 정확히 통과
-            rings.Add(new StageData.Ring { x = C(P[iRingT]), y = P[iRingT].y + 0.66f, radius = 0.6f, thorny = true });
+            rings.Add(new StageData.Ring { x = C(P[iRingT]), y = P[iRingT].y + 0.55f, radius = 0.42f, thorny = true });
 
             // ── 톱니: 두 발판 사이 틈을 한쪽으로 치우쳐 순찰 (반대쪽으로 지나가게) ──
             int iSaw = Idx(n * 0.58f);

@@ -113,12 +113,12 @@ MonoBehaviour:
     speed: 2.2
   rings:
   - x: 5.9818873
-    y: 4.0445437
-    radius: 0.6
+    y: 3.9745438
+    radius: 0.5
     thorny: 0
   - x: 6.3374143
-    y: 7.498822
-    radius: 0.6
+    y: 7.3888226
+    radius: 0.42
     thorny: 1
   treats:
   - x: 5.9818873
