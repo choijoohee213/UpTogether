@@ -48,6 +48,16 @@ namespace UpTogether
             narration?.Reset();
         }
 
+        /// 다음 스테이지로 넘어갈 때 판정을 초기화한다 (친밀도는 이어진다).
+        public void ResetForNewStage()
+        {
+            Cleared = false;
+            Meters = 0f;
+            PeakMeters = 0f;
+            wasClinging = false;
+            narration?.Reset();
+        }
+
         void FixedUpdate()
         {
             if (stage == null || stage.Data == null || player == null) return;

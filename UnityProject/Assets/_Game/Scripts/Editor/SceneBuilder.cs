@@ -163,7 +163,29 @@ namespace UpTogether.EditorTools
             follow.player = player;
 
             BuildTouchUi(input, lib);
-            BuildHud(session, bond, narration, lib);
+            var hud = BuildHud(session, bond, narration, lib);
+
+            // ── 스테이지 진행 (테마 전환) ──
+            var stage2 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage2.asset");
+            var stage3 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage3.asset");
+            var forestTiles = runner.tiles;
+            Sprite S(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            const string V = "Assets/_Game/Art/Variants";
+            var flow = sysGo.AddComponent<StageFlow>();
+            flow.runner = runner; flow.backdrop = forest; flow.collectibles = collectibles;
+            flow.player = body; flow.dog = dogGo.GetComponent<CharacterBody>();
+            flow.session = session; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
+            flow.stages = new[] { stage, stage2, stage3 };
+            flow.themes = new[]
+            {
+                new StageFlow.Theme { sky = forest.sky, far = forest.far, mid = forest.mid,
+                    tiles = forestTiles, bgColor = new Color(0.698f, 0.871f, 0.937f) },
+                new StageFlow.Theme { sky = S($"{V}/bg_sunset/bg0_sky.png"), far = S($"{V}/bg_sunset/bg1_far.png"),
+                    mid = S($"{V}/bg_sunset/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.925f, 0.643f, 0.659f) },
+                new StageFlow.Theme { sky = S($"{V}/bg_night/bg0_sky.png"), far = S($"{V}/bg_night/bg1_far.png"),
+                    mid = S($"{V}/bg_night/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.151f, 0.182f, 0.355f) },
+            };
+            if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -413,7 +435,7 @@ namespace UpTogether.EditorTools
         }
 
         /// 친밀도 바, 높이, 서사 한 줄, 클리어 화면.
-        static void BuildHud(StageSession session, Bond bond, Narration narration, SpriteLib lib)
+        static GameHud BuildHud(StageSession session, Bond bond, Narration narration, SpriteLib lib)
         {
             var font = LoadFont();
 
@@ -481,14 +503,16 @@ namespace UpTogether.EditorTools
             clearRt.offsetMin = Vector2.zero; clearRt.offsetMax = Vector2.zero;
             hud.clearGroup = clearGo.GetComponent<CanvasGroup>();
 
-            MakeImage(clearGo.transform, "Dim", new Color(0f, 0f, 0f, 0.55f),
+            var clearDim = MakeImage(clearGo.transform, "Dim", new Color(0f, 0f, 0f, 0.55f),
                       Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            hud.clearTap = clearDim.gameObject.AddComponent<ClearTap>();
             hud.clearText = MakeText(clearGo.transform, "ClearText", font, 46, TextAnchor.MiddleCenter,
                       new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                       new Vector2(-460f, -260f), new Vector2(460f, 260f));
 
             // 일시정지 버튼 + 오버레이 (맨 위 형제라 다른 HUD 위에 그려진다)
             BuildPause(canvasGo, font, lib);
+            return hud;
         }
 
         /// 우상단 일시정지 버튼과, 누르면 뜨는 오버레이(계속하기 / 메인으로).

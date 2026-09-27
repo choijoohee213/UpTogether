@@ -30,6 +30,15 @@ namespace UpTogether
             BuildTreats();
         }
 
+        /// 스테이지가 바뀌면 옛 수집물을 지우고 새 스테이지 것으로 다시 만든다.
+        public void Rebuild()
+        {
+            if (ringVis != null) foreach (var t in ringVis) if (t != null) Destroy(t.gameObject);
+            if (treatVis != null) foreach (var t in treatVis) if (t != null) Destroy(t.gameObject);
+            BuildRings();
+            BuildTreats();
+        }
+
         void BuildRings()
         {
             var rings = stage.Data.rings ?? Array.Empty<StageData.Ring>();

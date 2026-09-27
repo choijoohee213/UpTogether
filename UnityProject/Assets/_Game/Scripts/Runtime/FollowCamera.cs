@@ -14,6 +14,9 @@ namespace UpTogether
         Camera cam;
         bool snapped;   // 첫 프레임은 lerp 하지 않고 바로 맞춘다
 
+        /// 다음 스테이지로 옮긴 직후, 다시 플레이어에게 딱 맞춰 스냅한다.
+        public void Snap() => snapped = false;
+
         void Awake()
         {
             cam = GetComponent<Camera>();

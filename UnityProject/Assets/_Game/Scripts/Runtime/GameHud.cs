@@ -22,6 +22,7 @@ namespace UpTogether
         public Text sayText;
         public CanvasGroup clearGroup;
         public Text clearText;
+        public ClearTap clearTap;   // 클리어 화면 탭 → 다음 스테이지
 
         float sayUntil = -1f;
 
@@ -73,9 +74,15 @@ namespace UpTogether
         {
             if (clearGroup == null) return;
             if (clearText != null)
-                clearText.text = $"{stageName} 완주!\n강아지가 꼬리를 흔들며 옆에 앉았어요.\n\n마음의 거리 — {bond?.StageName}";
+                clearText.text = $"{stageName} 완주!\n강아지가 꼬리를 흔들며 옆에 앉았어요.\n\n마음의 거리 — {bond?.StageName}\n\n톡 눌러 다음 언덕으로 →";
             clearGroup.alpha = 1f;
             clearGroup.blocksRaycasts = true;
+        }
+
+        /// 다음 스테이지로 넘어갈 때 클리어 화면을 감춘다.
+        public void HideClear()
+        {
+            if (clearGroup != null) { clearGroup.alpha = 0f; clearGroup.blocksRaycasts = false; }
         }
     }
 }

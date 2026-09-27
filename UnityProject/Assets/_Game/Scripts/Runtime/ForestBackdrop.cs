@@ -10,8 +10,13 @@ namespace UpTogether
         public StageRunner stage;
         public Sprite sky, far, mid;
 
-        void Start()
+        void Start() => Rebuild();
+
+        /// 배경을 (다시) 만든다. 스테이지 테마가 바뀌면 sky/far/mid 를 갈아끼우고 부른다.
+        public void Rebuild()
         {
+            for (int i = transform.childCount - 1; i >= 0; i--)
+                Destroy(transform.GetChild(i).gameObject);
             if (stage == null || stage.Data == null) return;
             float g = stage.Data.groundY;
 
