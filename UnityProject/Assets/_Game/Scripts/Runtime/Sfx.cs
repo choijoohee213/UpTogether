@@ -15,6 +15,7 @@ namespace UpTogether
         public AudioClip bondUp, bondDown, reward, clear;
         public AudioClip uiClick, uiPopup;
         public AudioClip step1, step2, step3;
+        public AudioClip barkSmall, barkBig;
 
         [Range(0f, 1f)] public float bgmVolume = 0.32f;
 
@@ -50,6 +51,8 @@ namespace UpTogether
         public void BondDown() => One(bondDown, 0.7f);
         public void Reward() => One(reward, 0.8f);
         public void Clear() => One(clear, 0.9f);
+        public void BarkSmall() => One(barkSmall, 0.7f);
+        public void BarkBig() => One(barkBig, 0.85f);
         public void UiClick() => One(uiClick, 0.7f);
         public void UiPopup() => One(uiPopup, 0.7f);
 

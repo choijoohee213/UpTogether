@@ -27,6 +27,8 @@ namespace UpTogether.EditorTools
             s.step1 = Clip($"{SfxDir}/player_step_1.wav");
             s.step2 = Clip($"{SfxDir}/player_step_2.wav");
             s.step3 = Clip($"{SfxDir}/player_step_3.wav");
+            s.barkSmall = Clip($"{SfxDir}/dog_bark_small.wav");
+            s.barkBig = Clip($"{SfxDir}/dog_bark_big.wav");
             return s;
         }
 
