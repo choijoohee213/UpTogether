@@ -26,6 +26,9 @@ namespace UpTogether
             I = this;
             DontDestroyOnLoad(gameObject);
 
+            // 리스너가 없으면 아무 소리도 나오지 않는다 — 씬 카메라는 스크립트로 만들어 붙어 있지 않다
+            if (FindAnyObjectByType<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
+
             music = gameObject.AddComponent<AudioSource>();
             music.loop = true; music.playOnAwake = false; music.volume = bgmVolume;
             oneShot = gameObject.AddComponent<AudioSource>();
