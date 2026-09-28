@@ -12,35 +12,36 @@ namespace UpTogether.EditorTools
     /// 1은 하나씩 소개하고, 2는 겹쳐 쓰고, 3은 쉴 틈을 줄인다.
     public static class StageObstacles
     {
-        /// 스테이지 하나의 장애물 분량. 개수는 발판 수와 무관하게 절대값으로 둔다
-        /// (발판이 늘어도 밀도가 아니라 배치 간격이 넓어지도록).
+        /// 스테이지 하나의 장애물 분량. 발판 수에 대한 비율이다 —
+        /// 맵 길이를 바꿔도 밀도(만나는 빈도)가 그대로 유지되도록.
+        /// 0.1 이면 발판 10칸에 하나꼴.
         struct Recipe
         {
             public string path;
-            public int vanishers;     // 사라지는 발판으로 바꿀 칸
-            public int verticalMovers;// 위아래로 움직이게 바꿀 칸
-            public int spikes;        // 착지면 위 가시
-            public int hangingSpikes; // 발판 밑에 매달린 가시
-            public int vines;         // 타고 오르는 밧줄
-            public int plainRings;    // 통과하면 친밀도 ↑
-            public int thornyRings;   // 테두리에 닿으면 아픔
-            public int saws;          // 틈을 순찰하는 톱니
-            public int winds;         // 옆으로 미는 바람
-            public int treats;        // 간식
-            public int bouncers;      // 튕김판
+            public float vanishers;     // 사라지는 발판으로 바꿀 칸
+            public float verticalMovers;// 위아래로 움직이게 바꿀 칸
+            public float spikes;        // 착지면 위 가시
+            public float hangingSpikes; // 발판 밑에 매달린 가시
+            public float vines;         // 타고 오르는 밧줄
+            public float plainRings;    // 통과하면 친밀도 ↑
+            public float thornyRings;   // 테두리에 닿으면 아픔
+            public float saws;          // 틈을 순찰하는 톱니
+            public float winds;         // 옆으로 미는 바람
+            public float treats;        // 간식
+            public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
 
         static readonly Recipe[] Recipes =
         {
             new Recipe { path = "Assets/_Game/Stages/Stage1.asset",
-                vanishers = 2, verticalMovers = 1, spikes = 3, hangingSpikes = 1, vines = 3,
-                plainRings = 2, thornyRings = 1, saws = 1, winds = 1, treats = 4, bouncers = 1 },
+                vanishers = 0.07f, verticalMovers = 0.04f, spikes = 0.11f, hangingSpikes = 0.04f, vines = 0.11f,
+                plainRings = 0.07f, thornyRings = 0.04f, saws = 0.04f, winds = 0.04f, treats = 0.15f, bouncers = 1 },
             new Recipe { path = "Assets/_Game/Stages/Stage2.asset",
-                vanishers = 3, verticalMovers = 2, spikes = 5, hangingSpikes = 2, vines = 3,
-                plainRings = 2, thornyRings = 2, saws = 2, winds = 2, treats = 5, bouncers = 1 },
+                vanishers = 0.13f, verticalMovers = 0.09f, spikes = 0.21f, hangingSpikes = 0.09f, vines = 0.13f,
+                plainRings = 0.09f, thornyRings = 0.09f, saws = 0.09f, winds = 0.09f, treats = 0.21f, bouncers = 1 },
             new Recipe { path = "Assets/_Game/Stages/Stage3.asset",
-                vanishers = 4, verticalMovers = 3, spikes = 7, hangingSpikes = 3, vines = 4,
-                plainRings = 2, thornyRings = 3, saws = 3, winds = 3, treats = 6, bouncers = 2 },
+                vanishers = 0.15f, verticalMovers = 0.11f, spikes = 0.23f, hangingSpikes = 0.11f, vines = 0.15f,
+                plainRings = 0.07f, thornyRings = 0.09f, saws = 0.11f, winds = 0.11f, treats = 0.22f, bouncers = 2 },
         };
 
         /// 바닥(0번)과 골 직전은 건드리지 않는다 — 시작과 도착은 늘 안전하게.
@@ -82,10 +83,11 @@ namespace UpTogether.EditorTools
             // 그 위나 옆 틈에 놓이는 것(밧줄·톱니·바람·간식). 둘은 서로 겹쳐도 된다.
             var surface = new Slots(n);
             var extras = new Slots(n);
+            int Count(float density) => Mathf.RoundToInt(density * n);
 
             // ── 발판 자체를 바꾸는 것 (경로를 유지하도록 제자리에서) ──
-            var toVanish = surface.Take(r.vanishers);
-            var toMove = surface.Take(r.verticalMovers);
+            var toVanish = surface.Take(Count(r.vanishers));
+            var toMove = surface.Take(Count(r.verticalMovers));
 
             var keep = new List<StageData.Platform>();
             for (int i = 0; i < n; i++)
@@ -101,17 +103,17 @@ namespace UpTogether.EditorTools
             }
 
             // ── 착지면 위 가시 (가운데 40%, 양 끝으로 피해 밟게) ──
-            foreach (int i in surface.Take(r.spikes))
+            foreach (int i in surface.Take(Count(r.spikes)))
                 spikes.Add(new StageData.Spike {
                     x = P[i].x + P[i].width * 0.30f, y = P[i].y, width = P[i].width * 0.40f });
 
             // ── 발판 밑에 매달린 가시 (밑을 스치며 지나갈 때 아프다) ──
-            foreach (int i in surface.Take(r.hangingSpikes))
+            foreach (int i in surface.Take(Count(r.hangingSpikes)))
                 spikes.Add(new StageData.Spike {
                     x = P[i].x + P[i].width * 0.25f, y = P[i].y, width = P[i].width * 0.50f, down = true });
 
             // ── 타고 오르는 가시덩굴(밧줄): 두 칸 위 발판으로 오르는 지름길 ──
-            foreach (int i in extras.Take(r.vines))
+            foreach (int i in extras.Take(Count(r.vines)))
             {
                 // 너무 짧으면 의미가 없고, 너무 길면 (사이에 이동 발판이 빠진 자리) 허공을 탄다.
                 // 두 칸 위가 기본이되 높이가 안 맞으면 그 앞뒤에서 맞는 발판을 찾는다.
@@ -127,16 +129,16 @@ namespace UpTogether.EditorTools
             }
 
             // ── 착지 발판을 감싸는 링 (위로 통과해 올라선다) ──
-            foreach (int i in surface.Take(r.plainRings))
+            foreach (int i in surface.Take(Count(r.plainRings)))
             {
                 rings.Add(new StageData.Ring { x = C(P[i]), y = P[i].y + 0.55f, radius = 0.5f, thorny = false });
                 treats.Add(new StageData.Treat { x = C(P[i]), y = P[i].y + 0.62f });   // 가운데 간식
             }
-            foreach (int i in surface.Take(r.thornyRings))
+            foreach (int i in surface.Take(Count(r.thornyRings)))
                 rings.Add(new StageData.Ring { x = C(P[i]), y = P[i].y + 0.55f, radius = 0.42f, thorny = true });
 
             // ── 톱니: 두 발판 사이 틈을 한쪽으로 치우쳐 순찰 (반대쪽으로 지나가게) ──
-            foreach (int i in extras.Take(r.saws))
+            foreach (int i in extras.Take(Count(r.saws)))
             {
                 int j = Mathf.Min(i + 1, n - 1);
                 float mx = (C(P[i]) + C(P[j])) * 0.5f;
@@ -145,7 +147,7 @@ namespace UpTogether.EditorTools
             }
 
             // ── 바람: 세로 틈에서 안쪽으로 민다 ──
-            foreach (int i in extras.Take(r.winds))
+            foreach (int i in extras.Take(Count(r.winds)))
             {
                 float dir = C(P[i]) > 4.5f ? -1f : 1f;
                 winds.Add(new StageData.Wind {
@@ -154,7 +156,7 @@ namespace UpTogether.EditorTools
             }
 
             // ── 간식: 착지면 위에 (경로에서 자연히 줍게) ──
-            foreach (int i in extras.Take(r.treats))
+            foreach (int i in extras.Take(Count(r.treats)))
                 treats.Add(new StageData.Treat { x = C(P[i]), y = P[i].y + 0.32f });
 
             // ── 튕김판: 바닥 근처 '장난감' (주 경로 밖) ──
