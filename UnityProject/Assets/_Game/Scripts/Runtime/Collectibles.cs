@@ -112,6 +112,30 @@ namespace UpTogether
                 }
         }
 
+        /// 먹보 강아지 — 손이 닿지 않는(직접 줍기 범위 밖) 간식 하나를 대신 물어온다.
+        /// 가져왔으면 true 와 그 자리를 돌려준다 (연출용).
+        public bool FetchNear(float px, float py, float radius, out float tx, out float ty)
+        {
+            tx = ty = 0f;
+            var treats = stage != null && stage.Data != null ? stage.Data.treats : null;
+            if (treats == null || treatDone == null) return false;
+
+            int best = -1; float bestD = float.MaxValue;
+            for (int i = 0; i < treats.Length; i++)
+            {
+                if (i >= treatDone.Length || treatDone[i]) continue;
+                float d = Vector2.Distance(new Vector2(px, py + 0.2f),
+                                           new Vector2(treats[i].x, treats[i].y));
+                if (d <= TreatReach || d > radius) continue;   // 직접 닿는 건 본인이 줍는다
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            if (best < 0) return false;
+
+            tx = treats[best].x; ty = treats[best].y;
+            Take(ref treatDone[best], treatVis[best], TreatBond);
+            return true;
+        }
+
         void Take(ref bool done, Transform vis, float amount)
         {
             done = true;

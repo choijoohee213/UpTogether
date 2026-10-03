@@ -11,6 +11,8 @@ namespace UpTogether
         public CharacterBody player;
         public StageRunner stage;
         public Bond bond;
+        /// 포근한 강아지가 막아주는지 묻는다 (없으면 그냥 깎인다)
+        public DogAbilities abilities;
 
         /// 무언가에 찔린 순간. 소리가 붙는다.
         public event Action Hurt;
@@ -93,7 +95,8 @@ namespace UpTogether
             player.vy = player.tuning.Jump1V * 0.55f;
             player.vx = -player.face * Px.V(5f);
             player.grounded = false;
-            bond?.Add(-SpikeBond);
+            // 막아줬으면 튕겨나가기만 하고 친밀도는 지킨다
+            if (abilities == null || !abilities.TryShield()) bond?.Add(-SpikeBond);
             cooldown = HitCooldown;
             Hurt?.Invoke();
         }

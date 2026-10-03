@@ -25,6 +25,7 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
+            TestUi.SilencePerkCard();
 
             player = Object.FindFirstObjectByType<PlayerController>();
             dog    = Object.FindFirstObjectByType<DogController>();
