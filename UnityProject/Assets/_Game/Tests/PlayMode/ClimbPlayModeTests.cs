@@ -25,6 +25,7 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
+            TestUi.SilencePerkCard();
 
             player = Object.FindFirstObjectByType<PlayerController>();
             dog    = Object.FindFirstObjectByType<DogController>();
@@ -383,7 +384,8 @@ namespace UpTogether.Tests
 
         /// 발판을 하나씩 짚어가며 강아지가 따라 올라오는지 전수 확인한다.
         /// 한 곳이라도 못 따라오면 실패다.
-        [UnityTest]
+        /// 발판당 4초라 맵이 길어지면 기본 제한(180초)을 넘는다 — 넉넉히 준다.
+        [UnityTest, Timeout(900000)]
         public IEnumerator 강아지가_모든_발판을_따라_올라온다()
         {
             var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);

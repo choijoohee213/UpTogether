@@ -324,11 +324,14 @@ namespace UpTogether
                 go.transform.SetParent(platformRoot, false);
                 go.transform.localPosition = new Vector3(s.x + s.width * 0.5f, s.y, 0f);
 
-                Sprite[] frames = s.down ? (lib != null ? lib.thornVine : null)
-                    : (lib != null && lib.spikeFloor != null ? new[] { lib.spikeFloor } : null);
-                if (frames != null && frames.Length > 0 && frames[0] != null)
-                    TileRow(go.transform, frames, s.width, 0f, s.down ? 2.5f : 0f, -8,
-                            yScale: s.down ? 1.7f : 1f);   // 매달린 가시는 더 길게
+                // 위아래 모두 같은 가시 그림을 쓴다. 매달린 쪽은 뒤집어 발판 밑으로 뻗는다.
+                // 예전에는 매달린 가시가 덩굴(thornVine) 그림이라 타고 오르는 밧줄과
+                // 구별이 안 됐다 — 하나는 지름길, 하나는 아픈 것인데 똑같이 보였다.
+                Sprite[] frames = lib != null && lib.spikeFloor != null
+                    ? new[] { lib.spikeFloor } : null;
+                if (frames != null && frames[0] != null)
+                    TileRow(go.transform, frames, s.width, s.down ? -TileU : 0f, 0f, -8,
+                            yScale: s.down ? -1.7f : 1f);   // 매달린 가시는 뒤집고 더 길게
                 else
                 {
                     var sr = go.AddComponent<SpriteRenderer>();
