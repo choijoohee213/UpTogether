@@ -134,6 +134,15 @@ namespace UpTogether.EditorTools
             collectibles.bond = bond;
             collectibles.lib = lib;
 
+            // 구간 추락 — 미끄러지면 구간 처음으로, 강아지는 위에 남는다
+            var zones = sysGo.AddComponent<Zones>();
+            zones.player = player;
+            zones.dog = dog;
+            zones.stage = runner;
+            zones.bond = bond;
+            zones.narration = narration;
+            zones.puffs = puffs;
+
             // 강아지 특기 — 고른 능력을 실제 효과로 (판정은 위 셋이 하고, 여기에 물어본다)
             var abilities = sysGo.AddComponent<DogAbilities>();
             abilities.player = player;
@@ -186,7 +195,7 @@ namespace UpTogether.EditorTools
             var flow = sysGo.AddComponent<StageFlow>();
             flow.runner = runner; flow.backdrop = forest; flow.collectibles = collectibles;
             flow.player = body; flow.dog = dogGo.GetComponent<CharacterBody>();
-            flow.session = session; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
+            flow.session = session; flow.zones = zones; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
             flow.stages = new[] { stage, stage2, stage3 };
             flow.themes = new[]
             {

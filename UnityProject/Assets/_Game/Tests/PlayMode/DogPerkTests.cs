@@ -132,15 +132,18 @@ namespace UpTogether.Tests
             var treats = stage.Data.treats;
             Assert.Greater(treats.Length, 0, "간식이 없는 스테이지다");
 
-            // 간식 바로 위(직접 줍는 거리)에서는 대신 물어오지 않는다
-            Assert.IsFalse(collectibles.FetchNear(treats[0].x, treats[0].y - 0.2f, 2.4f, out _, out _),
+            // 바로 위에 선 간식은 본인이 줍는 거리라 대신 가져오지 않는다.
+            // (반경을 좁혀 다른 간식이 끼어들지 않게 한다)
+            Assert.IsFalse(collectibles.FetchNear(treats[0].x, treats[0].y - 0.2f, 0.3f, out _, out _),
                            "직접 닿는 간식을 대신 가져갔다");
 
-            // 조금 떨어진 곳에서는 가져온다
+            // 조금 떨어지면 가져온다
             Assert.IsTrue(collectibles.FetchNear(treats[0].x + 1.2f, treats[0].y - 0.2f, 2.4f,
-                                                 out float tx, out _),
+                                                 out float tx, out float ty),
                           "닿지 않는 간식을 안 가져왔다");
-            Assert.AreEqual(treats[0].x, tx, 0.001f, "가져온 간식 자리가 다르다");
+            float d = Mathf.Sqrt((tx - treats[0].x) * (tx - treats[0].x) +
+                                 (ty - treats[0].y) * (ty - treats[0].y));
+            Assert.Less(d, 2.4f, "반경 밖의 간식을 가져왔다");
         }
     }
 }

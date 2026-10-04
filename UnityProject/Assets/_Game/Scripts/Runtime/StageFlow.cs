@@ -24,6 +24,7 @@ namespace UpTogether
         public Collectibles collectibles;
         public CharacterBody player, dog;
         public StageSession session;
+        public Zones zones;
         public FollowCamera follow;
         public GameHud hud;
         public GoalFlag flag;
@@ -58,6 +59,7 @@ namespace UpTogether
             if (dog != null) dog.Teleport(0.50f, st.groundY);
             if (flag != null) flag.Reposition();
             if (session != null) session.ResetForNewStage();
+            if (zones != null) zones.ResetForNewStage();
             if (hud != null) hud.HideClear();
             if (follow != null) follow.Snap();
         }
