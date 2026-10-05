@@ -34,9 +34,6 @@ namespace UpTogether
         public SpriteLib lib;
 
         public bool IsClinging { get; private set; }
-        /// 구간 추락으로 플레이어만 아래로 갔을 때 — 따라가지 않고 그 자리에서 기다린다.
-        /// 다시 올라와 만나야 풀린다 (Zones 가 켜고 끈다).
-        public bool Waiting { get; private set; }
         public CharacterBody Body => body;
         /// 계측용
         public int TeleportCount { get; private set; }
@@ -59,31 +56,12 @@ namespace UpTogether
             float dt = Time.fixedDeltaTime;
             var p = player.Body;
 
-            // 기다리는 중에는 따라가지도, 워프하지도 않는다. 제자리에 선다.
-            if (Waiting) { body.Step(dt, 0, tuning.DogSpeedV); return; }
-
             if (UpdateCling(dt, p)) return;
 
             Follow(dt, p);
             WarpIfLeftBehind(p);
         }
 
-        /// 여기서 기다린다 (구간 추락)
-        public void WaitHere()
-        {
-            Waiting = true;
-            IsClinging = false;
-            visual?.PopIn();
-        }
-
-        /// 다시 만났다 — 따라다니기 재개
-        public void Rejoin()
-        {
-            if (!Waiting) return;
-            Waiting = false;
-            farSince = -1f;
-            visual?.PopIn();
-        }
 
         /// 크게 떨어질 때 달려와 품에 안긴다. 이 게임만의 동작이라 그대로 둔다.
         bool UpdateCling(float dt, CharacterBody p)

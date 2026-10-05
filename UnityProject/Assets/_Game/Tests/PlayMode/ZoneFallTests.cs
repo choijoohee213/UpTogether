@@ -85,67 +85,21 @@ namespace UpTogether.Tests
         }
 
         [UnityTest]
-        public IEnumerator 떨어지면_강아지는_따라오지_않고_기다린다()
+        public IEnumerator 떨어지면_강아지도_같이_내려온다()
         {
             yield return ClimbHighInZone1();
-            Assert.IsFalse(dog.Waiting, "처음부터 기다리고 있으면 안 된다");
+            float fellFrom = player.Body.Y;
 
-            float dogY = dog.Body.Y;
             player.Body.Teleport(player.Body.X, stage.Data.groundY + 0.2f);
             yield return null;
             yield return null;
 
-            Assert.IsTrue(dog.Waiting, "강아지가 따라 내려왔다 — 잃는 게 없어진다");
-            Assert.IsTrue(zones.Separated, "떨어진 상태로 안 잡혔다");
-
-            // 기다리는 동안에는 워프로 따라오지 않는다
-            int warps = dog.TeleportCount;
-            for (int i = 0; i < 90; i++) yield return new WaitForFixedUpdate();
-            Assert.AreEqual(warps, dog.TeleportCount, "기다리는 중에 워프했다");
-            Assert.Less(Mathf.Abs(dog.Body.Y - dogY), 1.5f, "기다리랬더니 멀리 갔다");
-        }
-
-        [UnityTest]
-        public IEnumerator 다시_만나면_풀리고_친밀도가_오른다()
-        {
-            yield return ClimbHighInZone1();
-            player.Body.Teleport(player.Body.X, stage.Data.groundY + 0.2f);
-            yield return null;
-            yield return null;
-            Assert.IsTrue(dog.Waiting, "먼저 떨어진 상태가 되어야 한다");
-
-            float before = bond.Value;
-            player.Body.Teleport(dog.Body.X, dog.Body.Y);   // 강아지에게 올라간다
-            yield return null;
-            yield return null;
-
-            Assert.IsFalse(dog.Waiting, "만났는데 아직 기다리고 있다");
-            Assert.Greater(bond.Value, before, "다시 만났는데 친밀도가 안 올랐다");
-        }
-
-        [UnityTest]
-        public IEnumerator 떨어져_있는_동안_친밀도가_깎인다()
-        {
-            yield return ClimbHighInZone1();
-            player.Body.Teleport(player.Body.X, stage.Data.groundY + 0.2f);
-            yield return null;
-            yield return null;
-
-            // 친밀도를 올리는 다른 것들이 감소를 덮는다 — 이 시험 동안만 끈다
-            // (간식·링 수집, 높이 구간 보상)
-            var collectibles = Object.FindFirstObjectByType<Collectibles>();
-            if (collectibles != null) collectibles.enabled = false;
-            var session = Object.FindFirstObjectByType<StageSession>();
-            if (session != null) session.enabled = false;
-
-            float after = bond.Value;
-            // 감소는 0.2 씩 모아서 넣는다 (미세 변화는 Bond 가 버린다).
-            // 배치모드는 프레임이 아주 짧으니 흐른 시간으로 센다.
-            float t = 0f;
-            while (t < 1.5f) { t += Time.deltaTime; yield return null; }
-
-            Assert.IsTrue(dog.Waiting, "도중에 다시 만나버렸다 (시험이 성립하지 않는다)");
-            Assert.Less(bond.Value, after, "떨어져 있는데 아무 일도 안 일어났다");
+            // 혼자 남겨두지 않는다 — 둘이 같은 자리로
+            Assert.Less(dog.Body.Y, fellFrom - 1f, "강아지가 위에 남았다");
+            Assert.Less(Mathf.Abs(dog.Body.Y - player.Body.Y), 1.2f,
+                        "강아지가 플레이어와 다른 높이에 있다");
+            Assert.Less(Mathf.Abs(dog.Body.X - player.Body.X), 1.5f,
+                        "강아지가 플레이어와 멀리 떨어졌다");
         }
 
         [Test]
@@ -153,7 +107,7 @@ namespace UpTogether.Tests
         {
             // 바닥 근처(구간 0)에서는 더 잃을 구간이 없다
             Assert.AreEqual(0, zones.Zone);
-            Assert.IsFalse(dog.Waiting, "바닥에서 서 있는데 강아지를 잃었다");
+            Assert.Less(Mathf.Abs(dog.Body.Y - player.Body.Y), 2f, "시작부터 강아지와 떨어져 있다");
         }
     }
 }
