@@ -263,4 +263,35 @@ MonoBehaviour:
   - x: 3.5899591
     y: 17.96984
     height: 0.7174835
+  updrafts:
+  - x: 4.4999995
+    y: 6.713743
+    width: 1
+    height: 2.2
+    lift: 2.52
+  - x: 4.1
+    y: 23.18518
+    width: 1
+    height: 2.2
+    lift: 2.52
+  bars:
+  - x: 6.835205
+    y: 11.979929
+    width: 0.9
+  - x: 5.2590055
+    y: 26.666914
+    width: 0.95747405
+  rollers:
+  - x: 6.062635
+    y: 3.120051
+    radius: 0.22
+    range: 0.25
+    speed: 1.1
+    phase: 2.1
+  - x: 1.1584375
+    y: 17.009027
+    radius: 0.22
+    range: 0.25
+    speed: 1.1
+    phase: 9.099999
   goal: {x: 1.5651715, y: 28.230412}

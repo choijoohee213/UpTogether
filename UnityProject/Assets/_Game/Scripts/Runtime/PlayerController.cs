@@ -13,6 +13,11 @@ namespace UpTogether
 
         /// 착지할 때 낙하 거리(m)를 흘려보낸다. 친밀도/연출이 여기에 붙는다.
         public event Action<float> Landed;
+
+        /// 가지에 매달려 있다
+        public bool Hanging { get; private set; }
+        /// 발 기준 머리 높이 (가지 판정용)
+        const float HeadU = 0.5f;
         /// 점프한 순간. 강아지가 같이 뛰려고 듣는다.
         public event Action Jumped;
 
@@ -47,6 +52,31 @@ namespace UpTogether
         /// (UpTogether ▸ Verify Jump Heights)
         public void Tick(float dt, int moveDir, bool jumpPressed, bool jumpHeld)
         {
+            // ── 가지에 매달리기 ──
+            // 머리가 가지에 닿으면 매달린다. 좌우로 건너고, 점프로 놓는다.
+            float barY = 0f, barL = 0f, barR = 0f;
+            bool atBar = stage != null && stage.TryGetBar(Body.X, Body.Y + HeadU, out barY, out barL, out barR);
+            if (Hanging && (!atBar || jumpPressed)) 
+            {
+                Hanging = false;
+                if (jumpPressed) { Body.vy = tuning.Jump1V * 0.8f; Body.holding = true; }  // 놓으며 띄우기
+            }
+            else if (atBar && !Body.grounded && Body.vy <= 0f) Hanging = true;
+
+            if (Hanging)
+            {
+                Body.vy = 0f;
+                Body.Y = barY - HeadU;                     // 가지에 머리를 건다
+                Body.vx = moveDir * tuning.WalkSpeedV * 0.75f;   // 매달린 채로는 조금 느리게
+                Body.X = Mathf.Clamp(Body.X + Body.vx * dt, barL, barR);
+                if (moveDir != 0) Body.face = moveDir;
+                Body.grounded = false; Body.groundIndex = -1;
+                LastGroundedY = Body.Y;    // 매달린 건 추락이 아니다
+                Body.holding = false; Squash = 0f;
+                fallFromY = float.NaN;
+                return;
+            }
+
             // ── 밧줄 타기 ── 겹친 채 점프를 누르면 붙잡고 오른다. 좌우로 떼면 놓는다.
             float vineX = 0f, vineTop = 0f;
             bool onVine = stage != null && stage.TryGetVine(Body.X, Body.Y, out vineX, out vineTop);
@@ -67,6 +97,17 @@ namespace UpTogether
             }
 
             if (jumpPressed) TryJump();
+
+            // ── 상승 기류 ── 안에 있으면 떠오른다. 발판 없이 높이를 버는 길.
+            if (stage != null && stage.InUpdraft(Body.X, Body.Y, out float lift))
+            {
+                // 매 스텝 lift 로 다시 세운다. 조금씩 더하는 식으로는 같은 스텝의
+                // 중력(Body.Step)에 먹혀 그대로 떨어진다.
+                Body.vy = Mathf.Max(Body.vy, lift);
+                Body.holding = false;
+                fallFromY = Body.Y;        // 기류에 실린 건 추락이 아니다
+                LastGroundedY = Body.Y;
+            }
 
             // 손을 떼거나 정점을 지나면 홀드 종료 → 그 뒤로는 기본 중력
             if (!jumpHeld || Body.vy <= 0f) Body.holding = false;

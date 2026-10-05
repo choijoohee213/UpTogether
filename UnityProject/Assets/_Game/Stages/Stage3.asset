@@ -333,4 +333,43 @@ MonoBehaviour:
   - x: 1.1368403
     y: 10.718527
     height: 0.83578587
+  updrafts:
+  - x: 0.70000005
+    y: 8.956412
+    width: 1
+    height: 2.2
+    lift: 2.52
+  - x: 1.7000003
+    y: 18.291838
+    width: 1
+    height: 2.2
+    lift: 2.52
+  - x: 4.2999997
+    y: 28.365486
+    width: 1
+    height: 2.2
+    lift: 2.52
+  bars:
+  - x: 6.92934
+    y: 4.9338756
+    width: 0.9
+  - x: 2.5597908
+    y: 14.335105
+    width: 0.9
+  - x: 7.3154445
+    y: 23.487291
+    width: 0.9
+  rollers:
+  - x: 6.271727
+    y: 3.0381072
+    radius: 0.22
+    range: 0.25
+    speed: 1.1
+    phase: 2.1
+  - x: 7.9052563
+    y: 30.972408
+    radius: 0.22
+    range: 0.25
+    speed: 1.1
+    phase: 16.8
   goal: {x: 3.7286656, y: 35.137077}

@@ -28,6 +28,9 @@ namespace UpTogether.EditorTools
             public float saws;          // 틈을 순찰하는 톱니
             public float winds;         // 옆으로 미는 바람
             public float treats;        // 간식
+            public float updrafts;      // 상승 기류 — 발판 없이 오르는 길
+            public float bars;          // 매달려 건너는 가지
+            public float rollers;       // 구르는 통나무
             public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
 
@@ -35,13 +38,16 @@ namespace UpTogether.EditorTools
         {
             new Recipe { path = "Assets/_Game/Stages/Stage1.asset",
                 vanishers = 0.07f, verticalMovers = 0.04f, spikes = 0.11f, hangingSpikes = 0.04f, vines = 0.11f,
-                plainRings = 0.07f, thornyRings = 0.04f, saws = 0.04f, winds = 0.04f, treats = 0.15f, bouncers = 1 },
+                plainRings = 0.07f, thornyRings = 0.04f, saws = 0.04f, winds = 0.04f, treats = 0.15f,
+                updrafts = 0.06f, bars = 0.06f, rollers = 0.04f, bouncers = 1 },
             new Recipe { path = "Assets/_Game/Stages/Stage2.asset",
                 vanishers = 0.13f, verticalMovers = 0.09f, spikes = 0.21f, hangingSpikes = 0.09f, vines = 0.13f,
-                plainRings = 0.09f, thornyRings = 0.09f, saws = 0.09f, winds = 0.09f, treats = 0.21f, bouncers = 1 },
+                plainRings = 0.09f, thornyRings = 0.09f, saws = 0.09f, winds = 0.09f, treats = 0.21f,
+                updrafts = 0.09f, bars = 0.09f, rollers = 0.07f, bouncers = 1 },
             new Recipe { path = "Assets/_Game/Stages/Stage3.asset",
                 vanishers = 0.15f, verticalMovers = 0.11f, spikes = 0.23f, hangingSpikes = 0.11f, vines = 0.15f,
-                plainRings = 0.07f, thornyRings = 0.09f, saws = 0.11f, winds = 0.11f, treats = 0.22f, bouncers = 2 },
+                plainRings = 0.07f, thornyRings = 0.09f, saws = 0.11f, winds = 0.11f, treats = 0.22f,
+                updrafts = 0.11f, bars = 0.11f, rollers = 0.09f, bouncers = 2 },
         };
 
         /// 맵 폭 (StageGenerator.MapWidth 900px → units)
@@ -80,6 +86,9 @@ namespace UpTogether.EditorTools
             var rings = new List<StageData.Ring>();
             var treats = new List<StageData.Treat>();
             var vines = new List<StageData.Vine>();
+            var updrafts = new List<StageData.Updraft>();
+            var bars = new List<StageData.Bar>();
+            var rollers = new List<StageData.Roller>();
 
             // 경로를 따라 고르게 흩되, 한 발판이 두 역할을 맡지 않게 한 번 쓰면 뺀다.
             // 풀이 둘이다 — 발판 표면을 차지하는 것(가시·링·발판 변형)과
@@ -231,6 +240,50 @@ namespace UpTogether.EditorTools
                 treats.Add(new StageData.Treat { x = tx, y = P[i].y + 0.32f });
             }
 
+            // ── 상승 기류: 발판이 없는 세로 통로에 세운다 ──
+            // 발판 위에 세우면 걸어다니다 저절로 떠올라 조작을 뺏는다.
+            // 두 발판 사이 '틈'만 보면 지그재그 맵에서는 거의 안 잡히므로(겹쳐 있다),
+            // 빈 통로를 직접 훑는다.
+            const float DraftW = 1.0f;
+            foreach (int i in extras.Take(Count(r.updrafts)))
+            {
+                float y0 = P[i].y + 0.1f;
+                float h = 2.2f;
+                float wantX = C(P[i]);
+                float bestX = 0f, bestD = float.MaxValue;
+                for (float x = 0.6f; x <= MapWidthU - 0.6f; x += 0.2f)
+                {
+                    bool clear = true;
+                    foreach (var f in solids)
+                        if (x + DraftW * 0.5f > f.l && x - DraftW * 0.5f < f.r &&
+                            f.y > y0 - 0.1f && f.y < y0 + h)
+                        { clear = false; break; }
+                    if (!clear) continue;
+                    float d = Mathf.Abs(x - wantX);
+                    if (d < bestD) { bestD = d; bestX = x; }
+                }
+                if (bestD < 3.5f)
+                    updrafts.Add(new StageData.Updraft {
+                        x = bestX - DraftW * 0.5f, y = y0, width = DraftW, height = h, lift = Px.V(4.2f) });
+            }
+
+            // ── 매달려 건너는 가지: 발판 위 손 닿는 높이에 ──
+            foreach (int i in extras.Take(Count(r.bars)))
+            {
+                float w = Mathf.Max(0.9f, P[i].width * 0.9f);
+                bars.Add(new StageData.Bar {
+                    x = C(P[i]) - w * 0.5f, y = P[i].y + 1.15f, width = w });
+            }
+
+            // ── 구르는 통나무: 발판 위를 왕복 ──
+            foreach (int i in surface.Take(Count(r.rollers)))
+            {
+                float range = Mathf.Max(0.25f, P[i].width * 0.5f - 0.2f);
+                rollers.Add(new StageData.Roller {
+                    x = C(P[i]), y = P[i].y, radius = 0.22f,
+                    range = range, speed = 1.1f, phase = i * 0.7f });
+            }
+
             // ── 튕김판: 바닥 근처 '장난감' (주 경로 밖) ──
             for (int k = 0; k < r.bouncers; k++)
                 bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.4f, y = P[0].y + 0.55f, width = 0.7f });
@@ -245,6 +298,9 @@ namespace UpTogether.EditorTools
             s.rings = rings.ToArray();
             s.treats = treats.ToArray();
             s.vines = vines.ToArray();
+            s.updrafts = updrafts.ToArray();
+            s.bars = bars.ToArray();
+            s.rollers = rollers.ToArray();
 
             if (vines.Count < Count(r.vines) || sawSkipped > 0)
                 Debug.Log($"{s.displayName} 배치 부족 — 밧줄 {vines.Count}/{Count(r.vines)} " +
@@ -253,7 +309,8 @@ namespace UpTogether.EditorTools
             EditorUtility.SetDirty(s);
             Debug.Log($"{s.displayName} 장애물: 발판 {keep.Count} / 사라짐 {vanishers.Count} / 이동 {movers.Count} / " +
                       $"가시 {spikes.Count} / 링 {rings.Count} / 톱니 {saws.Count} / 바람 {winds.Count} / " +
-                      $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count}");
+                      $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count} / " +
+                      $"기류 {updrafts.Count} / 가지 {bars.Count} / 통나무 {rollers.Count}");
         }
 
 

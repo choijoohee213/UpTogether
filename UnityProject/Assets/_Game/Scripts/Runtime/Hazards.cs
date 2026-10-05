@@ -30,7 +30,7 @@ namespace UpTogether
             ApplyWind(dt);
 
             if (cooldown > 0f) { cooldown -= dt; return; }
-            if (HitSpikes() || HitSaws() || HitThornRings()) DoHurt();
+            if (HitSpikes() || HitSaws() || HitRollers() || HitThornRings()) DoHurt();
         }
 
         void ApplyWind(float dt)
@@ -72,6 +72,17 @@ namespace UpTogether
                 var p = stage.SawPos(i);
                 float d = Vector2.Distance(new Vector2(cx, cy), p);
                 if (d < stage.SawBlade(i) + PlayerR) return true;
+            }
+            return false;
+        }
+
+        bool HitRollers()
+        {
+            float cx = player.X, cy = player.Y + 0.28f;
+            for (int i = 0; i < stage.RollerCount; i++)
+            {
+                var p = stage.RollerPos(i);
+                if (Vector2.Distance(new Vector2(cx, cy), p) < stage.RollerRadius(i) + PlayerR) return true;
             }
             return false;
         }

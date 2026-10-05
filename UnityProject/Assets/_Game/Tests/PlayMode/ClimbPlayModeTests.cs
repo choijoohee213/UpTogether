@@ -495,6 +495,14 @@ namespace UpTogether.Tests
                 // 강아지가 따라올 시간
                 yield return Steps(120);
 
+                // 가지에 매달린 채 끝난 구간은 건너뛴다 — 이 시험은 발판에서 발판으로
+                // 가는 경우를 보는 것이고, 매달린 높이엔 강아지가 디딜 자리가 없다.
+                if (player.Hanging)
+                {
+                    log.AppendLine($"  #{n,2}→{n + 1,2} 가지에 매달려 끝남 — 건너뜀");
+                    continue;
+                }
+
                 float gap = (player.Body.Y - body.Y) * Px.PPU;
                 int t = dog.TeleportCount - teleBefore;
                 tele += t;
