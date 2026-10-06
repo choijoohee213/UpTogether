@@ -134,6 +134,27 @@ namespace UpTogether.EditorTools
             collectibles.bond = bond;
             collectibles.lib = lib;
 
+            // 구간 추락 — 미끄러지면 구간 처음으로, 강아지는 위에 남는다
+            var zones = sysGo.AddComponent<Zones>();
+            zones.player = player;
+            zones.dog = dog;
+            zones.stage = runner;
+            zones.bond = bond;
+            zones.narration = narration;
+            zones.puffs = puffs;
+
+            // 강아지 특기 — 고른 능력을 실제 효과로 (판정은 위 셋이 하고, 여기에 물어본다)
+            var abilities = sysGo.AddComponent<DogAbilities>();
+            abilities.player = player;
+            abilities.dog = dog;
+            abilities.stage = runner;
+            abilities.collectibles = collectibles;
+            abilities.emote = dogEmote;
+            abilities.puffs = puffs;
+            abilities.narration = narration;
+            hazards.abilities = abilities;
+            session.abilities = abilities;
+
             // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
             AudioSetup.Attach();
             var gameAudio = sysGo.AddComponent<GameAudio>();
@@ -174,7 +195,7 @@ namespace UpTogether.EditorTools
             var flow = sysGo.AddComponent<StageFlow>();
             flow.runner = runner; flow.backdrop = forest; flow.collectibles = collectibles;
             flow.player = body; flow.dog = dogGo.GetComponent<CharacterBody>();
-            flow.session = session; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
+            flow.session = session; flow.zones = zones; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
             flow.stages = new[] { stage, stage2, stage3 };
             flow.themes = new[]
             {
@@ -510,9 +531,82 @@ namespace UpTogether.EditorTools
                       new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                       new Vector2(-460f, -260f), new Vector2(460f, 260f));
 
+            // 특기 선택 카드 (친밀도 문턱에서 뜬다)
+            var picker = BuildPerkPicker(canvasGo, font, lib, bond);
+
             // 일시정지 버튼 + 오버레이 (맨 위 형제라 다른 HUD 위에 그려진다)
             BuildPause(canvasGo, font, lib);
+            // 둘이 동시에 뜨면 시간 복원이 꼬인다 — 카드가 일시정지를 보고 기다린다
+            picker.pause = canvasGo.GetComponent<Pause>();
             return hud;
+        }
+
+        /// 친밀도 문턱에서 뜨는 특기 선택 카드. 칸은 세 개까지 쓰고,
+        /// 남은 특기 수에 따라 PerkPicker 가 켜고 끈다.
+        static PerkPicker BuildPerkPicker(GameObject canvasGo, Font font, SpriteLib lib, Bond bond)
+        {
+            var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            var picker = canvasGo.AddComponent<PerkPicker>();
+            picker.bond = bond;
+
+            var panel = new GameObject("PerkPanel", typeof(RectTransform));
+            panel.transform.SetParent(canvasGo.transform, false);
+            var prt = (RectTransform)panel.transform;
+            prt.anchorMin = Vector2.zero; prt.anchorMax = Vector2.one;
+            prt.offsetMin = prt.offsetMax = Vector2.zero;
+            picker.panel = panel;
+
+            MakeImage(panel.transform, "Dim", new Color(0f, 0f, 0f, 0.6f),
+                      Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            var card = MakeImage(panel.transform, "Card", new Color(1f, 1f, 1f, 0.96f),
+                      new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                      new Vector2(-420f, -450f), new Vector2(420f, 450f));
+            if (lib != null && lib.panelWood != null) { card.sprite = lib.panelWood; card.color = Color.white; }
+
+            var title = MakeText(panel.transform, "PerkTitle", font, 48, TextAnchor.MiddleCenter,
+                      new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                      new Vector2(-380f, 290f), new Vector2(380f, 420f));
+            title.color = new Color(0.24f, 0.27f, 0.34f);
+            title.text = "강아지가 재주를 하나 익혔다";
+            picker.title = title;
+
+            var taps = new PerkTap[3];
+            var names = new Text[3];
+            var descs = new Text[3];
+            for (int i = 0; i < 3; i++)
+            {
+                float y = 150f - i * 200f;
+                var go = new GameObject($"Choice{i}", typeof(RectTransform), typeof(Image), typeof(PerkTap));
+                go.transform.SetParent(panel.transform, false);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(700f, 170f);
+                rt.anchoredPosition = new Vector2(0f, y);
+                var img = go.GetComponent<Image>();
+                img.sprite = box; img.type = Image.Type.Sliced;
+                img.color = new Color(0.98f, 0.93f, 0.85f);
+
+                var n = MakeText(go.transform, "Name", font, 40, TextAnchor.UpperCenter,
+                                 Vector2.zero, Vector2.one, new Vector2(24f, 16f), new Vector2(-24f, -14f));
+                n.color = new Color(0.24f, 0.27f, 0.34f);
+                n.raycastTarget = false;
+
+                var d = MakeText(go.transform, "Desc", font, 28, TextAnchor.LowerCenter,
+                                 Vector2.zero, Vector2.one, new Vector2(24f, 18f), new Vector2(-24f, -16f));
+                d.color = new Color(0.44f, 0.47f, 0.54f);
+                d.raycastTarget = false;
+
+                var tap = go.GetComponent<PerkTap>();
+                tap.picker = picker;
+                taps[i] = tap; names[i] = n; descs[i] = d;
+            }
+            picker.choices = taps;
+            picker.choiceNames = names;
+            picker.choiceDescs = descs;
+
+            panel.SetActive(false);
+            return picker;
         }
 
         /// 우상단 일시정지 버튼과, 누르면 뜨는 오버레이(계속하기 / 메인으로).

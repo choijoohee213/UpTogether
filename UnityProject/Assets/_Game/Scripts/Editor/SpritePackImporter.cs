@@ -57,10 +57,12 @@ namespace UpTogether.EditorTools
         static Vector2 Pivot(string name)
         {
             name = Path.GetFileNameWithoutExtension(name);
-            if (name.StartsWith("thorn_vine")) return new Vector2(0.5f, 1f);   // 위에 매달림
+            if (name.StartsWith("thorn_vine") ||
+                name.StartsWith("pendulum_chain")) return new Vector2(0.5f, 1f);   // 위에 매달림
             if (name.StartsWith("spike_floor") || name.StartsWith("bounce_mushroom") ||
                 name.StartsWith("dust_puff") || name.StartsWith("goal_doghouse") ||
-                name.StartsWith("deco_")) return new Vector2(0.5f, 0f);        // 바닥에 앉음
+                name.StartsWith("steam") || name.StartsWith("updraft") ||
+                name.StartsWith("deco_")) return new Vector2(0.5f, 0f);        // 바닥에서 솟음
             return new Vector2(0.5f, 0.5f);
         }
 

@@ -17,6 +17,7 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
+            TestUi.SilencePerkCard();
             stage = Object.FindFirstObjectByType<StageRunner>();
             player = Object.FindFirstObjectByType<PlayerController>();
             Assert.IsNotNull(stage); Assert.IsNotNull(player);

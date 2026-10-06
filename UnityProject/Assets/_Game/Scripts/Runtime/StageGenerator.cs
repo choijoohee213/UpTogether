@@ -32,9 +32,10 @@ namespace UpTogether
 
         public static readonly Config[] Stages =
         {
-            new Config { Name = "첫 번째 언덕", Seed = 1001, Rows = 16, Width = 170, MoverChance = 0.0  },
-            new Config { Name = "구름 언덕",   Seed = 2002, Rows = 20, Width = 148, MoverChance = 0.28 },
-            new Config { Name = "별빛 언덕",   Seed = 3003, Rows = 24, Width = 124, MoverChance = 0.40 },
+            // 발판 폭이 곧 난이도다 — 좁을수록 착지가 정밀해야 하고, 놓치면 구간을 잃는다.
+            new Config { Name = "첫 번째 언덕", Seed = 1001, Rows = 26, Width = 132, MoverChance = 0.0  },
+            new Config { Name = "구름 언덕",   Seed = 2002, Rows = 32, Width = 114, MoverChance = 0.28 },
+            new Config { Name = "별빛 언덕",   Seed = 3003, Rows = 40, Width = 96,  MoverChance = 0.40 },
         };
 
         sealed class Rng
