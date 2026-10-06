@@ -92,9 +92,22 @@ namespace UpTogether.EditorTools
 
             // 경로를 따라 고르게 흩되, 한 발판이 두 역할을 맡지 않게 한 번 쓰면 뺀다.
             // 풀이 둘이다 — 발판 표면을 차지하는 것(가시·링·발판 변형)과
-            // 그 위나 옆 틈에 놓이는 것(밧줄·톱니·바람·간식). 둘은 서로 겹쳐도 된다.
+            // 그 위나 옆 틈에 놓이는 것(밧줄·톱니·간식). 칸은 겹칠 수 있다.
             var surface = new Slots(n);
             var extras = new Slots(n);
+
+            // ★ 자리 점유 ★ 칸(슬롯)이 달라도 실제 공간은 겹칠 수 있다.
+            // 가지는 발판 위 1.15u 인데 링은 0.55u 에 반지름 0.5 라 서로 파고들고,
+            // 기류·톱니는 빈 통로를 훑어 놓느라 다른 장애물을 아예 안 봤다.
+            // 놓기 전에 전부 여기에 물어본다.
+            var taken = new List<Rect>();
+            bool Free(Rect box)
+            {
+                foreach (var t in taken) if (Bites(t, box)) return false;
+                return true;
+            }
+            bool Claim(Rect box) { if (!Free(box)) return false; taken.Add(box); return true; }
+            // 바람은 넓은 영역을 덮는 '지대'라 다른 것과 겹쳐도 된다 — 점유에서 뺀다.
             int Count(float density) => Mathf.RoundToInt(density * n);
 
             // ── 발판 자체를 바꾸는 것 (경로를 유지하도록 제자리에서) ──
@@ -117,17 +130,23 @@ namespace UpTogether.EditorTools
                     keep.Add(P[i]);
             }
 
-            // ── 착지면 위 가시 (가운데 40%, 양 끝으로 피해 밟게) ──
-            var spikedAt = surface.Take(Count(r.spikes));
-            foreach (int i in spikedAt)
-                spikes.Add(new StageData.Spike {
-                    x = P[i].x + P[i].width * 0.30f, y = P[i].y, width = P[i].width * 0.40f });
+            // 톱니·기류가 피해야 할 '딛는 면' 목록. 정적 발판뿐 아니라
+            // 이동·사라짐 발판까지 봐야 한다 (박히는 사고가 여기서 났다).
+            var solids = new List<(float l, float r, float y)>();
+            foreach (var p in keep) solids.Add((p.x, p.Right, p.y));
+            foreach (var m in movers)
+                solids.Add(m.vertical ? (m.x, m.Right, m.y) : (m.x - m.range, m.Right + m.range, m.y));
+            foreach (var v in vanishers) solids.Add((v.x, v.Right, v.y));
 
             // ── 발판 밑에 매달린 가시 (밑을 스치며 지나갈 때 아프다) ──
-            var hungAt = surface.Take(Count(r.hangingSpikes));
-            foreach (int i in hungAt)
-                spikes.Add(new StageData.Spike {
-                    x = P[i].x + P[i].width * 0.25f, y = P[i].y, width = P[i].width * 0.50f, down = true });
+            var hungAt = new HashSet<int>();
+            foreach (int i in surface.Take(Count(r.hangingSpikes)))
+            {
+                float sx = P[i].x + P[i].width * 0.25f, sw = P[i].width * 0.50f;
+                if (!Claim(new Rect(sx, P[i].y - 0.35f, sw, 0.35f))) continue;
+                spikes.Add(new StageData.Spike { x = sx, y = P[i].y, width = sw, down = true });
+                hungAt.Add(i);
+            }
 
             // ── 타고 오르는 가시덩굴(밧줄): 두 칸 위 발판으로 오르는 지름길 ──
             // ★ 위 발판에 매달린다 ★ — x 를 위 발판 폭 안에서 고른다.
@@ -176,68 +195,21 @@ namespace UpTogether.EditorTools
                     bool dup = false;
                     foreach (var v in vines)
                         if (Mathf.Abs(v.y - c.y) < 0.05f && Mathf.Abs(v.x - c.x) < 0.05f) dup = true;
-                    if (!dup) vines.Add(new StageData.Vine { x = c.x, y = c.y, height = c.h });
+                    if (dup) continue;
+                    if (!Claim(new Rect(c.x - 0.15f, c.y, 0.30f, c.h))) continue;
+                    vines.Add(new StageData.Vine { x = c.x, y = c.y, height = c.h });
                 }
                 if (vines.Count >= wantVines) break;
             }
 
-            // ── 착지 발판을 감싸는 링 (위로 통과해 올라선다) ──
-            foreach (int i in surface.Take(Count(r.plainRings)))
+            // ── 매달려 건너는 가지: 발판 위 손 닿는 높이에 ──
+            foreach (int i in extras.Take(Count(r.bars)))
             {
-                rings.Add(new StageData.Ring { x = C(P[i]), y = P[i].y + 0.55f, radius = 0.5f, thorny = false });
-                treats.Add(new StageData.Treat { x = C(P[i]), y = P[i].y + 0.62f });   // 가운데 간식
-            }
-            foreach (int i in surface.Take(Count(r.thornyRings)))
-                rings.Add(new StageData.Ring { x = C(P[i]), y = P[i].y + 0.55f, radius = 0.42f, thorny = true });
-
-            // ── 톱니: 두 발판 사이 틈을 순찰. 어느 면에도 닿지 않는 자리에만 둔다 ──
-            // 정적 발판뿐 아니라 이동·사라짐 발판까지 봐야 한다 (박히는 사고가 여기서 났다).
-            var solids = new List<(float l, float r, float y)>();
-            foreach (var p in keep) solids.Add((p.x, p.Right, p.y));
-            foreach (var m in movers)
-                solids.Add(m.vertical ? (m.x, m.Right, m.y) : (m.x - m.range, m.Right + m.range, m.y));
-            foreach (var v in vanishers) solids.Add((v.x, v.Right, v.y));
-
-            const float SawBlade = 0.2f, SawOrbit = 0.35f;
-            const float SawReach = SawBlade + SawOrbit + 0.1f;
-            int sawSkipped = 0;
-            foreach (int i in extras.Take(Count(r.saws)))
-            {
-                int j = Mathf.Min(i + 1, n - 1);
-                float wantX = (C(P[i]) + C(P[j])) * 0.5f;
-                float wantY = Mathf.Lerp(Mathf.Min(P[i].y, P[j].y), Mathf.Max(P[i].y, P[j].y), 0.5f);
-
-                // 발판이 세로로 0.7~1.0u 간격이라, 발판과 가로로 겹치는 x 에서는
-                // 어느 높이든 여유 반경에 걸린다. 가로로 빈 자리를 훑어 가장 가까운 곳에 둔다.
-                float bestX = 0f, bestY = 0f, bestD = float.MaxValue;
-                foreach (float sy in new[] { wantY, wantY + 0.3f, wantY - 0.3f })
-                {
-                    for (float sx = 0.6f; sx <= MapWidthU - 0.6f; sx += 0.2f)
-                    {
-                        if (!Clear(solids, sx, sy, SawReach)) continue;
-                        float d = Mathf.Abs(sx - wantX) + Mathf.Abs(sy - wantY) * 2f;
-                        if (d < bestD) { bestD = d; bestX = sx; bestY = sy; }
-                    }
-                }
-                if (bestD < 3.5f)   // 경로에서 너무 먼 곳에 두면 만날 일이 없다
-                    saws.Add(new StageData.Saw { x = bestX, y = bestY, blade = SawBlade, orbit = SawOrbit, speed = 2.2f });
-                else sawSkipped++;
-            }
-
-            // ── 바람: 세로 틈에서 안쪽으로 민다 ──
-            foreach (int i in extras.Take(Count(r.winds)))
-            {
-                float dir = C(P[i]) > 4.5f ? -1f : 1f;
-                winds.Add(new StageData.Wind {
-                    x = P[i].x - 0.2f, y = P[i].y + 0.15f,
-                    width = P[i].width + 0.4f, height = 1.5f, force = dir * 4f });
-            }
-
-            // ── 간식: 착지면 위에. 가시가 난 발판이면 가시를 피해 끝쪽에 둔다 ──
-            foreach (int i in extras.Take(Count(r.treats)))
-            {
-                float tx = spikedAt.Contains(i) ? P[i].x + P[i].width * 0.12f : C(P[i]);
-                treats.Add(new StageData.Treat { x = tx, y = P[i].y + 0.32f });
+                float w = Mathf.Max(0.9f, P[i].width * 0.9f);
+                float bx = C(P[i]) - w * 0.5f, by = P[i].y + 1.15f;
+                // 매달리면 몸이 아래로 늘어지므로 가지 아래쪽까지 비워야 한다
+                if (!Claim(new Rect(bx, by - 0.75f, w, 0.95f))) continue;
+                bars.Add(new StageData.Bar { x = bx, y = by, width = w });
             }
 
             // ── 상승 기류: 발판이 없는 세로 통로에 세운다 ──
@@ -259,29 +231,103 @@ namespace UpTogether.EditorTools
                             f.y > y0 - 0.1f && f.y < y0 + h)
                         { clear = false; break; }
                     if (!clear) continue;
+                    if (!Free(new Rect(x - DraftW * 0.5f, y0, DraftW, h))) continue;
                     float d = Mathf.Abs(x - wantX);
                     if (d < bestD) { bestD = d; bestX = x; }
                 }
-                if (bestD < 3.5f)
+                if (bestD < 3.5f &&
+                    Claim(new Rect(bestX - DraftW * 0.5f, y0, DraftW, h)))
                     updrafts.Add(new StageData.Updraft {
                         x = bestX - DraftW * 0.5f, y = y0, width = DraftW, height = h, lift = Px.V(4.2f) });
             }
 
-            // ── 매달려 건너는 가지: 발판 위 손 닿는 높이에 ──
-            foreach (int i in extras.Take(Count(r.bars)))
+            // ── 착지면 위 가시 (가운데 40%, 양 끝으로 피해 밟게) ──
+            var spikedAt = new HashSet<int>();
+            foreach (int i in surface.Take(Count(r.spikes)))
             {
-                float w = Mathf.Max(0.9f, P[i].width * 0.9f);
-                bars.Add(new StageData.Bar {
-                    x = C(P[i]) - w * 0.5f, y = P[i].y + 1.15f, width = w });
+                float sx = P[i].x + P[i].width * 0.30f, sw = P[i].width * 0.40f;
+                if (!Claim(new Rect(sx, P[i].y, sw, 0.30f))) continue;
+                spikes.Add(new StageData.Spike { x = sx, y = P[i].y, width = sw });
+                spikedAt.Add(i);
+            }
+
+            // ── 톱니: 두 발판 사이 틈을 순찰. 어느 면에도 닿지 않는 자리에만 둔다 ──
+
+            const float SawBlade = 0.2f, SawOrbit = 0.35f;
+            const float SawReach = SawBlade + SawOrbit + 0.1f;
+            int sawSkipped = 0;
+            foreach (int i in extras.Take(Count(r.saws)))
+            {
+                int j = Mathf.Min(i + 1, n - 1);
+                float wantX = (C(P[i]) + C(P[j])) * 0.5f;
+                float wantY = Mathf.Lerp(Mathf.Min(P[i].y, P[j].y), Mathf.Max(P[i].y, P[j].y), 0.5f);
+
+                // 발판이 세로로 0.7~1.0u 간격이라, 발판과 가로로 겹치는 x 에서는
+                // 어느 높이든 여유 반경에 걸린다. 가로로 빈 자리를 훑어 가장 가까운 곳에 둔다.
+                float bestX = 0f, bestY = 0f, bestD = float.MaxValue;
+                foreach (float sy in new[] { wantY, wantY + 0.3f, wantY - 0.3f })
+                {
+                    for (float sx = 0.6f; sx <= MapWidthU - 0.6f; sx += 0.2f)
+                    {
+                        if (!Clear(solids, sx, sy, SawReach)) continue;
+                        if (!Free(new Rect(sx - SawReach, sy - SawReach, SawReach * 2f, SawReach * 2f))) continue;
+                        float d = Mathf.Abs(sx - wantX) + Mathf.Abs(sy - wantY) * 2f;
+                        if (d < bestD) { bestD = d; bestX = sx; bestY = sy; }
+                    }
+                }
+                if (bestD < 3.5f &&   // 경로에서 너무 먼 곳에 두면 만날 일이 없다
+                    Claim(new Rect(bestX - SawReach, bestY - SawReach, SawReach * 2f, SawReach * 2f)))
+                    saws.Add(new StageData.Saw { x = bestX, y = bestY, blade = SawBlade, orbit = SawOrbit, speed = 2.2f });
+                else sawSkipped++;
             }
 
             // ── 구르는 통나무: 발판 위를 왕복 ──
             foreach (int i in surface.Take(Count(r.rollers)))
             {
                 float range = Mathf.Max(0.25f, P[i].width * 0.5f - 0.2f);
+                float rad = 0.22f, cx = C(P[i]);
+                if (!Claim(new Rect(cx - range - rad, P[i].y, (range + rad) * 2f, rad * 2f))) continue;
                 rollers.Add(new StageData.Roller {
-                    x = C(P[i]), y = P[i].y, radius = 0.22f,
-                    range = range, speed = 1.1f, phase = i * 0.7f });
+                    x = cx, y = P[i].y, radius = rad, range = range, speed = 1.1f, phase = i * 0.7f });
+            }
+
+            // ── 바람: 세로 틈에서 안쪽으로 민다 ──
+            foreach (int i in extras.Take(Count(r.winds)))
+            {
+                float dir = C(P[i]) > 4.5f ? -1f : 1f;
+                winds.Add(new StageData.Wind {
+                    x = P[i].x - 0.2f, y = P[i].y + 0.15f,
+                    width = P[i].width + 0.4f, height = 1.5f, force = dir * 4f });
+            }
+
+            // ── 착지 발판을 감싸는 링 (위로 통과해 올라선다) ──
+            foreach (int i in surface.Take(Count(r.plainRings)))
+            {
+                float cx = C(P[i]), cy = P[i].y + 0.55f;
+                if (!Claim(new Rect(cx - 0.5f, cy - 0.5f, 1.0f, 1.0f))) continue;
+                rings.Add(new StageData.Ring { x = cx, y = cy, radius = 0.5f, thorny = false });
+                treats.Add(new StageData.Treat { x = cx, y = P[i].y + 0.62f });   // 가운데 간식 — 링과 한 쌍이라 따로 잡지 않는다
+            }
+            foreach (int i in surface.Take(Count(r.thornyRings)))
+            {
+                float cx = C(P[i]), cy = P[i].y + 0.55f;
+                if (!Claim(new Rect(cx - 0.42f, cy - 0.42f, 0.84f, 0.84f))) continue;
+                rings.Add(new StageData.Ring { x = cx, y = cy, radius = 0.42f, thorny = true });
+            }
+
+            // ── 간식: 착지면 위에. 가시가 난 발판이면 가시를 피해 끝쪽에 둔다 ──
+            foreach (int i in extras.Take(Count(r.treats)))
+            {
+                float ty = P[i].y + 0.32f;
+                // 가운데가 기본, 가시가 났으면 끝쪽, 그래도 막히면 반대쪽 끝
+                foreach (float f in new[] { 0.5f, 0.15f, 0.85f, 0.3f, 0.7f })
+                {
+                    float tx = spikedAt.Contains(i) && f == 0.5f ? P[i].x + P[i].width * 0.12f
+                                                                 : P[i].x + P[i].width * f;
+                    if (!Claim(new Rect(tx - 0.18f, ty - 0.18f, 0.36f, 0.36f))) continue;
+                    treats.Add(new StageData.Treat { x = tx, y = ty });
+                    break;
+                }
             }
 
             // ── 튕김판: 바닥 근처 '장난감' (주 경로 밖) ──
@@ -375,6 +421,36 @@ namespace UpTogether.EditorTools
                 if (vy[i] - vy[i - 1] < 1.15f)
                     bad.Add($"사라지는 발판이 연달아 있음 (y={vy[i - 1]:F2}, {vy[i]:F2})");
 
+            // ── 서로 겹치는 것이 없는지 전수 확인 ──
+            // 칸(슬롯)이 달라도 공간은 겹칠 수 있다. 실제로 기류가 가지·링을 뚫고,
+            // 간식이 가시 위에 놓이는 일이 있었다. 바람은 넓은 '지대'라 뺀다.
+            var boxes = new List<(string name, Rect r)>();
+            foreach (var u in s.updrafts) boxes.Add(("기류", new Rect(u.x, u.y, u.width, u.height)));
+            foreach (var b in s.bars) boxes.Add(("가지", new Rect(b.x, b.y - 0.1f, b.width, 0.2f)));
+            foreach (var v in s.vines) boxes.Add(("밧줄", new Rect(v.x - 0.08f, v.y, 0.16f, v.height)));
+            foreach (var w in s.saws)
+            { float rr = w.blade + w.orbit; boxes.Add(("톱니", new Rect(w.x - rr, w.y - rr, rr * 2f, rr * 2f))); }
+            foreach (var o in s.rollers)
+                boxes.Add(("통나무", new Rect(o.x - o.range - o.radius, o.y,
+                                            (o.range + o.radius) * 2f, o.radius * 2f)));
+            foreach (var g in s.rings) boxes.Add(("링", new Rect(g.x - g.radius, g.y - g.radius, g.radius * 2f, g.radius * 2f)));
+            foreach (var sp in s.spikes)
+                boxes.Add((sp.down ? "매달린가시" : "가시",
+                           sp.down ? new Rect(sp.x, sp.y - 0.3f, sp.width, 0.3f)
+                                   : new Rect(sp.x, sp.y, sp.width, 0.3f)));
+            foreach (var t in s.treats) boxes.Add(("간식", new Rect(t.x - 0.16f, t.y - 0.16f, 0.32f, 0.32f)));
+
+            for (int i = 0; i < boxes.Count; i++)
+                for (int j = i + 1; j < boxes.Count; j++)
+                {
+                    // 링 가운데 간식은 의도된 한 쌍이다
+                    if (boxes[i].name == "링" && boxes[j].name == "간식") continue;
+                    if (boxes[j].name == "링" && boxes[i].name == "간식") continue;
+                    if (!Bites(boxes[i].r, boxes[j].r)) continue;
+                    bad.Add($"{boxes[i].name}({boxes[i].r.x:F2},{boxes[i].r.y:F2})와 " +
+                            $"{boxes[j].name}({boxes[j].r.x:F2},{boxes[j].r.y:F2})가 겹침");
+                }
+
             if (bad.Count > 0)
                 Debug.LogWarning($"{s.displayName} 배치 문제 {bad.Count}건\n  " + string.Join("\n  ", bad));
         }
@@ -385,6 +461,16 @@ namespace UpTogether.EditorTools
             foreach (var f in solids)
                 if (x > f.l - margin && x < f.r + margin && Mathf.Abs(y - f.y) < margin) return false;
             return true;
+        }
+
+        /// 경계만 닿는 것과 실제로 파고드는 것을 구분한다.
+        /// 발판 위로 뻗는 밧줄과 그 발판 아래로 매달린 가시처럼, 선 하나를 공유하는
+        /// 경우가 정상인데 부동소수점 오차로 겹침 판정이 나곤 했다.
+        const float Bite = 0.03f;
+        static bool Bites(Rect a, Rect b)
+        {
+            return b.xMax - Bite > a.xMin + Bite && b.xMin + Bite < a.xMax - Bite &&
+                   b.yMax - Bite > a.yMin + Bite && b.yMin + Bite < a.yMax - Bite;
         }
 
         /// 경로 위에 아직 안 쓴 발판을 고르게 나눠 준다.
