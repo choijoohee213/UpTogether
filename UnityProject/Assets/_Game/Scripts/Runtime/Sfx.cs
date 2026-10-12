@@ -27,6 +27,10 @@ namespace UpTogether
             I = this;
             DontDestroyOnLoad(gameObject);
 
+            // 배치모드(CLI 테스트·빌드)에서는 소리를 내지 않는다.
+            // 테스트를 돌릴 때마다 BGM이 스피커로 울린다.
+            if (Application.isBatchMode) AudioListener.volume = 0f;
+
             // 리스너가 없으면 아무 소리도 나오지 않는다 — 씬 카메라는 스크립트로 만들어 붙어 있지 않다
             if (FindAnyObjectByType<AudioListener>() == null) gameObject.AddComponent<AudioListener>();
 

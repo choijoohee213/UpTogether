@@ -15,6 +15,15 @@ namespace UpTogether
         public Sprite ringFlower, ringThorn;
         public Sprite[] wind;            // 3
 
+        [Header("장애물 v3")]
+        public Sprite branchBar;         // 매달려 건너는 가지 (가로로 이어 붙임)
+        public Sprite pendulumWeight;    // 흔들리는 추
+        public Sprite pendulumChain;     // 추를 매단 사슬 (세로로 이어 붙임)
+        public Sprite[] rockFall;        // 3 — 매달림/흔들림/낙하
+        public Sprite[] steam;           // 4 — 간헐 증기
+        public Sprite wallGrip;          // 벽 타기용 벽면
+        public Sprite[] updraft;         // 3 — 상승 기류
+
         [Header("수집")]
         public Sprite[] treatBone, treatHeart, treatStar;  // 각 2
 

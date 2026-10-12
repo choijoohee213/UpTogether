@@ -42,7 +42,8 @@ namespace UpTogether
             if (sr.enabled && Time.time > hideAt) sr.enabled = false;
         }
 
-        void Show(Sprite s)
+        /// 다른 능력(DogAbilities)도 띄울 수 있게 공개한다
+        public void Show(Sprite s)
         {
             if (s == null) return;
             sr.sprite = s;

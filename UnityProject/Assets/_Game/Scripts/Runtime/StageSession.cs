@@ -21,6 +21,8 @@ namespace UpTogether
         public StageRunner stage;
         public Bond bond;
         public Narration narration;
+        /// 슈퍼맨 강아지가 구해주는지 묻는다 (없으면 그냥 깎인다)
+        public DogAbilities abilities;
 
         public bool Cleared { get; private set; }
         /// 지금 높이(m). UI 가 읽는다.
@@ -96,6 +98,7 @@ namespace UpTogether
         void HandleLanded(float meters)
         {
             if (meters <= BigFallMeters) return;
+            if (abilities != null && abilities.TryRescue(meters)) return;   // 구해줬으면 손실 없음
             bond?.LoseByFall(meters);
             if (meters > FallLineMeters) narration?.Speak(Narration.OnBigFall);
         }

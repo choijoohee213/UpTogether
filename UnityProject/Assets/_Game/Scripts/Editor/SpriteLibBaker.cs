@@ -27,6 +27,14 @@ namespace UpTogether.EditorTools
             lib.ringFlower = One($"{O}/ring_flower.png");
             lib.ringThorn = One($"{O}/ring_thorn.png");
             lib.wind = Frames($"{O}/wind_3f.png");
+
+            lib.branchBar = One($"{O}/branch_bar.png");
+            lib.pendulumWeight = One($"{O}/pendulum_weight.png");
+            lib.pendulumChain = One($"{O}/pendulum_chain.png");
+            lib.rockFall = Frames($"{O}/rock_fall_3f.png");
+            lib.steam = Frames($"{O}/steam_4f.png");
+            lib.wallGrip = One($"{O}/wall_grip.png");
+            lib.updraft = Frames($"{O}/updraft_3f.png");
             lib.treatBone = Frames($"{O}/treat_bone_2f.png");
             lib.treatHeart = Frames($"{O}/treat_heart_2f.png");
             lib.treatStar = Frames($"{O}/treat_star_2f.png");
@@ -56,7 +64,10 @@ namespace UpTogether.EditorTools
 
             int total = new object[] { lib.spikeFloor, lib.sawLog, lib.ringFlower, lib.ringThorn }
                 .Count(x => x != null);
-            Debug.Log($"SpriteLib 구움: 단일 확인 {total}/4, 먼지 {lib.dustPuff?.Length}, 강아지집 {lib.doghouse?.Length}, 버튼L {lib.btnLeft?.Length}");
+            int v3 = new object[] { lib.branchBar, lib.pendulumWeight, lib.pendulumChain, lib.wallGrip }
+                .Count(x => x != null);
+            Debug.Log($"SpriteLib 구움: 단일 확인 {total}/4, 먼지 {lib.dustPuff?.Length}, 강아지집 {lib.doghouse?.Length}, 버튼L {lib.btnLeft?.Length}\n" +
+                      $"  v3 장애물: 단일 {v3}/4, 돌 {lib.rockFall?.Length}/3, 증기 {lib.steam?.Length}/4, 기류 {lib.updraft?.Length}/3");
         }
 
         static Sprite One(string path)

@@ -25,6 +25,8 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
+            TestUi.SilencePerkCard();
+            TestUi.DisableZoneFall();
 
             player = Object.FindFirstObjectByType<PlayerController>();
             dog    = Object.FindFirstObjectByType<DogController>();
@@ -383,7 +385,8 @@ namespace UpTogether.Tests
 
         /// 발판을 하나씩 짚어가며 강아지가 따라 올라오는지 전수 확인한다.
         /// 한 곳이라도 못 따라오면 실패다.
-        [UnityTest]
+        /// 발판당 4초라 맵이 길어지면 기본 제한(180초)을 넘는다 — 넉넉히 준다.
+        [UnityTest, Timeout(900000)]
         public IEnumerator 강아지가_모든_발판을_따라_올라온다()
         {
             var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
@@ -491,6 +494,15 @@ namespace UpTogether.Tests
 
                 // 강아지가 따라올 시간
                 yield return Steps(120);
+
+                // 공중에 뜬 채 끝난 구간은 건너뛴다 (가지에 매달렸거나 상승 기류에 실렸거나).
+                // 이 시험은 발판에서 발판으로 가는 경우를 보는 것이고,
+                // 그런 높이엔 강아지가 디딜 자리가 없다.
+                if (!player.Body.grounded)
+                {
+                    log.AppendLine($"  #{n,2}→{n + 1,2} 공중에서 끝남({(player.Hanging ? "매달림" : "기류")}) — 건너뜀");
+                    continue;
+                }
 
                 float gap = (player.Body.Y - body.Y) * Px.PPU;
                 int t = dog.TeleportCount - teleBefore;

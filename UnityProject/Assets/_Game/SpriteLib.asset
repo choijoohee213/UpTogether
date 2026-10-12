@@ -26,6 +26,23 @@ MonoBehaviour:
   - {fileID: -1638071069, guid: c832d45dacce3489eb612f10698c6969, type: 3}
   - {fileID: -1460317004, guid: c832d45dacce3489eb612f10698c6969, type: 3}
   - {fileID: -341502536, guid: c832d45dacce3489eb612f10698c6969, type: 3}
+  branchBar: {fileID: 21300000, guid: ba387481265554887b4d6dc8c4749656, type: 3}
+  pendulumWeight: {fileID: 21300000, guid: 8af95b79f10ea4922a2042963b99872e, type: 3}
+  pendulumChain: {fileID: 21300000, guid: ce503d9f22a9440c99faca6324c03f68, type: 3}
+  rockFall:
+  - {fileID: -1785471591, guid: 772ea6fa0e3664484a681f368ed3e13c, type: 3}
+  - {fileID: -1509663837, guid: 772ea6fa0e3664484a681f368ed3e13c, type: 3}
+  - {fileID: 907737276, guid: 772ea6fa0e3664484a681f368ed3e13c, type: 3}
+  steam:
+  - {fileID: 1429227463, guid: bfa9250ca08954b838038e49f1d7b835, type: 3}
+  - {fileID: 338703421, guid: bfa9250ca08954b838038e49f1d7b835, type: 3}
+  - {fileID: 1165534443, guid: bfa9250ca08954b838038e49f1d7b835, type: 3}
+  - {fileID: 109146547, guid: bfa9250ca08954b838038e49f1d7b835, type: 3}
+  wallGrip: {fileID: 21300000, guid: dd24bbc5230a547f18f30fc8a57a5ba0, type: 3}
+  updraft:
+  - {fileID: -679896488, guid: 6e2df968c9c7c42cb823e120825942bd, type: 3}
+  - {fileID: -198700627, guid: 6e2df968c9c7c42cb823e120825942bd, type: 3}
+  - {fileID: -461569792, guid: 6e2df968c9c7c42cb823e120825942bd, type: 3}
   treatBone:
   - {fileID: -151052092, guid: 8fa582d97510c42f7b24a4f0c7adb87a, type: 3}
   - {fileID: 1974747004, guid: 8fa582d97510c42f7b24a4f0c7adb87a, type: 3}

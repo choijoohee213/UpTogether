@@ -34,6 +34,7 @@ namespace UpTogether
         public SpriteLib lib;
 
         public bool IsClinging { get; private set; }
+        public CharacterBody Body => body;
         /// 계측용
         public int TeleportCount { get; private set; }
 
@@ -60,6 +61,7 @@ namespace UpTogether
             Follow(dt, p);
             WarpIfLeftBehind(p);
         }
+
 
         /// 크게 떨어질 때 달려와 품에 안긴다. 이 게임만의 동작이라 그대로 둔다.
         bool UpdateCling(float dt, CharacterBody p)
@@ -112,6 +114,10 @@ namespace UpTogether
         /// 같은 높이로 못 오는 상태가 잠깐 이어지면 플레이어 옆으로 옮겨간다.
         void WarpIfLeftBehind(CharacterBody p)
         {
+            // 가지에 매달려 있는 동안은 쫓아가지 않는다. 그 높이엔 디딜 자리가 없어
+            // 워프해도 곧바로 떨어진다 — 반복해서 워프하는 것만 보기 싫게 된다.
+            if (player.Hanging) { farSince = -1f; return; }
+
             // 플레이어 점프 정점으로 판단하면 안 된다. 마지막으로 디딘 발판을 기준으로 본다.
             float dx = Mathf.Abs(p.X - body.X);
             float dy = Mathf.Abs(player.LastGroundedY - body.Y);
@@ -125,7 +131,18 @@ namespace UpTogether
             // 사라진 자리와 나타난 자리 양쪽에 먼지를 남긴다.
             // 아무 연출 없이 옮기면 툭 하고 생겨난 것처럼 보인다.
             var from = new Vector2(body.X, body.Y);
-            var to = new Vector2(p.X - Px.U(24f) * p.face, p.Y);
+            float tx = p.X - Px.U(24f) * p.face;
+            // 플레이어가 딛고 선 발판 안으로 들여놓는다.
+            // 발판이 좁아지면서 옆자리가 허공인 경우가 생겼고, 그러면 워프하자마자
+            // 떨어져서 다시 워프하기를 반복한다.
+            if (p.grounded && p.groundIndex >= 0)
+            {
+                var plat = stage.GetPlatform(p.groundIndex);
+                float inset = Px.U(EdgeInsetPx);
+                float lo = plat.left + inset, hi = plat.right - inset;
+                tx = lo <= hi ? Mathf.Clamp(tx, lo, hi) : (plat.left + plat.right) * 0.5f;
+            }
+            var to = new Vector2(tx, p.Y);
             // 점프 먼지보다는 크되 과하지 않게.
             puffs?.Burst(from, 9, 24f, 4.5f, 2f, sizePx: 7f, sizeVarPx: 5f, life: 0.5f);
 

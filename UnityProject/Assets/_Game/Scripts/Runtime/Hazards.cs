@@ -11,6 +11,8 @@ namespace UpTogether
         public CharacterBody player;
         public StageRunner stage;
         public Bond bond;
+        /// 포근한 강아지가 막아주는지 묻는다 (없으면 그냥 깎인다)
+        public DogAbilities abilities;
 
         /// 무언가에 찔린 순간. 소리가 붙는다.
         public event Action Hurt;
@@ -28,7 +30,7 @@ namespace UpTogether
             ApplyWind(dt);
 
             if (cooldown > 0f) { cooldown -= dt; return; }
-            if (HitSpikes() || HitSaws() || HitThornRings()) DoHurt();
+            if (HitSpikes() || HitSaws() || HitRollers() || HitThornRings()) DoHurt();
         }
 
         void ApplyWind(float dt)
@@ -74,6 +76,17 @@ namespace UpTogether
             return false;
         }
 
+        bool HitRollers()
+        {
+            float cx = player.X, cy = player.Y + 0.28f;
+            for (int i = 0; i < stage.RollerCount; i++)
+            {
+                var p = stage.RollerPos(i);
+                if (Vector2.Distance(new Vector2(cx, cy), p) < stage.RollerRadius(i) + PlayerR) return true;
+            }
+            return false;
+        }
+
         bool HitThornRings()
         {
             var rings = stage.Data.rings;
@@ -93,7 +106,8 @@ namespace UpTogether
             player.vy = player.tuning.Jump1V * 0.55f;
             player.vx = -player.face * Px.V(5f);
             player.grounded = false;
-            bond?.Add(-SpikeBond);
+            // 막아줬으면 튕겨나가기만 하고 친밀도는 지킨다
+            if (abilities == null || !abilities.TryShield()) bond?.Add(-SpikeBond);
             cooldown = HitCooldown;
             Hurt?.Invoke();
         }
