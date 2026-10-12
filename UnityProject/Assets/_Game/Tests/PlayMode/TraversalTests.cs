@@ -46,8 +46,10 @@ namespace UpTogether.Tests
             foreach (var u in stage.Data.updrafts)
                 foreach (var p in stage.Data.platforms)
                 {
+                    // 기둥 '안'에 발판이 있으면 안 된다는 뜻이다. 출발 발판(기둥 바로 아래)과
+                    // 착지 발판(기둥 꼭대기)은 맞닿는 게 정상이므로 경계는 뺀다.
                     bool overlapX = u.x + u.width > p.x && u.x < p.Right;
-                    bool insideY = p.y > u.y - 0.1f && p.y < u.y + u.height;
+                    bool insideY = p.y > u.y + 0.05f && p.y < u.y + u.height - 0.05f;
                     Assert.IsFalse(overlapX && insideY,
                         $"기류({u.x:F2},{u.y:F2})가 발판({p.x:F2},{p.y:F2}) 위에 걸쳤다");
                 }

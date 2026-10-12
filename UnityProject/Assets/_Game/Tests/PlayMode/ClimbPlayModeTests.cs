@@ -495,11 +495,12 @@ namespace UpTogether.Tests
                 // 강아지가 따라올 시간
                 yield return Steps(120);
 
-                // 가지에 매달린 채 끝난 구간은 건너뛴다 — 이 시험은 발판에서 발판으로
-                // 가는 경우를 보는 것이고, 매달린 높이엔 강아지가 디딜 자리가 없다.
-                if (player.Hanging)
+                // 공중에 뜬 채 끝난 구간은 건너뛴다 (가지에 매달렸거나 상승 기류에 실렸거나).
+                // 이 시험은 발판에서 발판으로 가는 경우를 보는 것이고,
+                // 그런 높이엔 강아지가 디딜 자리가 없다.
+                if (!player.Body.grounded)
                 {
-                    log.AppendLine($"  #{n,2}→{n + 1,2} 가지에 매달려 끝남 — 건너뜀");
+                    log.AppendLine($"  #{n,2}→{n + 1,2} 공중에서 끝남({(player.Hanging ? "매달림" : "기류")}) — 건너뜀");
                     continue;
                 }
 
