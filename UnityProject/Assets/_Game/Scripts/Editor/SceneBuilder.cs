@@ -177,14 +177,18 @@ namespace UpTogether.EditorTools
             // ── 스테이지 진행 (테마 전환) ──
             var stage2 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage2.asset");
             var stage3 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage3.asset");
+            var stage4 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage4.asset");
+            var stage5 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage5.asset");
             var forestTiles = runner.tiles;
             Sprite S(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(path);
             const string V = "Assets/_Game/Art/Variants";
+            var snowTiles = LoadTiles($"{V}/tileset_snow_16px.png");
+            var stoneTiles = LoadTiles($"{V}/tileset_stone_16px.png");
             var flow = sysGo.AddComponent<StageFlow>();
             flow.runner = runner; flow.backdrop = forest; flow.collectibles = collectibles;
             flow.player = body; flow.dog = dogGo.GetComponent<CharacterBody>();
             flow.session = session; flow.zones = zones; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
-            flow.stages = new[] { stage, stage2, stage3 };
+            flow.stages = new[] { stage, stage2, stage3, stage4, stage5 };
             flow.themes = new[]
             {
                 new StageFlow.Theme { sky = forest.sky, far = forest.far, mid = forest.mid,
@@ -193,6 +197,12 @@ namespace UpTogether.EditorTools
                     mid = S($"{V}/bg_sunset/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.925f, 0.643f, 0.659f) },
                 new StageFlow.Theme { sky = S($"{V}/bg_night/bg0_sky.png"), far = S($"{V}/bg_night/bg1_far.png"),
                     mid = S($"{V}/bg_night/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.151f, 0.182f, 0.355f) },
+                // 눈 언덕 — 전용 배경이 있다
+                new StageFlow.Theme { sky = S($"{V}/bg_snow/bg0_sky.png"), far = S($"{V}/bg_snow/bg1_far.png"),
+                    mid = S($"{V}/bg_snow/bg2_mid.png"), tiles = snowTiles, bgColor = new Color(0.839f, 0.894f, 0.933f) },
+                // 돌 언덕 — 전용 배경이 없어 밤 배경을 쓴다. 땅만 돌로 바뀐다.
+                new StageFlow.Theme { sky = S($"{V}/bg_night/bg0_sky.png"), far = S($"{V}/bg_night/bg1_far.png"),
+                    mid = S($"{V}/bg_night/bg2_mid.png"), tiles = stoneTiles, bgColor = new Color(0.169f, 0.157f, 0.208f) },
             };
             if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
 
@@ -395,6 +405,7 @@ namespace UpTogether.EditorTools
             foreach (var o in AssetDatabase.LoadAllAssetsAtPath(path))
                 if (o is Sprite s) byName[s.name] = s;
             var arr = new Sprite[32];
+            // 눈·돌 타일셋도 같은 이름 규칙(forest_N)으로 잘려 있다 — 경로만 다르다
             for (int i = 0; i < 32; i++) byName.TryGetValue($"forest_{i}", out arr[i]);
             return arr;
         }

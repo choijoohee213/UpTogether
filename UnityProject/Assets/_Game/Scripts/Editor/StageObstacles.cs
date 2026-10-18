@@ -48,6 +48,14 @@ namespace UpTogether.EditorTools
                 vanishers = 0.15f, verticalMovers = 0.11f, spikes = 0.23f, hangingSpikes = 0.11f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.09f, saws = 0.11f, winds = 0.11f, treats = 0.22f,
                 updrafts = 0.11f, bars = 0.11f, rollers = 0.09f, bouncers = 2 },
+            new Recipe { path = "Assets/_Game/Stages/Stage4.asset",
+                vanishers = 0.15f, verticalMovers = 0.12f, spikes = 0.22f, hangingSpikes = 0.11f, vines = 0.15f,
+                plainRings = 0.08f, thornyRings = 0.09f, saws = 0.11f, winds = 0.12f, treats = 0.22f,
+                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, bouncers = 2 },
+            new Recipe { path = "Assets/_Game/Stages/Stage5.asset",
+                vanishers = 0.16f, verticalMovers = 0.13f, spikes = 0.24f, hangingSpikes = 0.12f, vines = 0.15f,
+                plainRings = 0.07f, thornyRings = 0.10f, saws = 0.12f, winds = 0.12f, treats = 0.22f,
+                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, bouncers = 2 },
         };
 
         /// 맵 폭 (StageGenerator.MapWidth 900px → units)

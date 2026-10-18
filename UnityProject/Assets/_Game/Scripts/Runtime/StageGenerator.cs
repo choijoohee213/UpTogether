@@ -36,6 +36,8 @@ namespace UpTogether
             new Config { Name = "첫 번째 언덕", Seed = 1001, Rows = 26, Width = 132, MoverChance = 0.0  },
             new Config { Name = "구름 언덕",   Seed = 2002, Rows = 32, Width = 114, MoverChance = 0.28 },
             new Config { Name = "별빛 언덕",   Seed = 3003, Rows = 40, Width = 96,  MoverChance = 0.40 },
+            new Config { Name = "눈 언덕",     Seed = 4004, Rows = 46, Width = 104, MoverChance = 0.34 },
+            new Config { Name = "돌 언덕",     Seed = 5005, Rows = 52, Width = 92,  MoverChance = 0.46 },
         };
 
         sealed class Rng
