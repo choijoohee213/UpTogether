@@ -16,6 +16,8 @@ namespace UpTogether
 
         /// 가지에 매달려 있다
         public bool Hanging { get; private set; }
+        /// 상승 기류에 실려 떠오르는 중이다
+        public bool Lifted { get; private set; }
         /// 발 기준 머리 높이 (가지 판정용)
         const float HeadU = 0.5f;
         /// 점프한 순간. 강아지가 같이 뛰려고 듣는다.
@@ -52,6 +54,8 @@ namespace UpTogether
         /// (UpTogether ▸ Verify Jump Heights)
         public void Tick(float dt, int moveDir, bool jumpPressed, bool jumpHeld)
         {
+            Lifted = false;   // 아래 기류 검사에서 다시 세운다 (매달리기는 먼저 반환한다)
+
             // ── 가지에 매달리기 ──
             // 머리가 가지에 닿으면 매달린다. 좌우로 건너고, 점프로 놓는다.
             float barY = 0f, barL = 0f, barR = 0f;
@@ -99,7 +103,9 @@ namespace UpTogether
             if (jumpPressed) TryJump();
 
             // ── 상승 기류 ── 안에 있으면 떠오른다. 발판 없이 높이를 버는 길.
-            if (stage != null && stage.InUpdraft(Body.X, Body.Y, out float lift))
+            float lift = 0f;
+            Lifted = stage != null && stage.InUpdraft(Body.X, Body.Y, out lift);
+            if (Lifted)
             {
                 // 매 스텝 lift 로 다시 세운다. 조금씩 더하는 식으로는 같은 스텝의
                 // 중력(Body.Step)에 먹혀 그대로 떨어진다.

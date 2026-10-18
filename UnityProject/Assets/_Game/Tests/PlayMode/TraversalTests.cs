@@ -140,5 +140,49 @@ namespace UpTogether.Tests
 
             Assert.IsTrue(hurt, "통나무에 닿았는데 아무 일도 없다");
         }
+
+        [UnityTest]
+        public IEnumerator 기류를_탈_때_강아지가_품에_안긴다()
+        {
+            var dog = Object.FindFirstObjectByType<DogController>();
+            var u = stage.Data.updrafts[0];
+            // 강아지를 멀찍이 두고 플레이어만 기류에 넣는다
+            dog.Body.Teleport(u.x - 2.5f, u.y);
+            player.Body.Teleport(u.x + u.width * 0.5f, u.y + 0.2f);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.IsTrue(player.Lifted, "기류 안으로 안 들어갔다");
+            Assert.IsTrue(dog.IsClinging, "따라갈 수 없는 길인데 안기지 않았다");
+
+            // 안긴 동안에는 뒤에 남지 않는다
+            for (int i = 0; i < 20; i++) yield return new WaitForFixedUpdate();
+            Assert.Less(Mathf.Abs(dog.Body.Y - player.Body.Y), 0.8f, "안겼는데 같이 안 올라갔다");
+        }
+
+        [UnityTest]
+        public IEnumerator 가지에_매달릴_때도_안긴다()
+        {
+            var dog = Object.FindFirstObjectByType<DogController>();
+            var b = stage.Data.bars[0];
+            dog.Body.Teleport(b.x - 2f, b.y - 1.5f);
+            player.Body.Teleport(b.x + b.width * 0.5f, b.y - 0.5f);
+            player.Body.vy = -0.1f;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.IsTrue(player.Hanging, "먼저 매달려야 한다");
+            Assert.IsTrue(dog.IsClinging, "매달렸는데 강아지가 안 안겼다");
+        }
+
+        [UnityTest]
+        public IEnumerator 평소에는_안기지_않는다()
+        {
+            var dog = Object.FindFirstObjectByType<DogController>();
+            // 땅에 둘 다 서 있는 평범한 상태
+            for (int i = 0; i < 30; i++) yield return new WaitForFixedUpdate();
+            Assert.IsFalse(player.Lifted);
+            Assert.IsFalse(dog.IsClinging, "가만히 있는데 안겨 있다");
+        }
     }
 }

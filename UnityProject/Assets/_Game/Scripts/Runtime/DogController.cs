@@ -70,7 +70,13 @@ namespace UpTogether
             // 마지막으로 발을 붙였던 높이보다 확실히 아래여야 진짜 낙하다.
             bool reallyFalling = !p.grounded && p.vy < -tuning.DogClingFallV
                                  && p.Y < player.LastGroundedY - tuning.DogClingMinDropU;
-            if (reallyFalling) IsClinging = true;
+
+            // 밧줄·가지·상승 기류는 강아지가 제 발로 따라갈 수 없는 길이다.
+            // 뒤에서 낑낑대다 워프하는 것보다, 달려와 품에 안겨 같이 가는 쪽이
+            // 이 게임답다 (안긴 자세·하트·소리는 이미 다 있다).
+            bool cannotFollow = player.Climbing || player.Hanging || player.Lifted;
+
+            if (reallyFalling || cannotFollow) IsClinging = true;
             if (!IsClinging) return false;
 
             float k = Px.Smoothing(tuning.dogClingLerp, dt);
@@ -78,7 +84,8 @@ namespace UpTogether
             body.Y += ((p.Y + tuning.DogClingOffYU) - body.Y) * k;
             body.face = p.face;
             body.vx = 0f; body.vy = 0f;
-            if (p.grounded) IsClinging = false;
+            // 땅을 딛는 순간 내려온다. 다만 타는 중에는 발이 닿아도 계속 안겨 있는다.
+            if (p.grounded && !cannotFollow) IsClinging = false;
             return true;
         }
 

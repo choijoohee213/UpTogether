@@ -189,7 +189,12 @@ namespace UpTogether
                     pad.transform.SetParent(go.transform, false);
                     var pr = pad.AddComponent<SpriteRenderer>();
                     if (lib != null && lib.bounceMushroom != null && lib.bounceMushroom.Length > 0)
+                    {
                         pr.sprite = lib.bounceMushroom[0];   // 버섯 트램폴린 (피벗 하단)
+                        // 원본 크기(0.5u)로 그리면 판정 폭보다도 작아 눈에 안 띈다 — 폭에 맞춘다
+                        float vis = pr.sprite.rect.width / pr.sprite.pixelsPerUnit;
+                        if (vis > 0.01f) pad.transform.localScale = Vector3.one * (width / vis);
+                    }
                     else pr.sprite = ProceduralArt.BouncePad(Mathf.RoundToInt(width * Px.PPU));
                     pr.sortingOrder = -9;
                 }
