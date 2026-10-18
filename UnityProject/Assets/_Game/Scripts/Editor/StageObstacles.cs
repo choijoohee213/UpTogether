@@ -68,6 +68,11 @@ namespace UpTogether.EditorTools
         [MenuItem("UpTogether/Author Stage Obstacles")]
         public static void Author()
         {
+            // ★ 항상 먼저 굽는다 ★ 이 배치기는 '갓 구운 발판'을 전제로 한다.
+            // 이미 얹힌 에셋에 또 얹으면 변환된 발판을 다시 변환하면서
+            // 사라짐·이동 목록을 새로 덮어쓴다 — 그만큼 발판이 증발한다.
+            // (실제로 맵 중간에 발판이 비는 사고가 났다.)
+            StageBaker.BakeAll();
             foreach (var r in Recipes) AuthorOne(r);
             AssetDatabase.SaveAssets();
         }
@@ -445,7 +450,7 @@ namespace UpTogether.EditorTools
 
             // ── 튕김판: 바닥 근처 '장난감' (주 경로 밖) ──
             for (int k = 0; k < r.bouncers; k++)
-                bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.6f, y = P[0].y + 0.55f, width = 1.1f });
+                bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.4f, y = P[0].y + 0.55f, width = 0.85f });
 
             s.platforms = keep.ToArray();
             s.movers = movers.ToArray();
@@ -655,6 +660,14 @@ namespace UpTogether.EditorTools
                 if (free < Body)
                     bad.Add($"통나무({o.x:F2},{o.y:F2}) — 피할 폭 {free:F2}u 뿐이다");
             }
+
+            // 발판이 빠진 자리 — 정상 상승폭은 0.68~1.02u 다
+            var ys = new List<float>();
+            foreach (var f in surf) ys.Add(f.y);
+            ys.Sort();
+            for (int i = 1; i < ys.Count; i++)
+                if (ys[i] - ys[i - 1] > 1.15f)
+                    bad.Add($"y {ys[i - 1]:F2} → {ys[i]:F2} 사이에 딛을 면이 없다 ({ys[i] - ys[i - 1]:F2}u)");
 
             if (bad.Count > 0)
                 Debug.LogWarning($"{s.displayName} 배치 문제 {bad.Count}건\n  " + string.Join("\n  ", bad));

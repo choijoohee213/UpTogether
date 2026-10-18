@@ -85,6 +85,7 @@ namespace UpTogether
                         {
                             Y = p.y;
                             vy = tuning.Jump1V * 1.7f;        // 튕김판 — 점프보다 훨씬 높이
+                            stage.NotifyBounce(i);            // 버섯이 눌리는 연출
                             Bounced?.Invoke();
                         }
                         else

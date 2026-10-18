@@ -48,6 +48,12 @@ namespace UpTogether
         const float ShakeTime = 0.45f;
         const float GoneTime = 1.6f;
 
+        // 튕김판 눌림 연출 (0=기본, 1=눌림)
+        Transform[] bounceVisuals;
+        SpriteRenderer[] bounceRenderers;
+        float[] bounceSquashUntil;
+        const float SquashTime = 0.16f;
+
         // 구르는 통나무
         Vector2[] rollerPos;
         Transform[] rollerVisuals;
@@ -99,6 +105,10 @@ namespace UpTogether
                 platforms[at++] = new RuntimePlatform { left = m.x, right = m.x + m.width, y = m.y, kind = Kind.Normal, active = true };
 
             bouncerStart = at;
+            int bounceCount = OrEmpty(Data.bouncers).Length;
+            bounceVisuals = new Transform[bounceCount];
+            bounceRenderers = new SpriteRenderer[bounceCount];
+            bounceSquashUntil = new float[bounceCount];
             foreach (var b in bouncers)
                 platforms[at++] = new RuntimePlatform { left = b.x, right = b.x + b.width, y = b.y, kind = Kind.Bounce, active = true };
 
@@ -117,6 +127,30 @@ namespace UpTogether
         }
 
         /// 사라지는 발판을 밟았다고 알린다 (CharacterBody가 부른다).
+        /// 튕김판을 밟았다 — 잠깐 눌린 프레임으로 바꾼다
+        public void NotifyBounce(int platformIndex)
+        {
+            int b = platformIndex - bouncerStart;
+            if (bounceSquashUntil == null || b < 0 || b >= bounceSquashUntil.Length) return;
+            bounceSquashUntil[b] = Time.time + SquashTime;
+            var frames = lib != null ? lib.bounceMushroom : null;
+            if (frames != null && frames.Length > 1 && bounceRenderers[b] != null)
+                bounceRenderers[b].sprite = frames[1];
+        }
+
+        void UpdateBouncers()
+        {
+            if (bounceSquashUntil == null) return;
+            var frames = lib != null ? lib.bounceMushroom : null;
+            if (frames == null || frames.Length < 2) return;
+            for (int i = 0; i < bounceSquashUntil.Length; i++)
+            {
+                if (bounceSquashUntil[i] <= 0f || Time.time < bounceSquashUntil[i]) continue;
+                bounceSquashUntil[i] = 0f;
+                if (bounceRenderers[i] != null) bounceRenderers[i].sprite = frames[0];
+            }
+        }
+
         public void NotifyStand(int platformIndex)
         {
             int v = platformIndex - vanishStart;
@@ -197,6 +231,9 @@ namespace UpTogether
                     }
                     else pr.sprite = ProceduralArt.BouncePad(Mathf.RoundToInt(width * Px.PPU));
                     pr.sortingOrder = -9;
+                    int bi = i - bouncerStart;
+                    if (bi >= 0 && bi < bounceVisuals.Length)
+                    { bounceVisuals[bi] = pad.transform; bounceRenderers[bi] = pr; }
                 }
 
                 if (isGround)
@@ -556,6 +593,7 @@ namespace UpTogether
             UpdateVanishers(Time.fixedDeltaTime);
             UpdateSaws(Time.fixedDeltaTime);
             UpdateRollers();
+            UpdateBouncers();
         }
 
         void UpdateRollers()

@@ -80,7 +80,10 @@ namespace UpTogether
             if (!IsClinging) return false;
 
             float k = Px.Smoothing(tuning.dogClingLerp, dt);
-            body.X += ((p.X - tuning.DogClingOffXU * p.face) - body.X) * k;
+            // 밧줄은 주인공이 뒷모습이라 옆구리에 안겨 있으면 어색하다.
+            // 가운데로 붙여 등에 업힌 것처럼 보이게 한다 (그림은 주인공 뒤에 깔린다).
+            float offX = player.Climbing ? 0f : tuning.DogClingOffXU * p.face;
+            body.X += ((p.X - offX) - body.X) * k;
             body.Y += ((p.Y + tuning.DogClingOffYU) - body.Y) * k;
             body.face = p.face;
             body.vx = 0f; body.vy = 0f;

@@ -184,5 +184,31 @@ namespace UpTogether.Tests
             Assert.IsFalse(player.Lifted);
             Assert.IsFalse(dog.IsClinging, "가만히 있는데 안겨 있다");
         }
+
+        [UnityTest]
+        public IEnumerator 튕김판을_밟으면_눌렸다_돌아온다()
+        {
+            var b = stage.Data.bouncers[0];
+            // 버섯 위로 떨어뜨린다
+            player.Body.Teleport(b.x + b.width * 0.5f, b.y + 0.6f);
+            player.Body.vy = -1f;
+
+            var pads = Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
+            SpriteRenderer pad = null;
+            foreach (var r in pads)
+                if (r.gameObject.name == "pad") { pad = r; break; }
+            Assert.IsNotNull(pad, "버섯 그림이 없다");
+            var normal = pad.sprite;
+
+            for (int i = 0; i < 20; i++) yield return new WaitForFixedUpdate();
+            Assert.Greater(player.Body.vy, 0f, "버섯을 밟았는데 안 튕겼다");
+            Assert.AreNotSame(normal, pad.sprite, "밟았는데 눌린 프레임이 안 나왔다");
+
+            // 다시 밟지 않도록 멀리 치운 뒤, 눌림이 풀리는지 본다
+            player.Body.Teleport(b.x + 4f, b.y + 3f);
+            float t = 0f;
+            while (t < 0.6f) { t += Time.deltaTime; yield return null; }
+            Assert.AreSame(normal, pad.sprite, "눌린 프레임에서 안 돌아왔다");
+        }
     }
 }
