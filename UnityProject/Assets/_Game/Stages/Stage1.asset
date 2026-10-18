@@ -117,7 +117,7 @@ MonoBehaviour:
     y: 6.1373672
     width: 0.41339594
     down: 0
-  - x: 1.1632484
+  - x: 0.542029
     y: 17.978683
     width: 0.38074735
     down: 0
@@ -142,7 +142,7 @@ MonoBehaviour:
     y: 16.07413
     radius: 0.5
     thorny: 0
-  - x: 2.4592845
+  - x: 1.7852055
     y: 13.354069
     radius: 0.42
     thorny: 1

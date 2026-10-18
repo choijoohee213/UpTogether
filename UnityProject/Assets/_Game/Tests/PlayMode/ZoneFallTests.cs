@@ -66,6 +66,13 @@ namespace UpTogether.Tests
         public IEnumerator 구간_바닥_아래로_떨어지면_구간_처음으로_돌아온다()
         {
             yield return ClimbHighInZone1();
+
+            // 되돌아온 자리 근처의 간식·링, 높이 구간 보상이 추락 손실을 덮는다 — 꺼둔다
+            var collectibles = Object.FindFirstObjectByType<Collectibles>();
+            if (collectibles != null) collectibles.enabled = false;
+            var session = Object.FindFirstObjectByType<StageSession>();
+            if (session != null) session.enabled = false;
+
             float fellFrom = player.Body.Y;
             float before = bond.Value;
 

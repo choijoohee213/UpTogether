@@ -292,8 +292,11 @@ namespace UpTogether.EditorTools
                 float w = P[i].width;
                 float sw = Mathf.Min(w * 0.38f, w - SafeLanding);
                 if (sw < 0.18f) continue;                  // 너무 좁은 발판엔 두지 않는다
-                bool left = (i % 2) == 0;                  // 한쪽으로 몰리지 않게 번갈아
-                float sx = left ? P[i].x : P[i].Right - sw;
+                // ★ 건너갈 쪽은 비워둔다 ★ 다음 발판 방향 끝에 가시를 두면
+                // 도움닫기와 도약 지점이 막혀 점프 자체가 안 된다.
+                int nx = Mathf.Min(i + 1, n - 1);
+                bool goesRight = C(P[nx]) >= C(P[i]);
+                float sx = goesRight ? P[i].x : P[i].Right - sw;   // 진행 방향 반대쪽에
                 if (!Claim(new Rect(sx, P[i].y, sw, 0.30f))) continue;
                 spikes.Add(new StageData.Spike { x = sx, y = P[i].y, width = sw });
                 spikedAt.Add(i);
@@ -381,16 +384,44 @@ namespace UpTogether.EditorTools
                 }
             }
 
-            // ★ 가시 링은 머리 위로 ★ 발판 위 0.55u 에 두면 반지름 0.42 라
-            // 링 바닥이 머리(0.5)보다 낮아, 그 발판에 올라서는 것만으로 찔렸다.
-            // 서 있을 때는 닿지 않고 뛰어야 통과하는 높이에 둔다.
+            // ★ 가시 링은 '가는 길'에서 비켜 둔다 ★
+            // 발판 가운데 위에 두면 다음 발판으로 뛰는 궤적이 반드시 테두리를 지난다.
+            // (틈에 거는 것도 해봤지만 발판 간격이 최대 0.68u 라 지름 0.84u 가 안 들어간다.)
+            // 진행 방향 반대쪽 끝에 걸어, 평범하게 오르면 안 닿고
+            // 굳이 반대쪽으로 가야 만나게 한다.
+            // 어떤 발판에서 다음 면으로 가는 통로 안인가 (Verify 와 같은 기준)
+            bool InTravelCorridor(float cx, float cy)
+            {
+                foreach (var f in solids)
+                {
+                    if (f.y < cy - 1.7f || f.y > cy + 0.2f) continue;
+                    float fc = (f.l + f.r) * 0.5f;
+                    float best = float.MaxValue, nxC = float.NaN;
+                    foreach (var t in solids)
+                    {
+                        if (t.y <= f.y + 0.05f) continue;
+                        if (t.y - f.y < best) { best = t.y - f.y; nxC = (t.l + t.r) * 0.5f; }
+                    }
+                    if (float.IsNaN(nxC)) continue;
+                    if (cx > Mathf.Min(fc, nxC) - 0.3f && cx < Mathf.Max(fc, nxC) + 0.3f) return true;
+                }
+                return false;
+            }
+
             foreach (int i in surface.Take(Count(r.thornyRings)))
             {
-                for (int dd = 0; dd <= 3; dd++)
+                for (int dd = 0; dd <= 4; dd++)
                 {
                     int j = PickNear(i, dd, n);
-                    if (j < 0) continue;
-                    float cx = C(P[j]), cy = P[j].y + 1.05f;
+                    if (j < 1) continue;
+                    int nx = Mathf.Min(j + 1, n - 1);
+                    bool goesRight = C(P[nx]) >= C(P[j]);
+                    // 가는 쪽 반대편 가장자리
+                    float cx = goesRight ? P[j].x - 0.1f : P[j].Right + 0.1f;
+                    float cy = P[j].y + 1.05f;
+                    if (cx < 0.5f || cx > MapWidthU - 0.5f) continue;
+                    if (InTravelCorridor(cx, cy)) continue;
+
                     if (!Claim(new Rect(cx - 0.42f, cy - 0.42f, 0.84f, 0.84f))) continue;
                     rings.Add(new StageData.Ring { x = cx, y = cy, radius = 0.42f, thorny = true });
                     break;
@@ -554,12 +585,48 @@ namespace UpTogether.EditorTools
                     bad.Add($"가시({sp.x:F2},{sp.y:F2}) — 설 자리 {safe:F2}u 뿐이라 무조건 찔린다");
             }
 
+            // 가시 링이 '발판 → 다음 발판' 통로 안에 있으면 뛸 때마다 스친다.
+            // 점프가 1.3u 쯤 뜨므로 그 높이 구간을 본다.
             foreach (var g in s.rings)
             {
                 if (!g.thorny) continue;
-                var h = Host(g.x, g.y - 1.05f);
-                if (h != null && g.y - g.radius < h.Value.y + Head)
-                    bad.Add($"가시 링({g.x:F2},{g.y:F2}) — 발판에 올라서는 것만으로 테두리에 닿는다");
+                foreach (var f in surf)
+                {
+                    if (f.y < g.y - 1.7f || f.y > g.y + 0.2f) continue;
+                    float fc = (f.l + f.r) * 0.5f;
+                    // 이 발판에서 올라갈 다음 면
+                    float best = float.MaxValue, nxC = float.NaN;
+                    foreach (var t in surf)
+                    {
+                        if (t.y <= f.y + 0.05f) continue;
+                        if (t.y - f.y < best) { best = t.y - f.y; nxC = (t.l + t.r) * 0.5f; }
+                    }
+                    if (float.IsNaN(nxC)) continue;
+                    float lo = Mathf.Min(fc, nxC) - 0.3f, hi = Mathf.Max(fc, nxC) + 0.3f;
+                    if (g.x > lo && g.x < hi)
+                    { bad.Add($"가시 링({g.x:F2},{g.y:F2}) — 가는 길 통로 안이라 뛰면 스친다"); break; }
+                }
+            }
+
+            // 가시가 다음 발판으로 건너갈 쪽 끝을 막으면 도약을 못 한다
+            foreach (var sp in s.spikes)
+            {
+                if (sp.down) continue;
+                var h = Host(sp.x + sp.width * 0.5f, sp.y);
+                if (h == null) continue;
+                // 더 높은 이웃 발판이 어느 쪽인지
+                float best = float.MaxValue; float nxC = float.NaN;
+                foreach (var f in surf)
+                {
+                    if (f.y <= h.Value.y + 0.05f) continue;
+                    float d = f.y - h.Value.y;
+                    if (d < best) { best = d; nxC = (f.l + f.r) * 0.5f; }
+                }
+                if (float.IsNaN(nxC)) continue;
+                bool goesRight = nxC >= (h.Value.l + h.Value.r) * 0.5f;
+                float exitGap = goesRight ? h.Value.r - (sp.x + sp.width) : sp.x - h.Value.l;
+                if (exitGap < Body)
+                    bad.Add($"가시({sp.x:F2},{sp.y:F2}) — 건너갈 쪽 끝을 막아 도약할 자리가 {exitGap:F2}u 뿐이다");
             }
 
             foreach (var b in s.bars)
