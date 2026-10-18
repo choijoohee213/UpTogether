@@ -16,10 +16,8 @@ namespace UpTogether.Tests
         [UnitySetUp]
         public IEnumerator Load()
         {
-            DogPerks.Clear();
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
-            TestUi.SilencePerkCard();
             TestUi.DisableZoneFall();     // 띄우고 떨어뜨리는 시험이라 구간 되돌림을 끈다
             stage = Object.FindFirstObjectByType<StageRunner>();
             player = Object.FindFirstObjectByType<PlayerController>();
@@ -28,7 +26,7 @@ namespace UpTogether.Tests
         }
 
         [TearDown]
-        public void Restore() { Time.timeScale = 1f; DogPerks.Clear(); }
+        public void Restore() => Time.timeScale = 1f;
 
         [Test]
         public void 세_종류가_모두_배치됐다()

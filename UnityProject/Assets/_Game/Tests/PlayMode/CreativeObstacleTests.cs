@@ -18,7 +18,6 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
-            TestUi.SilencePerkCard();
             stage = Object.FindFirstObjectByType<StageRunner>();
             body = Object.FindFirstObjectByType<PlayerController>().Body;
             bond = Object.FindFirstObjectByType<Bond>();

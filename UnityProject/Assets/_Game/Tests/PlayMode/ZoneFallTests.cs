@@ -18,10 +18,8 @@ namespace UpTogether.Tests
         [UnitySetUp]
         public IEnumerator Load()
         {
-            DogPerks.Clear();
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
-            TestUi.SilencePerkCard();
             zones = Object.FindFirstObjectByType<Zones>();
             player = Object.FindFirstObjectByType<PlayerController>();
             dog = Object.FindFirstObjectByType<DogController>();
@@ -31,7 +29,7 @@ namespace UpTogether.Tests
         }
 
         [TearDown]
-        public void Restore() { Time.timeScale = 1f; DogPerks.Clear(); }
+        public void Restore() => Time.timeScale = 1f;
 
         [Test]
         public void 배선이_직렬화됐다()

@@ -25,7 +25,6 @@ namespace UpTogether.Tests
         {
             yield return SceneManager.LoadSceneAsync("Playground", LoadSceneMode.Single);
             yield return null;
-            TestUi.SilencePerkCard();
             TestUi.DisableZoneFall();
 
             player = Object.FindFirstObjectByType<PlayerController>();
