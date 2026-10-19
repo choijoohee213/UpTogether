@@ -11,7 +11,10 @@ namespace UpTogether
         public Zones zones;
         public RectTransform rail;      // 길 (가로 선)
         public RectTransform walker;    // 지금 위치 표시
+        public Image walkerImage;       // 거기 그려지는 그림
+        /// 실제 강아지의 스프라이트를 그대로 가져다 쓴다 — 고른 견종이 그대로 나온다
         public Image[] dots;            // 체크포인트 (왼쪽부터)
+        public SpriteRenderer dogSource;
         public Sprite dotPassed, dotAhead;
 
         [Tooltip("표시가 길 끝에 딱 붙지 않게 두는 여백(px)")]
@@ -40,15 +43,14 @@ namespace UpTogether
                 dots[i].color = passed ? Color.white : new Color(1f, 1f, 1f, 0.45f);
             }
 
-            // 지금 위치 — 톡톡 튀지 않게 부드럽게 따라간다
+            // 지금 위치 — 부드럽게 따라간다 (위아래로 까딱이지는 않는다)
             shown = Mathf.Lerp(shown, zones.Progress01, 1f - Mathf.Exp(-8f * Time.unscaledDeltaTime));
             if (walker != null)
-            {
                 walker.anchoredPosition = new Vector2(inset + w * shown, 0f);
-                // 걸어가는 느낌으로 살짝 까딱
-                float bob = Mathf.Sin(Time.unscaledTime * 6f) * 2.5f;
-                walker.anchoredPosition += new Vector2(0f, bob);
-            }
+
+            // 실제 강아지 그림을 그대로 비춘다 (견종도, 걷는 동작도 따라온다)
+            if (walkerImage != null && dogSource != null && dogSource.sprite != null)
+                walkerImage.sprite = dogSource.sprite;
         }
     }
 }

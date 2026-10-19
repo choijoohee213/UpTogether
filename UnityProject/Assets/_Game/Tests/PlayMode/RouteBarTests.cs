@@ -38,6 +38,8 @@ namespace UpTogether.Tests
             Assert.IsNotNull(bar.rail, "길이 비었다");
             Assert.IsNotNull(bar.walker, "현위치 표시가 비었다");
             Assert.Greater(bar.dots.Length, 0, "체크포인트 점이 없다");
+            Assert.IsNotNull(bar.walkerImage, "현위치 그림이 비었다");
+            Assert.IsNotNull(bar.dogSource, "강아지 그림 출처가 비었다");
         }
 
         [UnityTest]
@@ -92,6 +94,22 @@ namespace UpTogether.Tests
             // 지나온 것은 또렷하게, 남은 것은 흐리게
             Assert.Greater(bar.dots[0].color.a, bar.dots[zones.ZoneCount - 1].color.a,
                            "지나온 체크포인트와 남은 것이 같아 보인다");
+        }
+
+        [UnityTest]
+        public IEnumerator 현위치는_강아지_그림이고_까딱이지_않는다()
+        {
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(bar.walkerImage.sprite, "현위치에 그림이 없다");
+            Assert.AreSame(bar.dogSource.sprite, bar.walkerImage.sprite,
+                           "실제 강아지와 다른 그림이다");
+
+            // 제자리에서는 y 가 흔들리지 않는다
+            float y0 = bar.walker.anchoredPosition.y;
+            float t = 0f;
+            while (t < 0.5f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(y0, bar.walker.anchoredPosition.y, 0.01f, "위아래로 까딱인다");
         }
     }
 }

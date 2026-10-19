@@ -209,7 +209,7 @@ namespace UpTogether.EditorTools
             if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
 
             // 화면 위쪽 '길' — 시작·체크포인트·현위치·도착점
-            if (hud != null) BuildRouteBar(hud.gameObject, lib, zones);
+            if (hud != null) BuildRouteBar(hud.gameObject, lib, zones, dogVisual);
 
             // 개발용 스테이지 선택 — StageFlow 가 다 차려진 뒤에 만든다
             if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow);
@@ -606,7 +606,7 @@ namespace UpTogether.EditorTools
 
         /// 화면 맨 위의 '길'. 세로로 오르는 게임이라 높이 감이 안 오니
         /// 한 줄로 펴서 시작·체크포인트·지금 위치·강아지집을 보여준다.
-        static void BuildRouteBar(GameObject canvasGo, SpriteLib lib, Zones zones)
+        static void BuildRouteBar(GameObject canvasGo, SpriteLib lib, Zones zones, DogVisual dogVisual)
         {
             var root = new GameObject("RouteBar", typeof(RectTransform));
             root.transform.SetParent(canvasGo.transform, false);
@@ -657,14 +657,16 @@ namespace UpTogether.EditorTools
             if (lib != null && lib.heartIcon != null && lib.heartIcon.Length >= 3)
             { bar.dotPassed = lib.heartIcon[0]; bar.dotAhead = lib.heartIcon[2]; }
 
-            // 지금 위치 — 통통 튀는 하트
-            var walker = MakeImage(root.transform, "Walker", new Color(0.97f, 0.45f, 0.56f),
+            // 지금 위치 — 강아지가 길을 걸어간다 (고른 견종이 그대로)
+            var walker = MakeImage(root.transform, "Walker", Color.white,
                       new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                      new Vector2(-15f, 2f), new Vector2(15f, 32f));
-            if (lib != null && lib.emoteHeart != null)
-            { walker.sprite = lib.emoteHeart; walker.color = Color.white; walker.type = Image.Type.Simple; }
+                      new Vector2(-24f, -6f), new Vector2(24f, 42f));
+            walker.type = Image.Type.Simple;
+            walker.preserveAspect = true;
             walker.raycastTarget = false;
             bar.walker = (RectTransform)walker.transform;
+            bar.walkerImage = walker;
+            if (dogVisual != null) bar.dogSource = dogVisual.target;
         }
 
         /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.
