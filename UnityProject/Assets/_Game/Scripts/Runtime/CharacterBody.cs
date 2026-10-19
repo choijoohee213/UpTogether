@@ -46,7 +46,10 @@ namespace UpTogether
         public void Step(float dt, int moveDir, float speed)
         {
             float target = moveDir * speed;
-            vx += (target - vx) * Px.Smoothing(tuning.walkAccel, dt);
+            // 얼음 위에서는 가속도 감속도 더디다 — 멈추려면 미리 손을 떼야 한다.
+            // (접지 정보는 이번 스텝 아래쪽에서 갱신되므로 지난 스텝 값을 쓴다)
+            bool onIce = grounded && groundIndex >= 0 && stage.GetPlatform(groundIndex).icy;
+            vx += (target - vx) * Px.Smoothing(onIce ? tuning.icyAccel : tuning.walkAccel, dt);
             if (moveDir != 0) face = moveDir;
 
             X += vx * dt;

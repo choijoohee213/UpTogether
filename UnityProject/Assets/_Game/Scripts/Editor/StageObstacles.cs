@@ -31,6 +31,7 @@ namespace UpTogether.EditorTools
             public float updrafts;      // 상승 기류 — 발판 없이 오르는 길
             public float bars;          // 매달려 건너는 가지
             public float rollers;       // 구르는 통나무
+            public float icy;           // 얼음 발판 비율 (눈 언덕의 성격)
             public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
 
@@ -51,7 +52,7 @@ namespace UpTogether.EditorTools
             new Recipe { path = "Assets/_Game/Stages/Stage4.asset",
                 vanishers = 0.15f, verticalMovers = 0.12f, spikes = 0.22f, hangingSpikes = 0.11f, vines = 0.15f,
                 plainRings = 0.08f, thornyRings = 0.09f, saws = 0.11f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, icy = 0.55f, bouncers = 2 },
             new Recipe { path = "Assets/_Game/Stages/Stage5.asset",
                 vanishers = 0.16f, verticalMovers = 0.13f, spikes = 0.24f, hangingSpikes = 0.12f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.10f, saws = 0.12f, winds = 0.12f, treats = 0.22f,
@@ -452,6 +453,22 @@ namespace UpTogether.EditorTools
             for (int k = 0; k < r.bouncers; k++)
                 bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.4f, y = P[0].y + 0.55f, width = 0.7f });
 
+            // ── 얼음 발판 (눈 언덕의 성격) ──
+            // 장애물이 아니라 '땅의 성질' 이라 자리 점유와 무관하다. 고르게 섞는다.
+            // 바닥(0번)은 제외 — 시작부터 미끄러지면 조작을 배울 데가 없다.
+            int icyWanted = Mathf.RoundToInt(r.icy * keep.Count);
+            if (icyWanted > 0)
+            {
+                var arr = keep.ToArray();
+                for (int k = 0; k < icyWanted; k++)
+                {
+                    int idx = Mathf.RoundToInt((arr.Length - 1) * (k + 0.5f) / icyWanted);
+                    if (idx <= 0 || arr[idx].icy) continue;
+                    arr[idx].icy = true;
+                }
+                keep = new List<StageData.Platform>(arr);
+            }
+
             s.platforms = keep.ToArray();
             s.movers = movers.ToArray();
             s.vanishers = vanishers.ToArray();
@@ -474,7 +491,8 @@ namespace UpTogether.EditorTools
             Debug.Log($"{s.displayName} 장애물: 발판 {keep.Count} / 사라짐 {vanishers.Count} / 이동 {movers.Count} / " +
                       $"가시 {spikes.Count} / 링 {rings.Count} / 톱니 {saws.Count} / 바람 {winds.Count} / " +
                       $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count} / " +
-                      $"기류 {updrafts.Count} / 가지 {bars.Count} / 통나무 {rollers.Count}");
+                      $"기류 {updrafts.Count} / 가지 {bars.Count} / 통나무 {rollers.Count} / " +
+                      $"얼음 {keep.FindAll(p => p.icy).Count}");
         }
 
 

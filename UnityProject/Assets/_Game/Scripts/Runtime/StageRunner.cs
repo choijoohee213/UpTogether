@@ -17,6 +17,7 @@ namespace UpTogether
             public float deltaY;   // 위아래로 움직인 양.
             public Kind kind;
             public bool active;    // 사라지는 발판이 사라진 동안 false
+            public bool icy;       // 얼음 — 마찰이 거의 없다
         }
 
         public StageData Data { get; private set; }
@@ -98,7 +99,8 @@ namespace UpTogether
 
             int at = 0;
             foreach (var p in data.platforms)
-                platforms[at++] = new RuntimePlatform { left = p.x, right = p.x + p.width, y = p.y, kind = Kind.Normal, active = true };
+                platforms[at++] = new RuntimePlatform { left = p.x, right = p.x + p.width, y = p.y,
+                                                        kind = Kind.Normal, active = true, icy = p.icy };
 
             moverStart = at;
             foreach (var m in movers)
@@ -151,6 +153,13 @@ namespace UpTogether
             }
         }
 
+        /// 발판의 얼음 여부를 런타임에 바꾼다 (시험·연출용).
+        public void SetIcy(int platformIndex, bool value)
+        {
+            if (platforms == null || platformIndex < 0 || platformIndex >= platforms.Length) return;
+            platforms[platformIndex].icy = value;
+        }
+
         public void NotifyStand(int platformIndex)
         {
             int v = platformIndex - vanishStart;
@@ -201,6 +210,21 @@ namespace UpTogether
                 }
 
                 BuildLedge(go.transform, width, floating: !isGround);
+
+                if (p.icy)
+                {
+                    // 얼음은 한눈에 알아야 한다 — 발판 전체를 푸르게 물들이고 윗면에 광택
+                    foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>())
+                        if (sr.sortingOrder <= -10) sr.color = new Color(0.72f, 0.88f, 1f);
+                    var shine = new GameObject("ice");
+                    shine.transform.SetParent(go.transform, false);
+                    shine.transform.localPosition = new Vector3(0f, Px.U(3f), 0f);
+                    shine.transform.localScale = new Vector3(width * 0.9f, Px.U(3f), 1f);
+                    var ir = shine.AddComponent<SpriteRenderer>();
+                    ir.sprite = ProceduralArt.Square;
+                    ir.color = new Color(0.9f, 0.97f, 1f, 0.85f);
+                    ir.sortingOrder = -9;
+                }
 
                 if (isVanish)
                 {

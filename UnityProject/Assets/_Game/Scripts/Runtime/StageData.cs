@@ -15,6 +15,8 @@ namespace UpTogether
             public float x;      // 왼쪽 끝
             public float y;
             public float width;
+            /// 얼음 — 미끄러워서 멈추기도, 출발하기도 어렵다 (눈 언덕)
+            public bool icy;
             public float Right => x + width;
         }
 
