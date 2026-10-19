@@ -30,6 +30,26 @@ namespace UpTogether
         /// 지금까지 도달한 가장 높은 구간 (0부터)
         public int Zone { get; private set; }
 
+        /// 체크포인트 개수 (= 구간 수)
+        public int ZoneCount => zoneY != null ? zoneY.Length : 0;
+
+        /// i 번째 체크포인트가 스테이지 높이의 어디쯤인가 (0~1)
+        public float ZoneAt(int i)
+        {
+            if (zoneY == null || i < 0 || i >= zoneY.Length || stage == null || stage.Data == null) return 0f;
+            return Height01(zoneY[i]);
+        }
+
+        /// 지금 어디쯤 와 있나 (0~1)
+        public float Progress01 => player != null ? Height01(player.Body.Y) : 0f;
+
+        float Height01(float y)
+        {
+            var d = stage.Data;
+            float span = d.height - d.groundY;
+            return span > 0.01f ? Mathf.Clamp01((y - d.groundY) / span) : 0f;
+        }
+
         StageData built;        // 어느 스테이지로 구간을 짰는지
         float[] zoneY;          // 구간 시작 발판의 y
         float[] zoneX;          // 그 발판의 가운데 x

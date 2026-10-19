@@ -208,6 +208,9 @@ namespace UpTogether.EditorTools
             };
             if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
 
+            // 화면 위쪽 '길' — 시작·체크포인트·현위치·도착점
+            if (hud != null) BuildRouteBar(hud.gameObject, lib, zones);
+
             // 개발용 스테이지 선택 — StageFlow 가 다 차려진 뒤에 만든다
             if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow);
 
@@ -599,6 +602,69 @@ namespace UpTogether.EditorTools
                             -130f, pause, PauseTap.Kind.Home);
 
             panel.SetActive(false);
+        }
+
+        /// 화면 맨 위의 '길'. 세로로 오르는 게임이라 높이 감이 안 오니
+        /// 한 줄로 펴서 시작·체크포인트·지금 위치·강아지집을 보여준다.
+        static void BuildRouteBar(GameObject canvasGo, SpriteLib lib, Zones zones)
+        {
+            var root = new GameObject("RouteBar", typeof(RectTransform));
+            root.transform.SetParent(canvasGo.transform, false);
+            var rt = (RectTransform)root.transform;
+            rt.anchorMin = new Vector2(0.5f, 1f); rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.sizeDelta = new Vector2(860f, 90f);
+            rt.anchoredPosition = new Vector2(0f, -180f);   // 친밀도 게이지 아래
+
+            var bar = root.AddComponent<RouteBar>();
+            bar.zones = zones;
+
+            // 길 — 가로로 깔린 흙길
+            var rail = MakeImage(root.transform, "Rail", new Color(0.80f, 0.63f, 0.44f, 0.9f),
+                      new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+                      new Vector2(0f, -7f), new Vector2(0f, 7f));
+            rail.raycastTarget = false;
+            bar.rail = (RectTransform)rail.transform;
+
+            // 시작점 — 작은 발자국 대신 동그라미
+            var startDot = MakeImage(root.transform, "Start", new Color(0.55f, 0.75f, 0.45f),
+                      new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                      new Vector2(10f, -13f), new Vector2(36f, 13f));
+            startDot.raycastTarget = false;
+
+            // 도착점 — 강아지집
+            var goal = MakeImage(root.transform, "Goal", Color.white,
+                      new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                      new Vector2(-54f, -30f), new Vector2(-2f, 34f));
+            if (lib != null && lib.doghouse != null && lib.doghouse.Length > 0)
+            { goal.sprite = lib.doghouse[0]; goal.type = Image.Type.Simple; }
+            else goal.color = new Color(0.90f, 0.55f, 0.45f);
+            goal.raycastTarget = false;
+
+            // 체크포인트 하트 (최대 12개까지 미리 만들어 두고 필요한 만큼 켠다)
+            var dots = new Image[12];
+            for (int i = 0; i < dots.Length; i++)
+            {
+                var d = MakeImage(root.transform, $"Dot{i}", Color.white,
+                          new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                          new Vector2(-11f, -11f), new Vector2(11f, 11f));
+                if (lib != null && lib.heartIcon != null && lib.heartIcon.Length > 0)
+                { d.sprite = lib.heartIcon[0]; d.type = Image.Type.Simple; }
+                d.raycastTarget = false;
+                d.gameObject.SetActive(false);
+                dots[i] = d;
+            }
+            bar.dots = dots;
+            if (lib != null && lib.heartIcon != null && lib.heartIcon.Length >= 3)
+            { bar.dotPassed = lib.heartIcon[0]; bar.dotAhead = lib.heartIcon[2]; }
+
+            // 지금 위치 — 통통 튀는 하트
+            var walker = MakeImage(root.transform, "Walker", new Color(0.97f, 0.45f, 0.56f),
+                      new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                      new Vector2(-15f, 2f), new Vector2(15f, 32f));
+            if (lib != null && lib.emoteHeart != null)
+            { walker.sprite = lib.emoteHeart; walker.color = Color.white; walker.type = Image.Type.Simple; }
+            walker.raycastTarget = false;
+            bar.walker = (RectTransform)walker.transform;
         }
 
         /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.
