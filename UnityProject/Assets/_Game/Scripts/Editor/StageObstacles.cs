@@ -450,7 +450,7 @@ namespace UpTogether.EditorTools
 
             // ── 튕김판: 바닥 근처 '장난감' (주 경로 밖) ──
             for (int k = 0; k < r.bouncers; k++)
-                bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.4f, y = P[0].y + 0.55f, width = 0.85f });
+                bouncers.Add(new StageData.Bouncer { x = 6.4f - k * 1.4f, y = P[0].y + 0.55f, width = 0.7f });
 
             s.platforms = keep.ToArray();
             s.movers = movers.ToArray();

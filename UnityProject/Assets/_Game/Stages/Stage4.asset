@@ -238,10 +238,10 @@ MonoBehaviour:
   bouncers:
   - x: 6.4
     y: 0.95000005
-    width: 0.85
+    width: 0.7
   - x: 5
     y: 0.95000005
-    width: 0.85
+    width: 0.7
   vanishers:
   - x: 6.0311112
     y: 8.937074
