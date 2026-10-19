@@ -32,7 +32,7 @@ namespace UpTogether.EditorTools
             public float bars;          // 매달려 건너는 가지
             public float rollers;       // 구르는 통나무
             public float rocks;         // 떨어지는 돌 (돌 언덕의 성격)
-            public float icy;           // 얼음 발판 비율 (눈 언덕의 성격)
+            public float icy;           // 얼음 발판 비율 (눈 언덕은 거의 전부)
             public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
 
@@ -53,11 +53,11 @@ namespace UpTogether.EditorTools
             new Recipe { path = "Assets/_Game/Stages/Stage4.asset",
                 vanishers = 0.15f, verticalMovers = 0.12f, spikes = 0.22f, hangingSpikes = 0.11f, vines = 0.15f,
                 plainRings = 0.08f, thornyRings = 0.09f, saws = 0.11f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, icy = 0.55f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, icy = 0.92f, bouncers = 2 },
             new Recipe { path = "Assets/_Game/Stages/Stage5.asset",
                 vanishers = 0.16f, verticalMovers = 0.13f, spikes = 0.24f, hangingSpikes = 0.12f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.10f, saws = 0.12f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, rocks = 0.16f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, rocks = 0.40f, bouncers = 2 },
         };
 
         /// 맵 폭 (StageGenerator.MapWidth 900px → units)
@@ -114,6 +114,10 @@ namespace UpTogether.EditorTools
             // 가지가 전부 '변형 발판 위'로 떨어져 하나도 안 놓였다.
             var surface = new Slots(n, 0.5f);
             var extras = new Slots(n, 0.15f);
+            // 간식은 작고 발판 위에 앉기만 한다. 겹침은 어차피 자리 점유가 막으므로
+            // 칸까지 다투게 하면 다른 장애물이 늘 때마다 보상이 사라진다
+            // (돌을 늘렸더니 돌 언덕 간식이 9개 → 2개가 됐다).
+            var treatSlots = new Slots(n, 0.8f);
 
             // ★ 자리 점유 ★ 칸(슬롯)이 달라도 실제 공간은 겹칠 수 있다.
             // 가지는 발판 위 1.15u 인데 링은 0.55u 에 반지름 0.5 라 서로 파고들고,
@@ -460,7 +464,7 @@ namespace UpTogether.EditorTools
             }
 
             // ── 간식: 착지면 위에. 가시가 난 발판이면 가시를 피해 끝쪽에 둔다 ──
-            foreach (int i in extras.Take(Count(r.treats)))
+            foreach (int i in treatSlots.Take(Count(r.treats)))
             {
                 float ty = P[i].y + 0.32f;
                 // 가운데가 기본, 가시가 났으면 끝쪽, 그래도 막히면 반대쪽 끝
