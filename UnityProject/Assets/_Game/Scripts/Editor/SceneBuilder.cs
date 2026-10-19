@@ -122,6 +122,8 @@ namespace UpTogether.EditorTools
 
             // 장애물 — 가시·바람·톱니·가시 링 (발판 계열은 StageRunner가 처리)
             var body = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
+            runner.player = body;   // 떨어지는 돌이 플레이어 위치를 본다
+
             var hazards = sysGo.AddComponent<Hazards>();
             hazards.player = body;
             hazards.stage = runner;
@@ -205,6 +207,9 @@ namespace UpTogether.EditorTools
                     mid = S($"{V}/bg_night/bg2_mid.png"), tiles = stoneTiles, bgColor = new Color(0.169f, 0.157f, 0.208f) },
             };
             if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
+
+            // 개발용 스테이지 선택 — StageFlow 가 다 차려진 뒤에 만든다
+            if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow);
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -594,6 +599,58 @@ namespace UpTogether.EditorTools
                             -130f, pause, PauseTap.Kind.Home);
 
             panel.SetActive(false);
+        }
+
+        /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.
+        /// 테스트할 때 앞 스테이지를 다 깨고 올라갈 수는 없다.
+        static void BuildDevPanel(GameObject canvasGo, Font font, StageFlow flow)
+        {
+            var pause = canvasGo.GetComponent<Pause>();
+            if (pause == null || pause.panel == null || flow == null) return;
+
+            var dev = canvasGo.AddComponent<DevPanel>();
+            dev.flow = flow; dev.pause = pause;
+
+            var row = new GameObject("DevRow", typeof(RectTransform));
+            row.transform.SetParent(pause.panel.transform, false);
+            var rt = (RectTransform)row.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(700f, 150f);
+            rt.anchoredPosition = new Vector2(0f, -300f);
+            dev.row = row;
+
+            var label = MakeText(row.transform, "Label", font, 26, TextAnchor.UpperCenter,
+                                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                                 new Vector2(-300f, -34f), new Vector2(300f, 0f));
+            label.text = "스테이지 선택 (개발용)";
+            label.color = new Color(0.55f, 0.58f, 0.64f);
+            label.raycastTarget = false;
+
+            var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            int n = flow.stages != null ? flow.stages.Length : 0;
+            float w = 110f, gap = 12f;
+            float total = n * w + (n - 1) * gap;
+            for (int i = 0; i < n; i++)
+            {
+                var go = new GameObject($"Stage{i + 1}", typeof(RectTransform), typeof(Image), typeof(DevTap));
+                go.transform.SetParent(row.transform, false);
+                var brt = (RectTransform)go.transform;
+                brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f);
+                brt.sizeDelta = new Vector2(w, 84f);
+                brt.anchoredPosition = new Vector2(-total * 0.5f + w * 0.5f + i * (w + gap), -20f);
+                var img = go.GetComponent<Image>();
+                img.sprite = box; img.type = Image.Type.Sliced;
+                img.color = new Color(0.90f, 0.92f, 0.95f);
+
+                var t = MakeText(go.transform, "T", font, 34, TextAnchor.MiddleCenter,
+                                 Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
+                t.text = (i + 1).ToString();
+                t.color = new Color(0.3f, 0.34f, 0.4f);
+                t.raycastTarget = false;
+
+                var tap = go.GetComponent<DevTap>();
+                tap.panel = dev; tap.stageIndex = i;
+            }
         }
 
         static void PauseBar(Transform parent, float x)

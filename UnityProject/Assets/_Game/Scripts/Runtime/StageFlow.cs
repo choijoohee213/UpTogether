@@ -40,6 +40,17 @@ namespace UpTogether
             LoadStage(index);
         }
 
+        /// 특정 스테이지로 바로 간다 (개발용 스테이지 선택).
+        public void Go(int i)
+        {
+            if (stages == null || stages.Length == 0) return;
+            index = Mathf.Clamp(i, 0, stages.Length - 1);
+            LoadStage(index);
+        }
+
+        /// 지금 몇 번째인가 (0부터)
+        public int Index => index;
+
         void LoadStage(int i)
         {
             var st = stages[i];

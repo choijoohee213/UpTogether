@@ -307,4 +307,5 @@ MonoBehaviour:
     range: 0.16786122
     speed: 1.1
     phase: 12.599999
+  rocks: []
   goal: {x: 1.5651715, y: 28.230412}

@@ -31,6 +31,7 @@ namespace UpTogether.EditorTools
             public float updrafts;      // 상승 기류 — 발판 없이 오르는 길
             public float bars;          // 매달려 건너는 가지
             public float rollers;       // 구르는 통나무
+            public float rocks;         // 떨어지는 돌 (돌 언덕의 성격)
             public float icy;           // 얼음 발판 비율 (눈 언덕의 성격)
             public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
@@ -56,7 +57,7 @@ namespace UpTogether.EditorTools
             new Recipe { path = "Assets/_Game/Stages/Stage5.asset",
                 vanishers = 0.16f, verticalMovers = 0.13f, spikes = 0.24f, hangingSpikes = 0.12f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.10f, saws = 0.12f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, rocks = 0.16f, bouncers = 2 },
         };
 
         /// 맵 폭 (StageGenerator.MapWidth 900px → units)
@@ -103,6 +104,7 @@ namespace UpTogether.EditorTools
             var updrafts = new List<StageData.Updraft>();
             var bars = new List<StageData.Bar>();
             var rollers = new List<StageData.Roller>();
+            var rocks = new List<StageData.Rock>();
 
             // 경로를 따라 고르게 흩되, 한 발판이 두 역할을 맡지 않게 한 번 쓰면 뺀다.
             // 풀이 둘이다 — 발판 표면을 차지하는 것(가시·링·발판 변형)과
@@ -285,6 +287,29 @@ namespace UpTogether.EditorTools
                     updrafts.Add(new StageData.Updraft {
                         x = cx - DraftW * 0.5f, y = y0, width = DraftW, height = h, lift = Px.V(4.2f) });
                     placed = true; break;
+                }
+            }
+
+            // ── 떨어지는 돌: 발판 아랫면에 매달아 둔다 ──
+            // 밑을 지나면 흔들리다 떨어진다. 떨어질 공간이 있어야 보이고,
+            // 매달릴 천장(발판)도 있어야 한다.
+            foreach (int i in extras.Take(Count(r.rocks)))
+            {
+                for (int dd = 0; dd <= 5; dd++)
+                {
+                    int j = PickNear(i, dd, n);
+                    if (j < 1 || !Static(j)) continue;
+                    float cx = C(P[j]), cy = P[j].y - 0.18f;   // 발판 아랫면
+
+                    // 아래가 바로 막혀 있으면 떨어지는 게 안 보인다
+                    bool blocked = false;
+                    foreach (var f in solids)
+                        if (cx > f.l && cx < f.r && f.y < cy && f.y > cy - 1.0f) { blocked = true; break; }
+                    if (blocked) continue;
+
+                    if (!Claim(new Rect(cx - 0.22f, cy - 0.3f, 0.44f, 0.4f))) continue;
+                    rocks.Add(new StageData.Rock { x = cx, y = cy });
+                    break;
                 }
             }
 
@@ -482,6 +507,7 @@ namespace UpTogether.EditorTools
             s.updrafts = updrafts.ToArray();
             s.bars = bars.ToArray();
             s.rollers = rollers.ToArray();
+            s.rocks = rocks.ToArray();
 
             if (vines.Count < Count(r.vines) || sawSkipped > 0)
                 Debug.Log($"{s.displayName} 배치 부족 — 밧줄 {vines.Count}/{Count(r.vines)} " +
@@ -492,7 +518,7 @@ namespace UpTogether.EditorTools
                       $"가시 {spikes.Count} / 링 {rings.Count} / 톱니 {saws.Count} / 바람 {winds.Count} / " +
                       $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count} / " +
                       $"기류 {updrafts.Count} / 가지 {bars.Count} / 통나무 {rollers.Count} / " +
-                      $"얼음 {keep.FindAll(p => p.icy).Count}");
+                      $"얼음 {keep.FindAll(p => p.icy).Count} / 돌 {rocks.Count}");
         }
 
 
@@ -677,6 +703,15 @@ namespace UpTogether.EditorTools
                                        h.Value.r - (o.x + o.range + o.radius));
                 if (free < Body)
                     bad.Add($"통나무({o.x:F2},{o.y:F2}) — 피할 폭 {free:F2}u 뿐이다");
+            }
+
+            foreach (var rk in s.rocks)
+            {
+                var ceil = Host(rk.x, rk.y + 0.18f);
+                if (ceil == null) bad.Add($"돌({rk.x:F2},{rk.y:F2}) — 매달릴 천장이 없다");
+                foreach (var f in surf)
+                    if (rk.x > f.l && rk.x < f.r && f.y < rk.y && f.y > rk.y - 1.0f)
+                    { bad.Add($"돌({rk.x:F2},{rk.y:F2}) — 바로 아래가 막혀 떨어질 데가 없다"); break; }
             }
 
             // 발판이 빠진 자리 — 정상 상승폭은 0.68~1.02u 다
