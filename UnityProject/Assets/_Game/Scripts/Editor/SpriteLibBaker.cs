@@ -57,6 +57,7 @@ namespace UpTogether.EditorTools
             lib.gaugeFrame = One($"{U}/gauge_frame.png");
             lib.gaugeFill = One($"{U}/gauge_fill.png");
             lib.heartIcon = Frames($"{U}/heart_icon_3f.png");
+            lib.pawPrint = One($"{U}/paw_print.png");
 
             if (isNew) AssetDatabase.CreateAsset(lib, Path);
             else EditorUtility.SetDirty(lib);

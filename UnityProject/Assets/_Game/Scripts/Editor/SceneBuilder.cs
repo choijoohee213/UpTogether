@@ -647,15 +647,15 @@ namespace UpTogether.EditorTools
                 var d = MakeImage(root.transform, $"Dot{i}", Color.white,
                           new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
                           new Vector2(-11f, -11f), new Vector2(11f, 11f));
-                if (lib != null && lib.heartIcon != null && lib.heartIcon.Length > 0)
-                { d.sprite = lib.heartIcon[0]; d.type = Image.Type.Simple; }
+                if (lib != null && lib.pawPrint != null)
+                { d.sprite = lib.pawPrint; d.type = Image.Type.Simple; }
                 d.raycastTarget = false;
                 d.gameObject.SetActive(false);
                 dots[i] = d;
             }
             bar.dots = dots;
-            if (lib != null && lib.heartIcon != null && lib.heartIcon.Length >= 3)
-            { bar.dotPassed = lib.heartIcon[0]; bar.dotAhead = lib.heartIcon[2]; }
+            // 발자국은 한 장뿐이라 지나온 것과 남은 것은 투명도로 구분한다
+            if (lib != null) { bar.dotPassed = lib.pawPrint; bar.dotAhead = lib.pawPrint; }
 
             // 지금 위치 — 강아지가 길을 걸어간다 (고른 견종이 그대로)
             var walker = MakeImage(root.transform, "Walker", Color.white,
@@ -666,7 +666,7 @@ namespace UpTogether.EditorTools
             walker.raycastTarget = false;
             bar.walker = (RectTransform)walker.transform;
             bar.walkerImage = walker;
-            if (dogVisual != null) bar.dogSource = dogVisual.target;
+            bar.dogVisual = dogVisual;
         }
 
         /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.

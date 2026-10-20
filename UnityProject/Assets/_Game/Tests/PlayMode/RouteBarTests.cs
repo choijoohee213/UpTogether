@@ -39,7 +39,7 @@ namespace UpTogether.Tests
             Assert.IsNotNull(bar.walker, "현위치 표시가 비었다");
             Assert.Greater(bar.dots.Length, 0, "체크포인트 점이 없다");
             Assert.IsNotNull(bar.walkerImage, "현위치 그림이 비었다");
-            Assert.IsNotNull(bar.dogSource, "강아지 그림 출처가 비었다");
+            Assert.IsNotNull(bar.dogVisual, "강아지 그림 출처가 비었다");
         }
 
         [UnityTest]
@@ -102,8 +102,13 @@ namespace UpTogether.Tests
             yield return null;
             yield return null;
             Assert.IsNotNull(bar.walkerImage.sprite, "현위치에 그림이 없다");
-            Assert.AreSame(bar.dogSource.sprite, bar.walkerImage.sprite,
-                           "실제 강아지와 다른 그림이다");
+            // 고른 견종의 걷기 프레임 중 하나여야 한다
+            var clip = bar.dogVisual.spriteSet.Find("walk");
+            Assert.IsNotNull(clip, "걷기 동작이 없다");
+            bool isWalk = false;
+            foreach (var f in clip.frames)
+                if (bar.dogVisual.spriteSet.Frame(f) == bar.walkerImage.sprite) isWalk = true;
+            Assert.IsTrue(isWalk, "걷기 프레임이 아니다");
 
             // 제자리에서는 y 가 흔들리지 않는다
             float y0 = bar.walker.anchoredPosition.y;

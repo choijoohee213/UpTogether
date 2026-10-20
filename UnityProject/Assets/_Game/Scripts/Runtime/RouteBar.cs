@@ -12,9 +12,10 @@ namespace UpTogether
         public RectTransform rail;      // 길 (가로 선)
         public RectTransform walker;    // 지금 위치 표시
         public Image walkerImage;       // 거기 그려지는 그림
-        /// 실제 강아지의 스프라이트를 그대로 가져다 쓴다 — 고른 견종이 그대로 나온다
         public Image[] dots;            // 체크포인트 (왼쪽부터)
-        public SpriteRenderer dogSource;
+        /// 고른 견종의 '걷기' 동작만 돌린다. 실제 강아지를 그대로 비추면
+        /// 점프·낙하·안긴 자세까지 따라와 길 위에서 어수선하다.
+        public DogVisual dogVisual;
         public Sprite dotPassed, dotAhead;
 
         [Tooltip("표시가 길 끝에 딱 붙지 않게 두는 여백(px)")]
@@ -48,9 +49,13 @@ namespace UpTogether
             if (walker != null)
                 walker.anchoredPosition = new Vector2(inset + w * shown, 0f);
 
-            // 실제 강아지 그림을 그대로 비춘다 (견종도, 걷는 동작도 따라온다)
-            if (walkerImage != null && dogSource != null && dogSource.sprite != null)
-                walkerImage.sprite = dogSource.sprite;
+            // 걷기 동작만 돌린다 (견종은 고른 것을 그대로 따라간다)
+            if (walkerImage == null || dogVisual == null || dogVisual.spriteSet == null) return;
+            var clip = dogVisual.spriteSet.Find("walk");
+            if (clip == null || clip.Length == 0) return;
+            int f = Mathf.FloorToInt(Time.unscaledTime / 0.13f) % clip.Length;
+            var sp = dogVisual.spriteSet.Frame(clip.frames[f]);
+            if (sp != null) walkerImage.sprite = sp;
         }
     }
 }

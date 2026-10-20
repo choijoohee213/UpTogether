@@ -98,3 +98,4 @@ MonoBehaviour:
   - {fileID: -494818272, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}
   - {fileID: -2026394841, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}
   - {fileID: 1196578346, guid: cd1df1a367f934baea6a755fdc740cab, type: 3}
+  pawPrint: {fileID: 21300000, guid: 0cf95b852a70e4771b70b570ac61ef47, type: 3}

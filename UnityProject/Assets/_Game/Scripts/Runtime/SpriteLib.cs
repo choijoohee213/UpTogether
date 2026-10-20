@@ -40,5 +40,6 @@ namespace UpTogether
         public Sprite[] btnLeft, btnRight, btnUp, btnPause;  // 각 2
         public Sprite panelWood, gaugeFrame, gaugeFill;
         public Sprite[] heartIcon;       // 3
+        public Sprite pawPrint;          // 진행 표시의 체크포인트
     }
 }
