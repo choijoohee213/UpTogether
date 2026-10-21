@@ -22,7 +22,7 @@ MonoBehaviour:
   mapWidth: 900
   wallMargin: 16
   platformGrabMargin: 6
-  cameraViewHeightPx: 540
+  cameraViewHeightPx: 650
   camFollow: 0.12
   camViewportY: 0.58
   dogSpeed: 4.2

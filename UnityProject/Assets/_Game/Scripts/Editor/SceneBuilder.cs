@@ -612,8 +612,8 @@ namespace UpTogether.EditorTools
             root.transform.SetParent(canvasGo.transform, false);
             var rt = (RectTransform)root.transform;
             rt.anchorMin = new Vector2(0.5f, 1f); rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.sizeDelta = new Vector2(860f, 90f);
-            rt.anchoredPosition = new Vector2(0f, -180f);   // 친밀도 게이지 아래
+            rt.sizeDelta = new Vector2(1000f, 140f);
+            rt.anchoredPosition = new Vector2(0f, -200f);   // 친밀도 게이지 아래
 
             var bar = root.AddComponent<RouteBar>();
             bar.zones = zones;
@@ -621,20 +621,20 @@ namespace UpTogether.EditorTools
             // 길 — 가로로 깔린 흙길
             var rail = MakeImage(root.transform, "Rail", new Color(0.80f, 0.63f, 0.44f, 0.9f),
                       new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
-                      new Vector2(0f, -7f), new Vector2(0f, 7f));
+                      new Vector2(0f, -11f), new Vector2(0f, 11f));
             rail.raycastTarget = false;
             bar.rail = (RectTransform)rail.transform;
 
             // 시작점 — 작은 발자국 대신 동그라미
             var startDot = MakeImage(root.transform, "Start", new Color(0.55f, 0.75f, 0.45f),
                       new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                      new Vector2(10f, -13f), new Vector2(36f, 13f));
+                      new Vector2(12f, -20f), new Vector2(52f, 20f));
             startDot.raycastTarget = false;
 
             // 도착점 — 강아지집
             var goal = MakeImage(root.transform, "Goal", Color.white,
                       new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                      new Vector2(-54f, -30f), new Vector2(-2f, 34f));
+                      new Vector2(-86f, -46f), new Vector2(-4f, 56f));
             if (lib != null && lib.doghouse != null && lib.doghouse.Length > 0)
             { goal.sprite = lib.doghouse[0]; goal.type = Image.Type.Simple; }
             else goal.color = new Color(0.90f, 0.55f, 0.45f);
@@ -646,7 +646,7 @@ namespace UpTogether.EditorTools
             {
                 var d = MakeImage(root.transform, $"Dot{i}", Color.white,
                           new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                          new Vector2(-11f, -11f), new Vector2(11f, 11f));
+                          new Vector2(-17f, -17f), new Vector2(17f, 17f));
                 if (lib != null && lib.pawPrint != null)
                 { d.sprite = lib.pawPrint; d.type = Image.Type.Simple; }
                 d.raycastTarget = false;
@@ -660,7 +660,7 @@ namespace UpTogether.EditorTools
             // 지금 위치 — 강아지가 길을 걸어간다 (고른 견종이 그대로)
             var walker = MakeImage(root.transform, "Walker", Color.white,
                       new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-                      new Vector2(-24f, -6f), new Vector2(24f, 42f));
+                      new Vector2(-38f, -12f), new Vector2(38f, 64f));
             walker.type = Image.Type.Simple;
             walker.preserveAspect = true;
             walker.raycastTarget = false;

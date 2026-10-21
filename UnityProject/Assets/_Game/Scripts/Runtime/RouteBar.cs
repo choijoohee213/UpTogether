@@ -19,7 +19,7 @@ namespace UpTogether
         public Sprite dotPassed, dotAhead;
 
         [Tooltip("표시가 길 끝에 딱 붙지 않게 두는 여백(px)")]
-        public float inset = 18f;
+        public float inset = 28f;
 
         float shown;                    // 부드럽게 따라가는 현재 위치
 
