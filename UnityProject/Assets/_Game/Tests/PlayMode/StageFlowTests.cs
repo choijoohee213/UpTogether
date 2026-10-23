@@ -23,7 +23,10 @@ namespace UpTogether.Tests
             var runner = Object.FindFirstObjectByType<StageRunner>();
             Assert.IsNotNull(flow, "StageFlow 가 없다");
             Assert.GreaterOrEqual(flow.stages.Length, 2, "스테이지가 2개 이상이어야");
-            Assert.AreEqual(3, flow.themes.Length, "테마 3종");
+            // 개수를 못 박지 않는다 — 스테이지를 늘릴 때마다 깨진다.
+            // 지켜야 할 규칙은 '스테이지마다 테마가 하나' 다.
+            Assert.AreEqual(flow.stages.Length, flow.themes.Length,
+                            "스테이지 수와 테마 수가 다르다");
 
             var first = runner.Data;
             flow.Next();

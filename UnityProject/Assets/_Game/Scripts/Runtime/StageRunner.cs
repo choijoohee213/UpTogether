@@ -17,6 +17,7 @@ namespace UpTogether
             public float deltaY;   // 위아래로 움직인 양.
             public Kind kind;
             public bool active;    // 사라지는 발판이 사라진 동안 false
+            public bool icy;       // 얼음 — 마찰이 거의 없다
         }
 
         public StageData Data { get; private set; }
@@ -31,6 +32,8 @@ namespace UpTogether
         public Sprite[] tiles;
         /// 장애물 스프라이트. 비면 절차적 도형으로 떨어진다.
         public SpriteLib lib;
+        /// 떨어지는 돌이 '밑을 지나갔나' 를 보려면 플레이어 위치가 필요하다.
+        public CharacterBody player;
 
         float TileU => (tiles != null && tiles.Length > 0 && tiles[0] != null)
             ? tiles[0].rect.width / tiles[0].pixelsPerUnit : Px.U(16f);
@@ -47,6 +50,34 @@ namespace UpTogether
         float[] vanishTimer;
         const float ShakeTime = 0.45f;
         const float GoneTime = 1.6f;
+
+        // 튕김판 눌림 연출 (0=기본, 1=눌림)
+        Transform[] bounceVisuals;
+        SpriteRenderer[] bounceRenderers;
+        float[] bounceSquashUntil;
+        const float SquashTime = 0.16f;
+
+        // 떨어지는 돌
+        enum RockState : byte { Hang, Shake, Fall, Gone }
+        RockState[] rockState;
+        float[] rockTimer;        // 흔들림/사라짐 남은 시간
+        float[] rockY, rockVy;    // 현재 높이와 낙하 속도
+        Transform[] rockVisuals;
+        SpriteRenderer[] rockRenderers;
+        const float RockShake = 0.45f;   // 떨어지기 전 경고
+        const float RockBack = 2.5f;     // 되살아나기까지
+        const float RockTriggerX = 1.0f; // 이 안으로 들어오면 흔들린다
+        const float RockTriggerY = 3.2f; // 이만큼 아래까지 본다
+        public int RockCount => rockState?.Length ?? 0;
+        public bool RockFalling(int i) => rockState[i] == RockState.Fall;
+        public Vector2 RockPos(int i) => new Vector2(OrEmpty(Data.rocks)[i].x, rockY[i]);
+
+        // 구르는 통나무
+        Vector2[] rollerPos;
+        Transform[] rollerVisuals;
+        public int RollerCount => rollerPos?.Length ?? 0;
+        public Vector2 RollerPos(int i) => rollerPos[i];
+        public float RollerRadius(int i) => Data.rollers[i].radius;
 
         // 돌아가는 톱니
         Vector2[] sawPos;
@@ -85,13 +116,18 @@ namespace UpTogether
 
             int at = 0;
             foreach (var p in data.platforms)
-                platforms[at++] = new RuntimePlatform { left = p.x, right = p.x + p.width, y = p.y, kind = Kind.Normal, active = true };
+                platforms[at++] = new RuntimePlatform { left = p.x, right = p.x + p.width, y = p.y,
+                                                        kind = Kind.Normal, active = true, icy = p.icy };
 
             moverStart = at;
             foreach (var m in movers)
                 platforms[at++] = new RuntimePlatform { left = m.x, right = m.x + m.width, y = m.y, kind = Kind.Normal, active = true };
 
             bouncerStart = at;
+            int bounceCount = OrEmpty(Data.bouncers).Length;
+            bounceVisuals = new Transform[bounceCount];
+            bounceRenderers = new SpriteRenderer[bounceCount];
+            bounceSquashUntil = new float[bounceCount];
             foreach (var b in bouncers)
                 platforms[at++] = new RuntimePlatform { left = b.x, right = b.x + b.width, y = b.y, kind = Kind.Bounce, active = true };
 
@@ -110,6 +146,37 @@ namespace UpTogether
         }
 
         /// 사라지는 발판을 밟았다고 알린다 (CharacterBody가 부른다).
+        /// 튕김판을 밟았다 — 잠깐 눌린 프레임으로 바꾼다
+        public void NotifyBounce(int platformIndex)
+        {
+            int b = platformIndex - bouncerStart;
+            if (bounceSquashUntil == null || b < 0 || b >= bounceSquashUntil.Length) return;
+            bounceSquashUntil[b] = Time.time + SquashTime;
+            var frames = lib != null ? lib.bounceMushroom : null;
+            if (frames != null && frames.Length > 1 && bounceRenderers[b] != null)
+                bounceRenderers[b].sprite = frames[1];
+        }
+
+        void UpdateBouncers()
+        {
+            if (bounceSquashUntil == null) return;
+            var frames = lib != null ? lib.bounceMushroom : null;
+            if (frames == null || frames.Length < 2) return;
+            for (int i = 0; i < bounceSquashUntil.Length; i++)
+            {
+                if (bounceSquashUntil[i] <= 0f || Time.time < bounceSquashUntil[i]) continue;
+                bounceSquashUntil[i] = 0f;
+                if (bounceRenderers[i] != null) bounceRenderers[i].sprite = frames[0];
+            }
+        }
+
+        /// 발판의 얼음 여부를 런타임에 바꾼다 (시험·연출용).
+        public void SetIcy(int platformIndex, bool value)
+        {
+            if (platforms == null || platformIndex < 0 || platformIndex >= platforms.Length) return;
+            platforms[platformIndex].icy = value;
+        }
+
         public void NotifyStand(int platformIndex)
         {
             int v = platformIndex - vanishStart;
@@ -161,6 +228,21 @@ namespace UpTogether
 
                 BuildLedge(go.transform, width, floating: !isGround);
 
+                if (p.icy)
+                {
+                    // 얼음은 한눈에 알아야 한다 — 발판 전체를 푸르게 물들이고 윗면에 광택
+                    foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>())
+                        if (sr.sortingOrder <= -10) sr.color = new Color(0.72f, 0.88f, 1f);
+                    var shine = new GameObject("ice");
+                    shine.transform.SetParent(go.transform, false);
+                    shine.transform.localPosition = new Vector3(0f, Px.U(3f), 0f);
+                    shine.transform.localScale = new Vector3(width * 0.9f, Px.U(3f), 1f);
+                    var ir = shine.AddComponent<SpriteRenderer>();
+                    ir.sprite = ProceduralArt.Square;
+                    ir.color = new Color(0.9f, 0.97f, 1f, 0.85f);
+                    ir.sortingOrder = -9;
+                }
+
                 if (isVanish)
                 {
                     // 윗면에 청록 표시줄 — "이 발판은 밟으면 사라져요"
@@ -182,9 +264,17 @@ namespace UpTogether
                     pad.transform.SetParent(go.transform, false);
                     var pr = pad.AddComponent<SpriteRenderer>();
                     if (lib != null && lib.bounceMushroom != null && lib.bounceMushroom.Length > 0)
+                    {
                         pr.sprite = lib.bounceMushroom[0];   // 버섯 트램폴린 (피벗 하단)
+                        // 원본 크기(0.5u)로 그리면 판정 폭보다도 작아 눈에 안 띈다 — 폭에 맞춘다
+                        float vis = pr.sprite.rect.width / pr.sprite.pixelsPerUnit;
+                        if (vis > 0.01f) pad.transform.localScale = Vector3.one * (width / vis);
+                    }
                     else pr.sprite = ProceduralArt.BouncePad(Mathf.RoundToInt(width * Px.PPU));
                     pr.sortingOrder = -9;
+                    int bi = i - bouncerStart;
+                    if (bi >= 0 && bi < bounceVisuals.Length)
+                    { bounceVisuals[bi] = pad.transform; bounceRenderers[bi] = pr; }
                 }
 
                 if (isGround)
@@ -210,6 +300,203 @@ namespace UpTogether
             BuildSaws();
             BuildRings();
             BuildVines();
+            BuildRocks();
+            BuildUpdrafts();
+            BuildBars();
+            BuildRollers();
+        }
+
+        /// 떨어지는 돌 — 천장에 매달렸다가 밑을 지나면 떨어진다
+        void BuildRocks()
+        {
+            var rocks = OrEmpty(Data.rocks);
+            rockState = new RockState[rocks.Length];
+            rockTimer = new float[rocks.Length];
+            rockY = new float[rocks.Length];
+            rockVy = new float[rocks.Length];
+            rockVisuals = new Transform[rocks.Length];
+            rockRenderers = new SpriteRenderer[rocks.Length];
+
+            for (int i = 0; i < rocks.Length; i++)
+            {
+                rockState[i] = RockState.Hang;
+                rockY[i] = rocks[i].y;
+                var go = new GameObject("Rock");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(rocks[i].x, rocks[i].y, 0f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                var frames = lib != null ? lib.rockFall : null;
+                sr.sprite = frames != null && frames.Length > 0 ? frames[0] : ProceduralArt.Square;
+                if (frames == null || frames.Length == 0)
+                {
+                    sr.color = new Color(0.67f, 0.65f, 0.75f);
+                    go.transform.localScale = Vector3.one * 0.3f;
+                }
+                sr.sortingOrder = -6;
+                rockVisuals[i] = go.transform;
+                rockRenderers[i] = sr;
+            }
+        }
+
+        void UpdateRocks(float dt, float px, float py)
+        {
+            var rocks = OrEmpty(Data.rocks);
+            var frames = lib != null ? lib.rockFall : null;
+            for (int i = 0; i < rocks.Length; i++)
+            {
+                switch (rockState[i])
+                {
+                    case RockState.Hang:
+                        // 밑을 지나면 흔들리기 시작한다
+                        if (Mathf.Abs(px - rocks[i].x) < RockTriggerX &&
+                            py < rocks[i].y && py > rocks[i].y - RockTriggerY)
+                        {
+                            rockState[i] = RockState.Shake;
+                            rockTimer[i] = RockShake;
+                            if (frames != null && frames.Length > 1) rockRenderers[i].sprite = frames[1];
+                        }
+                        break;
+
+                    case RockState.Shake:
+                        rockTimer[i] -= dt;
+                        if (rockVisuals[i] != null)
+                            rockVisuals[i].localPosition = new Vector3(
+                                rocks[i].x + Mathf.Sin(clock * 60f) * Px.U(1.5f), rocks[i].y, 0f);
+                        if (rockTimer[i] <= 0f)
+                        {
+                            rockState[i] = RockState.Fall;
+                            rockVy[i] = 0f;
+                            if (frames != null && frames.Length > 2) rockRenderers[i].sprite = frames[2];
+                        }
+                        break;
+
+                    case RockState.Fall:
+                        rockVy[i] -= Px.A(0.55f) * dt;
+                        rockY[i] += rockVy[i] * dt;
+                        if (rockVisuals[i] != null)
+                            rockVisuals[i].localPosition = new Vector3(rocks[i].x, rockY[i], 0f);
+                        // 바닥이나 아래 발판에 닿으면 부서진다
+                        if (rockY[i] <= Data.groundY || LandedOnSomething(rocks[i].x, rockY[i], rocks[i].y))
+                        {
+                            rockState[i] = RockState.Gone;
+                            rockTimer[i] = RockBack;
+                            if (rockVisuals[i] != null) rockVisuals[i].gameObject.SetActive(false);
+                        }
+                        break;
+
+                    case RockState.Gone:
+                        rockTimer[i] -= dt;
+                        if (rockTimer[i] > 0f) break;
+                        rockState[i] = RockState.Hang;
+                        rockY[i] = rocks[i].y;
+                        if (rockVisuals[i] != null)
+                        {
+                            rockVisuals[i].localPosition = new Vector3(rocks[i].x, rocks[i].y, 0f);
+                            rockVisuals[i].gameObject.SetActive(true);
+                        }
+                        if (frames != null && frames.Length > 0) rockRenderers[i].sprite = frames[0];
+                        break;
+                }
+            }
+        }
+
+        /// 떨어지던 돌이 무언가에 닿았나.
+        /// hangY 는 매달려 있던 높이다 — 자기가 매달린 천장에 '착지' 하지 않도록 뺀다
+        /// (돌이 천장 바로 아래에서 시작해서, 안 빼면 떨어지자마자 사라졌다).
+        bool LandedOnSomething(float x, float y, float hangY)
+        {
+            for (int i = 0; i < platforms.Length; i++)
+            {
+                var p = platforms[i];
+                if (!p.active) continue;
+                if (p.y > hangY - 0.3f) continue;
+                if (x > p.left && x < p.right && y <= p.y && y > p.y - 0.25f) return true;
+            }
+            return false;
+        }
+
+        /// 상승 기류 — 기둥 안을 세로로 채운다
+        void BuildUpdrafts()
+        {
+            foreach (var u in OrEmpty(Data.updrafts))
+            {
+                var go = new GameObject("Updraft");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(u.x + u.width * 0.5f, u.y, 0f);
+                var frames = lib != null ? lib.updraft : null;
+                if (frames != null && frames.Length > 0 && frames[0] != null)
+                {
+                    // 기둥 높이만큼 세로로 쌓는다 (피벗 하단)
+                    float cell = frames[0].rect.height / frames[0].pixelsPerUnit;
+                    int rows = Mathf.Max(1, Mathf.RoundToInt(u.height / cell));
+                    for (int k = 0; k < rows; k++)
+                    {
+                        var g = new GameObject("u");
+                        g.transform.SetParent(go.transform, false);
+                        g.transform.localPosition = new Vector3(0f, cell * k, 0f);
+                        g.transform.localScale = new Vector3(u.width / cell, 1f, 1f);
+                        var sr = g.AddComponent<SpriteRenderer>();
+                        sr.sprite = frames[0];
+                        sr.sortingOrder = -7;
+                        if (frames.Length > 1)
+                        {
+                            // 칸마다 시작 프레임을 어긋나게 — 기둥 전체가 한 박자로
+                            // 깜빡이면 기류가 아니라 전광판처럼 보인다
+                            var shifted = new Sprite[frames.Length];
+                            for (int f = 0; f < frames.Length; f++)
+                                shifted[f] = frames[(f + k) % frames.Length];
+                            var a = g.AddComponent<SpriteAnim>();
+                            a.frames = shifted; a.fps = 8f;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// 매달려 건너는 가지 — 가로로 이어 붙인다
+        void BuildBars()
+        {
+            foreach (var b in OrEmpty(Data.bars))
+            {
+                var go = new GameObject("Bar");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(b.x + b.width * 0.5f, b.y, 0f);
+                if (lib != null && lib.branchBar != null)
+                    TileRow(go.transform, new[] { lib.branchBar }, b.width, 0f, 0f, -7);
+                else
+                {
+                    var sr = go.AddComponent<SpriteRenderer>();
+                    sr.sprite = ProceduralArt.Square;
+                    sr.color = new Color(0.73f, 0.50f, 0.35f);
+                    go.transform.localScale = new Vector3(b.width, Px.U(6f), 1f);
+                    sr.sortingOrder = -7;
+                }
+            }
+        }
+
+        /// 구르는 통나무
+        void BuildRollers()
+        {
+            var rollers = OrEmpty(Data.rollers);
+            rollerPos = new Vector2[rollers.Length];
+            rollerVisuals = new Transform[rollers.Length];
+            for (int i = 0; i < rollers.Length; i++)
+            {
+                var r = rollers[i];
+                var go = new GameObject("Roller");
+                go.transform.SetParent(platformRoot, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                if (lib != null && lib.sawLog != null)
+                {
+                    sr.sprite = lib.sawLog;
+                    float vis = lib.sawLog.rect.height / lib.sawLog.pixelsPerUnit;
+                    go.transform.localScale = Vector3.one * (r.radius * 2f / vis);
+                }
+                else sr.sprite = ProceduralArt.Saw(Mathf.RoundToInt(r.radius * 2f * Px.PPU));
+                sr.sortingOrder = -6;
+                rollerVisuals[i] = go.transform;
+                rollerPos[i] = new Vector2(r.x, r.y);
+            }
         }
 
         void BuildVines()
@@ -324,11 +611,14 @@ namespace UpTogether
                 go.transform.SetParent(platformRoot, false);
                 go.transform.localPosition = new Vector3(s.x + s.width * 0.5f, s.y, 0f);
 
-                Sprite[] frames = s.down ? (lib != null ? lib.thornVine : null)
-                    : (lib != null && lib.spikeFloor != null ? new[] { lib.spikeFloor } : null);
-                if (frames != null && frames.Length > 0 && frames[0] != null)
-                    TileRow(go.transform, frames, s.width, 0f, s.down ? 2.5f : 0f, -8,
-                            yScale: s.down ? 1.7f : 1f);   // 매달린 가시는 더 길게
+                // 위아래 모두 같은 가시 그림을 쓴다. 매달린 쪽은 뒤집어 발판 밑으로 뻗는다.
+                // 예전에는 매달린 가시가 덩굴(thornVine) 그림이라 타고 오르는 밧줄과
+                // 구별이 안 됐다 — 하나는 지름길, 하나는 아픈 것인데 똑같이 보였다.
+                Sprite[] frames = lib != null && lib.spikeFloor != null
+                    ? new[] { lib.spikeFloor } : null;
+                if (frames != null && frames[0] != null)
+                    TileRow(go.transform, frames, s.width, s.down ? -TileU : 0f, 0f, -8,
+                            yScale: s.down ? -1.7f : 1f);   // 매달린 가시는 뒤집고 더 길게
                 else
                 {
                     var sr = go.AddComponent<SpriteRenderer>();
@@ -453,6 +743,52 @@ namespace UpTogether
             UpdateMovers(Time.fixedDeltaTime);
             UpdateVanishers(Time.fixedDeltaTime);
             UpdateSaws(Time.fixedDeltaTime);
+            UpdateRollers();
+            UpdateBouncers();
+            if (player != null) UpdateRocks(Time.fixedDeltaTime, player.X, player.Y);
+        }
+
+        void UpdateRollers()
+        {
+            var rollers = OrEmpty(Data.rollers);
+            for (int i = 0; i < rollers.Length; i++)
+            {
+                var r = rollers[i];
+                float t = Mathf.Sin(clock * r.speed + r.phase);
+                float x = r.x + t * r.range;
+                rollerPos[i] = new Vector2(x, r.y + r.radius);
+                if (rollerVisuals[i] != null)
+                {
+                    rollerVisuals[i].localPosition = new Vector3(x, r.y + r.radius, 0f);
+                    // 굴러가는 방향으로 돈다 (반지름으로 나눠 미끄러지지 않게)
+                    rollerVisuals[i].localRotation =
+                        Quaternion.Euler(0f, 0f, -(x - r.x) / Mathf.Max(0.01f, r.radius) * Mathf.Rad2Deg);
+                }
+            }
+        }
+
+        /// (x,y)가 상승 기류 안인가. lift 는 초당 올라가는 속도.
+        public bool InUpdraft(float x, float y, out float lift)
+        {
+            lift = 0f;
+            foreach (var u in OrEmpty(Data.updrafts))
+                if (x > u.x && x < u.x + u.width && y > u.y && y < u.y + u.height)
+                { lift = u.lift; return true; }
+            return false;
+        }
+
+        /// 머리가 가지에 닿았나. barY=가지 높이, barL/barR=좌우 끝.
+        public bool TryGetBar(float x, float headY, out float barY, out float barL, out float barR)
+        {
+            barY = barL = barR = 0f;
+            foreach (var b in OrEmpty(Data.bars))
+            {
+                if (x < b.x || x > b.Right) continue;
+                if (headY < b.y - 0.22f || headY > b.y + 0.12f) continue;
+                barY = b.y; barL = b.x; barR = b.Right;
+                return true;
+            }
+            return false;
         }
 
         void UpdateSaws(float dt)

@@ -34,6 +34,7 @@ namespace UpTogether
         public SpriteLib lib;
 
         public bool IsClinging { get; private set; }
+        public CharacterBody Body => body;
         /// 계측용
         public int TeleportCount { get; private set; }
 
@@ -61,6 +62,7 @@ namespace UpTogether
             WarpIfLeftBehind(p);
         }
 
+
         /// 크게 떨어질 때 달려와 품에 안긴다. 이 게임만의 동작이라 그대로 둔다.
         bool UpdateCling(float dt, CharacterBody p)
         {
@@ -68,15 +70,25 @@ namespace UpTogether
             // 마지막으로 발을 붙였던 높이보다 확실히 아래여야 진짜 낙하다.
             bool reallyFalling = !p.grounded && p.vy < -tuning.DogClingFallV
                                  && p.Y < player.LastGroundedY - tuning.DogClingMinDropU;
-            if (reallyFalling) IsClinging = true;
+
+            // 밧줄·가지·상승 기류는 강아지가 제 발로 따라갈 수 없는 길이다.
+            // 뒤에서 낑낑대다 워프하는 것보다, 달려와 품에 안겨 같이 가는 쪽이
+            // 이 게임답다 (안긴 자세·하트·소리는 이미 다 있다).
+            bool cannotFollow = player.Climbing || player.Hanging || player.Lifted;
+
+            if (reallyFalling || cannotFollow) IsClinging = true;
             if (!IsClinging) return false;
 
             float k = Px.Smoothing(tuning.dogClingLerp, dt);
-            body.X += ((p.X - tuning.DogClingOffXU * p.face) - body.X) * k;
+            // 밧줄은 주인공이 뒷모습이라 옆구리에 안겨 있으면 어색하다.
+            // 가운데로 붙여 등에 업힌 것처럼 보이게 한다 (그림은 주인공 뒤에 깔린다).
+            float offX = player.Climbing ? 0f : tuning.DogClingOffXU * p.face;
+            body.X += ((p.X - offX) - body.X) * k;
             body.Y += ((p.Y + tuning.DogClingOffYU) - body.Y) * k;
             body.face = p.face;
             body.vx = 0f; body.vy = 0f;
-            if (p.grounded) IsClinging = false;
+            // 땅을 딛는 순간 내려온다. 다만 타는 중에는 발이 닿아도 계속 안겨 있는다.
+            if (p.grounded && !cannotFollow) IsClinging = false;
             return true;
         }
 
@@ -112,6 +124,10 @@ namespace UpTogether
         /// 같은 높이로 못 오는 상태가 잠깐 이어지면 플레이어 옆으로 옮겨간다.
         void WarpIfLeftBehind(CharacterBody p)
         {
+            // 가지에 매달려 있는 동안은 쫓아가지 않는다. 그 높이엔 디딜 자리가 없어
+            // 워프해도 곧바로 떨어진다 — 반복해서 워프하는 것만 보기 싫게 된다.
+            if (player.Hanging) { farSince = -1f; return; }
+
             // 플레이어 점프 정점으로 판단하면 안 된다. 마지막으로 디딘 발판을 기준으로 본다.
             float dx = Mathf.Abs(p.X - body.X);
             float dy = Mathf.Abs(player.LastGroundedY - body.Y);
@@ -125,7 +141,18 @@ namespace UpTogether
             // 사라진 자리와 나타난 자리 양쪽에 먼지를 남긴다.
             // 아무 연출 없이 옮기면 툭 하고 생겨난 것처럼 보인다.
             var from = new Vector2(body.X, body.Y);
-            var to = new Vector2(p.X - Px.U(24f) * p.face, p.Y);
+            float tx = p.X - Px.U(24f) * p.face;
+            // 플레이어가 딛고 선 발판 안으로 들여놓는다.
+            // 발판이 좁아지면서 옆자리가 허공인 경우가 생겼고, 그러면 워프하자마자
+            // 떨어져서 다시 워프하기를 반복한다.
+            if (p.grounded && p.groundIndex >= 0)
+            {
+                var plat = stage.GetPlatform(p.groundIndex);
+                float inset = Px.U(EdgeInsetPx);
+                float lo = plat.left + inset, hi = plat.right - inset;
+                tx = lo <= hi ? Mathf.Clamp(tx, lo, hi) : (plat.left + plat.right) * 0.5f;
+            }
+            var to = new Vector2(tx, p.Y);
             // 점프 먼지보다는 크되 과하지 않게.
             puffs?.Burst(from, 9, 24f, 4.5f, 2f, sizePx: 7f, sizeVarPx: 5f, life: 0.5f);
 

@@ -24,6 +24,7 @@ namespace UpTogether
         public Collectibles collectibles;
         public CharacterBody player, dog;
         public StageSession session;
+        public Zones zones;
         public FollowCamera follow;
         public GameHud hud;
         public GoalFlag flag;
@@ -38,6 +39,17 @@ namespace UpTogether
             index = (index + 1) % stages.Length;
             LoadStage(index);
         }
+
+        /// 특정 스테이지로 바로 간다 (개발용 스테이지 선택).
+        public void Go(int i)
+        {
+            if (stages == null || stages.Length == 0) return;
+            index = Mathf.Clamp(i, 0, stages.Length - 1);
+            LoadStage(index);
+        }
+
+        /// 지금 몇 번째인가 (0부터)
+        public int Index => index;
 
         void LoadStage(int i)
         {
@@ -58,6 +70,7 @@ namespace UpTogether
             if (dog != null) dog.Teleport(0.50f, st.groundY);
             if (flag != null) flag.Reposition();
             if (session != null) session.ResetForNewStage();
+            if (zones != null) zones.ResetForNewStage();
             if (hud != null) hud.HideClear();
             if (follow != null) follow.Snap();
         }

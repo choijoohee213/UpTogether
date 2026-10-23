@@ -1,0 +1,484 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bb15e51f5ae248babf5e046ad4c22c3, type: 3}
+  m_Name: Stage5
+  m_EditorClassIdentifier: UpTogether::UpTogether.StageData
+  displayName: "\uB3CC \uC5B8\uB355"
+  seed: 5005
+  groundY: 0.4
+  height: 59
+  platforms:
+  - x: 0
+    y: 0.4
+    width: 9
+    icy: 0
+  - x: 3.3549733
+    y: 1.1653099
+    width: 0.84266216
+    icy: 0
+  - x: 4.6943974
+    y: 2.156307
+    width: 0.8990131
+    icy: 0
+  - x: 6.095696
+    y: 2.8742197
+    width: 0.74
+    icy: 0
+  - x: 7.122078
+    y: 3.8032076
+    width: 0.74
+    icy: 0
+  - x: 3.871199
+    y: 6.427438
+    width: 0.74
+    icy: 0
+  - x: 2.460319
+    y: 7.2336035
+    width: 0.74
+    icy: 0
+  - x: 1.3387135
+    y: 8.152554
+    width: 0.7926643
+    icy: 0
+  - x: 2.6393752
+    y: 8.982941
+    width: 0.7808293
+    icy: 0
+  - x: 1.3896246
+    y: 11.281883
+    width: 0.74
+    icy: 0
+  - x: 3.284187
+    y: 13.231933
+    width: 0.74
+    icy: 0
+  - x: 6.782656
+    y: 15.969984
+    width: 0.74
+    icy: 0
+  - x: 5.423715
+    y: 18.501957
+    width: 0.74
+    icy: 0
+  - x: 5.5696445
+    y: 22.017447
+    width: 0.7617151
+    icy: 0
+  - x: 7.541856
+    y: 23.756315
+    width: 0.74
+    icy: 0
+  - x: 5.072378
+    y: 28.634024
+    width: 0.7428227
+    icy: 0
+  - x: 5.2983184
+    y: 30.475454
+    width: 0.74
+    icy: 0
+  - x: 1.4550833
+    y: 35.35097
+    width: 0.74
+    icy: 0
+  - x: 1.2712469
+    y: 37.063198
+    width: 0.74
+    icy: 0
+  - x: 4.4088244
+    y: 39.795403
+    width: 0.74
+    icy: 0
+  - x: 4.1200542
+    y: 41.449295
+    width: 0.74
+    icy: 0
+  movers:
+  - x: 2.3014798
+    y: 12.280934
+    width: 0.74
+    range: 0.4015505
+    speed: 0.8376366
+    phase: 2.856095
+    vertical: 0
+  - x: 5.620744
+    y: 15.05687
+    width: 0.86840415
+    range: 0.31045812
+    speed: 0.7416755
+    phase: 2.5058694
+    vertical: 0
+  - x: 7.649099
+    y: 16.911516
+    width: 0.74
+    range: 0.3435822
+    speed: 0.9786448
+    phase: 3.8867714
+    vertical: 0
+  - x: 6.808372
+    y: 17.668022
+    width: 0.74
+    range: 0.4117327
+    speed: 0.8886689
+    phase: 4.1928716
+    vertical: 0
+  - x: 4.506835
+    y: 19.50325
+    width: 0.79431236
+    range: 0.37691724
+    speed: 0.7392001
+    phase: 0.9968113
+    vertical: 0
+  - x: 3.5003011
+    y: 20.39922
+    width: 0.74
+    range: 0.28408805
+    speed: 0.51456034
+    phase: 3.5797126
+    vertical: 0
+  - x: 4.4516406
+    y: 21.115858
+    width: 0.74
+    range: 0.3014132
+    speed: 0.935505
+    phase: 4.3679476
+    vertical: 0
+  - x: 7.1586537
+    y: 25.377651
+    width: 0.75988305
+    range: 0.41080543
+    speed: 0.9209281
+    phase: 2.8339164
+    vertical: 0
+  - x: 6.192806
+    y: 26.269379
+    width: 0.8601777
+    range: 0.36600903
+    speed: 0.54977983
+    phase: 4.857133
+    vertical: 0
+  - x: 7.272466
+    y: 27.121067
+    width: 0.74
+    range: 0.40396273
+    speed: 0.9582097
+    phase: 2.0702963
+    vertical: 0
+  - x: 6.3339863
+    y: 27.953749
+    width: 0.7766377
+    range: 0.29220238
+    speed: 0.6950622
+    phase: 2.8563983
+    vertical: 0
+  - x: 3.987843
+    y: 29.631592
+    width: 0.88538164
+    range: 0.24546042
+    speed: 1.0310252
+    phase: 4.1114497
+    vertical: 0
+  - x: 4.318448
+    y: 32.79058
+    width: 0.8356017
+    range: 0.433246
+    speed: 0.82732856
+    phase: 4.8334765
+    vertical: 0
+  - x: 3.3897212
+    y: 33.73555
+    width: 0.74
+    range: 0.34032425
+    speed: 0.5233602
+    phase: 1.8876631
+    vertical: 0
+  - x: 2.4327924
+    y: 34.58889
+    width: 0.74
+    range: 0.2710018
+    speed: 0.9444315
+    phase: 4.564248
+    vertical: 0
+  - x: 2.2975671
+    y: 36.326183
+    width: 0.74
+    range: 0.38933134
+    speed: 0.7693651
+    phase: 0.8286432
+    vertical: 0
+  - x: 2.3340714
+    y: 38.024178
+    width: 0.74
+    range: 0.29662114
+    speed: 0.79511017
+    phase: 2.1911452
+    vertical: 0
+  - x: 3.3460045
+    y: 38.84571
+    width: 0.74
+    range: 0.26852697
+    speed: 0.8604168
+    phase: 3.2560966
+    vertical: 0
+  - x: 5.3325896
+    y: 40.610252
+    width: 0.7909625
+    range: 0.3042105
+    speed: 0.67568797
+    phase: 1.790305
+    vertical: 0
+  - x: 3.0736094
+    y: 42.334064
+    width: 0.8705914
+    range: 0.24495132
+    speed: 0.5866448
+    phase: 0.22871661
+    vertical: 0
+  - x: 2.0254834
+    y: 43.04185
+    width: 0.74
+    range: 0.32507443
+    speed: 0.994677
+    phase: 1.922408
+    vertical: 0
+  - x: 1.024764
+    y: 43.992718
+    width: 0.74
+    range: 0.3174036
+    speed: 0.75590605
+    phase: 5.44093
+    vertical: 0
+  - x: 1.9956009
+    y: 44.961216
+    width: 0.74
+    range: 0.35706502
+    speed: 0.8499748
+    phase: 1.2335591
+    vertical: 0
+  - x: 4.8851614
+    y: 5.486482
+    width: 0.74
+    range: 0.5
+    speed: 1.5
+    phase: 0
+    vertical: 1
+  - x: 2.4635372
+    y: 10.567418
+    width: 0.76589334
+    range: 0.5
+    speed: 1.5
+    phase: 0
+    vertical: 1
+  - x: 6.472965
+    y: 22.902119
+    width: 0.74
+    range: 0.5
+    speed: 1.5
+    phase: 0
+    vertical: 1
+  - x: 6.595799
+    y: 31.220926
+    width: 0.84416705
+    range: 0.5
+    speed: 1.5
+    phase: 0
+    vertical: 1
+  bouncers:
+  - x: 6.4
+    y: 0.95000005
+    width: 0.7
+  - x: 5
+    y: 0.95000005
+    width: 0.7
+  vanishers:
+  - x: 6.032518
+    y: 4.7545285
+    width: 0.7487368
+  - x: 1.3927041
+    y: 9.702529
+    width: 0.74
+  - x: 4.4682817
+    y: 14.081388
+    width: 0.8407313
+  - x: 6.188092
+    y: 24.521915
+    width: 0.74
+  - x: 5.2705345
+    y: 32.08242
+    width: 0.74
+  spikes:
+  - x: 4.056199
+    y: 6.427438
+    width: 0.37
+    down: 1
+  - x: 1.5746245
+    y: 11.281883
+    width: 0.37
+    down: 1
+  - x: 5.760073
+    y: 22.017447
+    width: 0.38085756
+    down: 1
+  - x: 1.6400833
+    y: 35.35097
+    width: 0.37
+    down: 1
+  - x: 7.580878
+    y: 3.8032076
+    width: 0.2812
+    down: 0
+  - x: 2.9191191
+    y: 7.2336035
+    width: 0.2812
+    down: 0
+  - x: 3.1234894
+    y: 8.982941
+    width: 0.29671514
+    down: 0
+  - x: 3.284187
+    y: 13.231933
+    width: 0.2812
+    down: 0
+  - x: 8.000655
+    y: 23.756315
+    width: 0.2812
+    down: 0
+  - x: 5.2983184
+    y: 30.475454
+    width: 0.2812
+    down: 0
+  - x: 1.2712469
+    y: 37.063198
+    width: 0.2812
+    down: 0
+  winds:
+  - x: 1.0712469
+    y: 37.2132
+    width: 1.14
+    height: 1.5
+    force: 4
+  - x: 4.2088246
+    y: 39.945404
+    width: 1.14
+    height: 1.5
+    force: -4
+  saws:
+  - x: 0.6
+    y: 7.6930785
+    blade: 0.2
+    orbit: 0.35
+    speed: 2.2
+  - x: 1.2
+    y: 12.256908
+    blade: 0.2
+    orbit: 0.35
+    speed: 2.2
+  - x: 6.799998
+    y: 23.629215
+    blade: 0.2
+    orbit: 0.35
+    speed: 2.2
+  - x: 5.1999993
+    y: 33.716698
+    blade: 0.2
+    orbit: 0.35
+    speed: 2.2
+  rings:
+  - x: 5.143904
+    y: 2.706307
+    radius: 0.5
+    thorny: 0
+  - x: 5.793715
+    y: 19.051956
+    radius: 0.5
+    thorny: 0
+  - x: 1.1712469
+    y: 38.113197
+    radius: 0.42
+    thorny: 1
+  treats:
+  - x: 5.143904
+    y: 2.776307
+  - x: 5.793715
+    y: 19.121958
+  - x: 5.2551613
+    y: 5.8064823
+  - x: 2.0186245
+    y: 11.601883
+  - x: 7.630656
+    y: 24.076315
+  - x: 7.0178823
+    y: 31.540926
+  - x: 1.900247
+    y: 37.383198
+  vines:
+  - x: 5.5203185
+    y: 28.634024
+    height: 1.8414307
+  - x: 1.7892469
+    y: 35.35097
+    height: 1.7122269
+  - x: 4.638054
+    y: 39.795403
+    height: 1.6538925
+  - x: 7.344078
+    y: 2.8742197
+    height: 0.928988
+  updrafts:
+  - x: 5.899998
+    y: 2.9742196
+    width: 1
+    height: 1.780309
+    lift: 2.52
+  - x: 1.3000002
+    y: 8.252554
+    width: 1
+    height: 1.449975
+    lift: 2.52
+  - x: 6.299998
+    y: 28.734024
+    width: 1
+    height: 2.4869022
+    lift: 2.52
+  bars:
+  - x: 7.042078
+    y: 4.9532075
+    width: 0.9
+  - x: 2.5797899
+    y: 10.13294
+    width: 0.9
+  - x: 6.7026563
+    y: 17.119984
+    width: 0.9
+  - x: 5.2183185
+    y: 31.625454
+    width: 0.9
+  rollers: []
+  rocks:
+  - x: 6.465696
+    y: 2.6942196
+  - x: 5.143904
+    y: 1.9763069
+  - x: 3.02979
+    y: 8.80294
+  - x: 1.7350457
+    y: 7.9725537
+  - x: 3.6541872
+    y: 13.051932
+  - x: 5.793715
+    y: 18.321957
+  - x: 7.152656
+    y: 15.789984
+  - x: 7.9118557
+    y: 23.576315
+  - x: 5.4437895
+    y: 28.454023
+  goal: {x: 2.3656008, y: 45.261215}

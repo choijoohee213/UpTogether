@@ -122,6 +122,8 @@ namespace UpTogether.EditorTools
 
             // 장애물 — 가시·바람·톱니·가시 링 (발판 계열은 StageRunner가 처리)
             var body = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
+            runner.player = body;   // 떨어지는 돌이 플레이어 위치를 본다
+
             var hazards = sysGo.AddComponent<Hazards>();
             hazards.player = body;
             hazards.stage = runner;
@@ -133,6 +135,15 @@ namespace UpTogether.EditorTools
             collectibles.stage = runner;
             collectibles.bond = bond;
             collectibles.lib = lib;
+
+            // 구간 추락 — 미끄러지면 구간 처음으로, 강아지는 위에 남는다
+            var zones = sysGo.AddComponent<Zones>();
+            zones.player = player;
+            zones.dog = dog;
+            zones.stage = runner;
+            zones.bond = bond;
+            zones.narration = narration;
+            zones.puffs = puffs;
 
             // 오디오 — 재생기(BGM+효과음) + 게임 이벤트를 소리로 옮기는 다리
             AudioSetup.Attach();
@@ -168,14 +179,18 @@ namespace UpTogether.EditorTools
             // ── 스테이지 진행 (테마 전환) ──
             var stage2 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage2.asset");
             var stage3 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage3.asset");
+            var stage4 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage4.asset");
+            var stage5 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage5.asset");
             var forestTiles = runner.tiles;
             Sprite S(string path) => AssetDatabase.LoadAssetAtPath<Sprite>(path);
             const string V = "Assets/_Game/Art/Variants";
+            var snowTiles = LoadTiles($"{V}/tileset_snow_16px.png");
+            var stoneTiles = LoadTiles($"{V}/tileset_stone_16px.png");
             var flow = sysGo.AddComponent<StageFlow>();
             flow.runner = runner; flow.backdrop = forest; flow.collectibles = collectibles;
             flow.player = body; flow.dog = dogGo.GetComponent<CharacterBody>();
-            flow.session = session; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
-            flow.stages = new[] { stage, stage2, stage3 };
+            flow.session = session; flow.zones = zones; flow.follow = follow; flow.hud = hud; flow.flag = flag; flow.cam = cam;
+            flow.stages = new[] { stage, stage2, stage3, stage4, stage5 };
             flow.themes = new[]
             {
                 new StageFlow.Theme { sky = forest.sky, far = forest.far, mid = forest.mid,
@@ -184,8 +199,20 @@ namespace UpTogether.EditorTools
                     mid = S($"{V}/bg_sunset/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.925f, 0.643f, 0.659f) },
                 new StageFlow.Theme { sky = S($"{V}/bg_night/bg0_sky.png"), far = S($"{V}/bg_night/bg1_far.png"),
                     mid = S($"{V}/bg_night/bg2_mid.png"), tiles = forestTiles, bgColor = new Color(0.151f, 0.182f, 0.355f) },
+                // 눈 언덕 — 전용 배경이 있다
+                new StageFlow.Theme { sky = S($"{V}/bg_snow/bg0_sky.png"), far = S($"{V}/bg_snow/bg1_far.png"),
+                    mid = S($"{V}/bg_snow/bg2_mid.png"), tiles = snowTiles, bgColor = new Color(0.839f, 0.894f, 0.933f) },
+                // 돌 언덕 — 전용 배경이 없어 밤 배경을 쓴다. 땅만 돌로 바뀐다.
+                new StageFlow.Theme { sky = S($"{V}/bg_night/bg0_sky.png"), far = S($"{V}/bg_night/bg1_far.png"),
+                    mid = S($"{V}/bg_night/bg2_mid.png"), tiles = stoneTiles, bgColor = new Color(0.169f, 0.157f, 0.208f) },
             };
             if (hud != null && hud.clearTap != null) hud.clearTap.flow = flow;
+
+            // 화면 위쪽 '길' — 시작·체크포인트·현위치·도착점
+            if (hud != null) BuildRouteBar(hud.gameObject, lib, zones, dogVisual);
+
+            // 개발용 스테이지 선택 — StageFlow 가 다 차려진 뒤에 만든다
+            if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow);
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -386,6 +413,7 @@ namespace UpTogether.EditorTools
             foreach (var o in AssetDatabase.LoadAllAssetsAtPath(path))
                 if (o is Sprite s) byName[s.name] = s;
             var arr = new Sprite[32];
+            // 눈·돌 타일셋도 같은 이름 규칙(forest_N)으로 잘려 있다 — 경로만 다르다
             for (int i = 0; i < 32; i++) byName.TryGetValue($"forest_{i}", out arr[i]);
             return arr;
         }
@@ -574,6 +602,123 @@ namespace UpTogether.EditorTools
                             -130f, pause, PauseTap.Kind.Home);
 
             panel.SetActive(false);
+        }
+
+        /// 화면 맨 위의 '길'. 세로로 오르는 게임이라 높이 감이 안 오니
+        /// 한 줄로 펴서 시작·체크포인트·지금 위치·강아지집을 보여준다.
+        static void BuildRouteBar(GameObject canvasGo, SpriteLib lib, Zones zones, DogVisual dogVisual)
+        {
+            var root = new GameObject("RouteBar", typeof(RectTransform));
+            root.transform.SetParent(canvasGo.transform, false);
+            var rt = (RectTransform)root.transform;
+            rt.anchorMin = new Vector2(0.5f, 1f); rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.sizeDelta = new Vector2(1000f, 140f);
+            rt.anchoredPosition = new Vector2(0f, -200f);   // 친밀도 게이지 아래
+
+            var bar = root.AddComponent<RouteBar>();
+            bar.zones = zones;
+
+            // 길 — 가로로 깔린 흙길
+            var rail = MakeImage(root.transform, "Rail", new Color(0.80f, 0.63f, 0.44f, 0.9f),
+                      new Vector2(0f, 0.5f), new Vector2(1f, 0.5f),
+                      new Vector2(0f, -11f), new Vector2(0f, 11f));
+            rail.raycastTarget = false;
+            bar.rail = (RectTransform)rail.transform;
+
+            // 시작점 — 작은 발자국 대신 동그라미
+            var startDot = MakeImage(root.transform, "Start", new Color(0.55f, 0.75f, 0.45f),
+                      new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                      new Vector2(12f, -20f), new Vector2(52f, 20f));
+            startDot.raycastTarget = false;
+
+            // 도착점 — 강아지집
+            var goal = MakeImage(root.transform, "Goal", Color.white,
+                      new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                      new Vector2(-86f, -46f), new Vector2(-4f, 56f));
+            if (lib != null && lib.doghouse != null && lib.doghouse.Length > 0)
+            { goal.sprite = lib.doghouse[0]; goal.type = Image.Type.Simple; }
+            else goal.color = new Color(0.90f, 0.55f, 0.45f);
+            goal.raycastTarget = false;
+
+            // 체크포인트 하트 (최대 12개까지 미리 만들어 두고 필요한 만큼 켠다)
+            var dots = new Image[12];
+            for (int i = 0; i < dots.Length; i++)
+            {
+                var d = MakeImage(root.transform, $"Dot{i}", Color.white,
+                          new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                          new Vector2(-17f, -17f), new Vector2(17f, 17f));
+                if (lib != null && lib.pawPrint != null)
+                { d.sprite = lib.pawPrint; d.type = Image.Type.Simple; }
+                d.raycastTarget = false;
+                d.gameObject.SetActive(false);
+                dots[i] = d;
+            }
+            bar.dots = dots;
+            // 발자국은 한 장뿐이라 지나온 것과 남은 것은 투명도로 구분한다
+            if (lib != null) { bar.dotPassed = lib.pawPrint; bar.dotAhead = lib.pawPrint; }
+
+            // 지금 위치 — 강아지가 길을 걸어간다 (고른 견종이 그대로)
+            var walker = MakeImage(root.transform, "Walker", Color.white,
+                      new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                      new Vector2(-38f, -12f), new Vector2(38f, 64f));
+            walker.type = Image.Type.Simple;
+            walker.preserveAspect = true;
+            walker.raycastTarget = false;
+            bar.walker = (RectTransform)walker.transform;
+            bar.walkerImage = walker;
+            bar.dogVisual = dogVisual;
+        }
+
+        /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.
+        /// 테스트할 때 앞 스테이지를 다 깨고 올라갈 수는 없다.
+        static void BuildDevPanel(GameObject canvasGo, Font font, StageFlow flow)
+        {
+            var pause = canvasGo.GetComponent<Pause>();
+            if (pause == null || pause.panel == null || flow == null) return;
+
+            var dev = canvasGo.AddComponent<DevPanel>();
+            dev.flow = flow; dev.pause = pause;
+
+            var row = new GameObject("DevRow", typeof(RectTransform));
+            row.transform.SetParent(pause.panel.transform, false);
+            var rt = (RectTransform)row.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(700f, 150f);
+            rt.anchoredPosition = new Vector2(0f, -300f);
+            dev.row = row;
+
+            var label = MakeText(row.transform, "Label", font, 26, TextAnchor.UpperCenter,
+                                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                                 new Vector2(-300f, -34f), new Vector2(300f, 0f));
+            label.text = "스테이지 선택 (개발용)";
+            label.color = new Color(0.55f, 0.58f, 0.64f);
+            label.raycastTarget = false;
+
+            var box = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            int n = flow.stages != null ? flow.stages.Length : 0;
+            float w = 110f, gap = 12f;
+            float total = n * w + (n - 1) * gap;
+            for (int i = 0; i < n; i++)
+            {
+                var go = new GameObject($"Stage{i + 1}", typeof(RectTransform), typeof(Image), typeof(DevTap));
+                go.transform.SetParent(row.transform, false);
+                var brt = (RectTransform)go.transform;
+                brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f);
+                brt.sizeDelta = new Vector2(w, 84f);
+                brt.anchoredPosition = new Vector2(-total * 0.5f + w * 0.5f + i * (w + gap), -20f);
+                var img = go.GetComponent<Image>();
+                img.sprite = box; img.type = Image.Type.Sliced;
+                img.color = new Color(0.90f, 0.92f, 0.95f);
+
+                var t = MakeText(go.transform, "T", font, 34, TextAnchor.MiddleCenter,
+                                 Vector2.zero, Vector2.one, new Vector2(6f, 4f), new Vector2(-6f, -4f));
+                t.text = (i + 1).ToString();
+                t.color = new Color(0.3f, 0.34f, 0.4f);
+                t.raycastTarget = false;
+
+                var tap = go.GetComponent<DevTap>();
+                tap.panel = dev; tap.stageIndex = i;
+            }
         }
 
         static void PauseBar(Transform parent, float x)

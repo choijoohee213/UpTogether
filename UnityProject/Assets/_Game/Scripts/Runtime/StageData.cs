@@ -15,6 +15,8 @@ namespace UpTogether
             public float x;      // 왼쪽 끝
             public float y;
             public float width;
+            /// 얼음 — 미끄러워서 멈추기도, 출발하기도 어렵다 (눈 언덕)
+            public bool icy;
             public float Right => x + width;
         }
 
@@ -64,6 +66,24 @@ namespace UpTogether
         [Serializable]
         public struct Vine { public float x, y, height; }
 
+        /// 상승 기류. 안에 있으면 떠오른다. 발판 없이 높이를 버는 길.
+        [Serializable]
+        public struct Updraft { public float x, y, width, height, lift; }
+
+        /// 매달려 건너는 가지. 아래에서 닿으면 매달리고 좌우로 이동한다.
+        [Serializable]
+        public struct Bar { public float x, y, width; public float Right => x + width; }
+
+        /// 천장에 매달린 돌. 밑을 지나면 흔들리다 떨어진다. 잠시 뒤 되살아난다.
+        /// y 는 매달린 높이(천장 발판의 아랫면).
+        [Serializable]
+        public struct Rock { public float x, y; }
+
+        /// 발판 위를 왕복하며 구르는 통나무. 닿으면 아프다.
+        /// x 는 왕복의 중심, range 는 중심에서의 폭.
+        [Serializable]
+        public struct Roller { public float x, y, radius, range, speed, phase; }
+
         public string displayName;
         [Tooltip("원본 생성에 쓴 시드. 다시 구우려면 필요하다.")]
         public int seed;
@@ -82,6 +102,10 @@ namespace UpTogether
         public Ring[] rings;
         public Treat[] treats;
         public Vine[] vines;
+        public Updraft[] updrafts;
+        public Bar[] bars;
+        public Roller[] rollers;
+        public Rock[] rocks;
         public Vector2 goal;
 
         /// 월드 y → 게임에 표시되는 높이(m). 프로토타입: 26px = 1m

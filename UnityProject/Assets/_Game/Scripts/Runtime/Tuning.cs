@@ -17,6 +17,8 @@ namespace UpTogether
         public float walkSpeed = 3.6f;
         [Tooltip("목표 속도로 가는 프레임당 lerp 계수")]
         public float walkAccel = 0.34f;
+        [Tooltip("얼음 위에서의 가감속. 작을수록 미끄럽다 (평지 0.34)")]
+        public float icyAccel = 0.055f;
 
         [Header("맵 (px)")]
         [Tooltip("StageGenerator.MapWidth 와 같아야 한다. 어긋나면 벽과 카메라 한계가 발판과 안 맞는다.")]
