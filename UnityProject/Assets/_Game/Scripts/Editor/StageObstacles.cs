@@ -32,6 +32,8 @@ namespace UpTogether.EditorTools
             public float bars;          // 매달려 건너는 가지
             public float rollers;       // 구르는 통나무
             public float rocks;         // 떨어지는 돌 (돌 언덕의 성격)
+            public float pendulums;     // 흔들리는 추 (구름 언덕에서 데뷔)
+            public float steams;        // 뿜는 증기 (눈 언덕에서 데뷔)
             public float icy;           // 얼음 발판 비율 (눈 언덕은 거의 전부)
             public int bouncers;        // 튕김판 — 바닥 장난감이라 개수 그대로
         }
@@ -45,19 +47,21 @@ namespace UpTogether.EditorTools
             new Recipe { path = "Assets/_Game/Stages/Stage2.asset",
                 vanishers = 0.13f, verticalMovers = 0.09f, spikes = 0.21f, hangingSpikes = 0.09f, vines = 0.13f,
                 plainRings = 0.09f, thornyRings = 0.09f, saws = 0.09f, winds = 0.09f, treats = 0.21f,
-                updrafts = 0.09f, bars = 0.09f, rollers = 0.07f, bouncers = 1 },
+                updrafts = 0.09f, bars = 0.09f, rollers = 0.07f, pendulums = 0.10f, bouncers = 1 },
             new Recipe { path = "Assets/_Game/Stages/Stage3.asset",
                 vanishers = 0.15f, verticalMovers = 0.11f, spikes = 0.23f, hangingSpikes = 0.11f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.09f, saws = 0.11f, winds = 0.11f, treats = 0.22f,
-                updrafts = 0.11f, bars = 0.11f, rollers = 0.09f, bouncers = 2 },
+                updrafts = 0.11f, bars = 0.11f, rollers = 0.09f, pendulums = 0.08f, bouncers = 2 },
             new Recipe { path = "Assets/_Game/Stages/Stage4.asset",
                 vanishers = 0.15f, verticalMovers = 0.12f, spikes = 0.22f, hangingSpikes = 0.11f, vines = 0.15f,
                 plainRings = 0.08f, thornyRings = 0.09f, saws = 0.11f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, icy = 0.92f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.12f, rollers = 0.09f, icy = 0.92f,
+                pendulums = 0.08f, steams = 0.09f, bouncers = 2 },
             new Recipe { path = "Assets/_Game/Stages/Stage5.asset",
                 vanishers = 0.16f, verticalMovers = 0.13f, spikes = 0.24f, hangingSpikes = 0.12f, vines = 0.15f,
                 plainRings = 0.07f, thornyRings = 0.10f, saws = 0.12f, winds = 0.12f, treats = 0.22f,
-                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, rocks = 0.40f, bouncers = 2 },
+                updrafts = 0.12f, bars = 0.13f, rollers = 0.10f, rocks = 0.40f,
+                pendulums = 0.12f, steams = 0.10f, bouncers = 2 },
         };
 
         /// 맵 폭 (StageGenerator.MapWidth 900px → units)
@@ -105,6 +109,8 @@ namespace UpTogether.EditorTools
             var bars = new List<StageData.Bar>();
             var rollers = new List<StageData.Roller>();
             var rocks = new List<StageData.Rock>();
+            var pendulums = new List<StageData.Pendulum>();
+            var steams = new List<StageData.Steam>();
 
             // 경로를 따라 고르게 흩되, 한 발판이 두 역할을 맡지 않게 한 번 쓰면 뺀다.
             // 풀이 둘이다 — 발판 표면을 차지하는 것(가시·링·발판 변형)과
@@ -317,6 +323,73 @@ namespace UpTogether.EditorTools
                 }
             }
 
+            // ── 흔들리는 추: 천장에 매달아 좌우로 크게 흔든다 ──
+            // 흔들리는 호(弧) 전체가 비어 있어야 한다. 발판에 박히면 가려서 안 보인다.
+            const float PendRad = 0.26f, PendSwing = 0.6f;   // 라디안
+            const float PendLen = 0.85f;
+            float pendReach = Mathf.Sin(PendSwing) * PendLen + PendRad;
+            foreach (int i in extras.Take(Count(r.pendulums)))
+            {
+                // 매달 천장을 고르고, 거기서 좌우로 비켜 가며 '흔들릴 자리' 를 찾는다.
+                // 발판 한가운데만 보면 빽빽한 맵에서는 거의 못 건다.
+                bool placed = false;
+                for (int dd = 0; dd <= 7 && !placed; dd++)
+                {
+                    int j = PickNear(i, dd, n);
+                    if (j < 1 || !Static(j)) continue;
+                    float ay = P[j].y - 0.1f;
+                    float low = ay - PendLen - PendRad;
+
+                    foreach (float off in new[] { 0f, 0.4f, -0.4f, 0.8f, -0.8f })
+                    {
+                        float ax = C(P[j]) + off;
+                        if (ax < P[j].x - 0.1f || ax > P[j].Right + 0.1f) continue;   // 천장 밖
+                        if (ax - pendReach < 0.4f || ax + pendReach > MapWidthU - 0.4f) continue;
+
+                        bool blocked = false;
+                        foreach (var f in solids)
+                            if (ax + pendReach > f.l && ax - pendReach < f.r &&
+                                f.y < ay - 0.15f && f.y > low + 0.05f)
+                            { blocked = true; break; }
+                        if (blocked) continue;
+                        if (!Claim(new Rect(ax - pendReach, low, pendReach * 2f, ay - low))) continue;
+
+                        pendulums.Add(new StageData.Pendulum {
+                            x = ax, y = ay, length = PendLen, swing = PendSwing,
+                            speed = 1.6f, phase = j * 0.9f });
+                        placed = true; break;
+                    }
+                }
+            }
+
+            // ── 뿜는 증기: 발판 위에서 주기적으로 솟는다 ──
+            // 머리 위로 솟으므로 위쪽이 비어 있어야 하고, 설 자리는 남겨야 한다.
+            foreach (int i in surface.Take(Count(r.steams)))
+            {
+                for (int dd = 0; dd <= 4; dd++)
+                {
+                    int j = PickNear(i, dd, n);
+                    if (j < 1) continue;
+                    float w = Mathf.Min(0.5f, P[j].width * 0.4f);
+                    if (P[j].width - w < 0.42f) continue;        // 옆에 설 자리가 없다
+                    bool left = (j % 2) == 0;
+                    float sx = left ? P[j].x : P[j].Right - w;
+                    float h = 1.3f;
+
+                    bool blocked = false;
+                    foreach (var f in solids)
+                        if (sx + w > f.l && sx < f.r && f.y > P[j].y + 0.2f && f.y < P[j].y + h)
+                        { blocked = true; break; }
+                    if (blocked) continue;
+
+                    if (!Claim(new Rect(sx, P[j].y, w, h))) continue;
+                    steams.Add(new StageData.Steam {
+                        x = sx, y = P[j].y, width = w, height = h,
+                        period = 2.6f, phase = j * 0.7f });
+                    break;
+                }
+            }
+
             // ── 착지면 위 가시 (가운데 40%, 양 끝으로 피해 밟게) ──
             // ★ 가운데에 두면 안 된다 ★ 발판이 좁아지면서 양옆이 0.22u 밖에 안 남아
             // 어느 쪽으로 내려도 찔렸다. 한쪽 끝에 붙이고 반대쪽을 설 자리로 비운다.
@@ -329,8 +402,15 @@ namespace UpTogether.EditorTools
                 if (sw < 0.18f) continue;                  // 너무 좁은 발판엔 두지 않는다
                 // ★ 건너갈 쪽은 비워둔다 ★ 다음 발판 방향 끝에 가시를 두면
                 // 도움닫기와 도약 지점이 막혀 점프 자체가 안 된다.
-                int nx = Mathf.Min(i + 1, n - 1);
-                bool goesRight = C(P[nx]) >= C(P[i]);
+                // 방향은 '가장 가까운 윗면' 으로 본다 — 플레이어는 이동 발판도 밟으므로
+                // 정적 발판만 보면 검사와 어긋난다.
+                float bestUp = float.MaxValue, upC = C(P[Mathf.Min(i + 1, n - 1)]);
+                foreach (var f in solids)
+                {
+                    if (f.y <= P[i].y + 0.05f) continue;
+                    if (f.y - P[i].y < bestUp) { bestUp = f.y - P[i].y; upC = (f.l + f.r) * 0.5f; }
+                }
+                bool goesRight = upC >= C(P[i]);
                 float sx = goesRight ? P[i].x : P[i].Right - sw;   // 진행 방향 반대쪽에
                 if (!Claim(new Rect(sx, P[i].y, sw, 0.30f))) continue;
                 spikes.Add(new StageData.Spike { x = sx, y = P[i].y, width = sw });
@@ -512,6 +592,8 @@ namespace UpTogether.EditorTools
             s.bars = bars.ToArray();
             s.rollers = rollers.ToArray();
             s.rocks = rocks.ToArray();
+            s.pendulums = pendulums.ToArray();
+            s.steams = steams.ToArray();
 
             if (vines.Count < Count(r.vines) || sawSkipped > 0)
                 Debug.Log($"{s.displayName} 배치 부족 — 밧줄 {vines.Count}/{Count(r.vines)} " +
@@ -522,7 +604,8 @@ namespace UpTogether.EditorTools
                       $"가시 {spikes.Count} / 링 {rings.Count} / 톱니 {saws.Count} / 바람 {winds.Count} / " +
                       $"간식 {treats.Count} / 튕김판 {bouncers.Count} / 밧줄 {vines.Count} / " +
                       $"기류 {updrafts.Count} / 가지 {bars.Count} / 통나무 {rollers.Count} / " +
-                      $"얼음 {keep.FindAll(p => p.icy).Count} / 돌 {rocks.Count}");
+                      $"얼음 {keep.FindAll(p => p.icy).Count} / 돌 {rocks.Count} / " +
+                      $"추 {pendulums.Count} / 증기 {steams.Count}");
         }
 
 
@@ -665,7 +748,12 @@ namespace UpTogether.EditorTools
             foreach (var sp in s.spikes)
             {
                 if (sp.down) continue;
-                var h = Host(sp.x + sp.width * 0.5f, sp.y);
+                // 가시를 통째로 품는 면이어야 한다. 가운데 한 점으로 찾으면 같은 높이에
+                // 걸친 이동 발판이 잡혀 엉뚱한 여유를 재게 된다.
+                (float l, float r, float y, string kind)? h = null;
+                foreach (var f in surf)
+                    if (Mathf.Abs(f.y - sp.y) < 0.03f &&
+                        f.l <= sp.x + 0.01f && f.r >= sp.Right - 0.01f) { h = f; break; }
                 if (h == null) continue;
                 // 더 높은 이웃 발판이 어느 쪽인지
                 float best = float.MaxValue; float nxC = float.NaN;
@@ -707,6 +795,24 @@ namespace UpTogether.EditorTools
                                        h.Value.r - (o.x + o.range + o.radius));
                 if (free < Body)
                     bad.Add($"통나무({o.x:F2},{o.y:F2}) — 피할 폭 {free:F2}u 뿐이다");
+            }
+
+            foreach (var pd in s.pendulums)
+            {
+                float reach = Mathf.Sin(pd.swing) * pd.length + 0.26f;
+                float low = pd.y - pd.length - 0.26f;
+                foreach (var f in surf)
+                    if (pd.x + reach > f.l && pd.x - reach < f.r && f.y < pd.y - 0.15f && f.y > low + 0.05f)
+                    { bad.Add($"추({pd.x:F2},{pd.y:F2}) — 흔들리는 길에 {f.kind} 이 있다"); break; }
+            }
+
+            foreach (var st in s.steams)
+            {
+                var host = Host(st.x + st.width * 0.5f, st.y);
+                if (host == null) { bad.Add($"증기({st.x:F2},{st.y:F2}) — 솟을 바닥이 없다"); continue; }
+                float free = Mathf.Max(st.x - host.Value.l, host.Value.r - (st.x + st.width));
+                if (free < Body)
+                    bad.Add($"증기({st.x:F2},{st.y:F2}) — 피해 설 자리가 {free:F2}u 뿐이다");
             }
 
             foreach (var rk in s.rocks)
