@@ -28,7 +28,8 @@ namespace UpTogether
             ApplyWind(dt);
 
             if (cooldown > 0f) { cooldown -= dt; return; }
-            if (HitSpikes() || HitSaws() || HitRollers() || HitRocks() || HitThornRings()) DoHurt();
+            if (HitSpikes() || HitSaws() || HitRollers() || HitRocks() ||
+                HitPendulums() || HitSteams() || HitThornRings()) DoHurt();
         }
 
         void ApplyWind(float dt)
@@ -92,6 +93,28 @@ namespace UpTogether
             {
                 if (!stage.RockFalling(i)) continue;   // 매달려 있는 동안은 안전하다
                 if (Vector2.Distance(new Vector2(cx, cy), stage.RockPos(i)) < 0.22f + PlayerR) return true;
+            }
+            return false;
+        }
+
+        bool HitPendulums()
+        {
+            float cx = player.X, cy = player.Y + 0.28f;
+            for (int i = 0; i < stage.PendulumCount; i++)
+                if (Vector2.Distance(new Vector2(cx, cy), stage.PendulumPos(i))
+                    < StageRunner.PendulumRadius + PlayerR) return true;
+            return false;
+        }
+
+        bool HitSteams()
+        {
+            var ss = stage.Data.steams;
+            if (ss == null) return false;
+            for (int i = 0; i < ss.Length; i++)
+            {
+                if (!stage.SteamOn(i)) continue;        // 뿜는 동안만 아프다
+                if (player.X < ss[i].x || player.X > ss[i].x + ss[i].width) continue;
+                if (player.Y > ss[i].y - 0.1f && player.Y < ss[i].y + ss[i].height) return true;
             }
             return false;
         }
