@@ -15,6 +15,10 @@ namespace UpTogether
         /// FixedUpdate에서 소비된다. 한 번 눌림에 한 번만 true.
         public bool JumpPressed { get; private set; }
 
+        /// 컷신 동안 조작을 끊는다. timeScale 을 0 으로 하지 않는 이유는
+        /// 강아지 떨림 같은 연출이 계속 돌아야 하기 때문이다.
+        public bool Blocked { get; set; }
+
         bool touchLeft, touchRight, touchJump;
         bool jumpQueued, prevJump;
 
@@ -22,6 +26,14 @@ namespace UpTogether
 
         void Update()
         {
+            if (Blocked)
+            {
+                Left = Right = JumpHeld = false;
+                jumpQueued = false;
+                prevJump = false;
+                return;
+            }
+
             Left  = touchLeft  || Input.GetKey(KeyCode.LeftArrow)  || Input.GetKey(KeyCode.A);
             Right = touchRight || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
 

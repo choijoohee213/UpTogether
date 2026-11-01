@@ -119,6 +119,7 @@ namespace UpTogether.EditorTools
             session.stage = runner;
             session.bond = bond;
             session.narration = narration;
+            dog.bond = bond;        // 친밀도가 거리·멈칫·안기기를 바꾼다
 
             // 장애물 — 가시·바람·톱니·가시 링 (발판 계열은 StageRunner가 처리)
             var body = playerVisual != null ? playerVisual.body : playerGo.GetComponent<CharacterBody>();
@@ -128,6 +129,7 @@ namespace UpTogether.EditorTools
             hazards.player = body;
             hazards.stage = runner;
             hazards.bond = bond;
+            session.hazards = hazards;   // 찔리면 강아지가 움츠러든다
 
             // 수집 — 간식·통과 링 (친밀도 상승)
             var collectibles = sysGo.AddComponent<Collectibles>();
@@ -176,6 +178,9 @@ namespace UpTogether.EditorTools
             BuildTouchUi(input, lib);
             var hud = BuildHud(session, bond, narration, lib);
 
+            // 프롤로그 컷신 — 레터박스·카메라·글. HUD 위에 얹는다.
+            session.cinematic = BuildCinematic(cam, follow, input, tuning);
+
             // ── 스테이지 진행 (테마 전환) ──
             var stage2 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage2.asset");
             var stage3 = AssetDatabase.LoadAssetAtPath<StageData>("Assets/_Game/Stages/Stage3.asset");
@@ -211,8 +216,10 @@ namespace UpTogether.EditorTools
             // 화면 위쪽 '길' — 시작·체크포인트·현위치·도착점
             if (hud != null) BuildRouteBar(hud.gameObject, lib, zones, dogVisual);
 
+            session.flow = flow;        // 오프닝·엔딩 줄을 고르려면 몇 번째 판인지 알아야 한다
+
             // 개발용 스테이지 선택 — StageFlow 가 다 차려진 뒤에 만든다
-            if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow);
+            if (hud != null) BuildDevPanel(hud.gameObject, LoadFont(), flow, bond, narration);
 
             // 참조가 하나라도 비면 재생하자마자 터진다. 저장 전에 확인한다.
             var missing = new System.Collections.Generic.List<string>();
@@ -462,6 +469,60 @@ namespace UpTogether.EditorTools
             return img;
         }
 
+        /// 컷신 오버레이 — 레터박스 두 줄과 글 한 줄.
+        /// 캔버스를 HUD(sortingOrder 10) 보다 위에 두어 친밀도 바까지 덮는다.
+        /// 탭은 Cinematic 이 Input 으로 직접 받으므로 레이캐스트를 끈다
+        /// (컷신 동안 GameInput 이 끊겨 있어서 아래 버튼이 눌려도 아무 일도 없다).
+        static Cinematic BuildCinematic(Camera cam, FollowCamera follow, GameInput input, Tuning tuning)
+        {
+            var font = LoadFont();
+
+            var canvasGo = new GameObject("Cinematic", typeof(Canvas), typeof(CanvasScaler));
+            var canvas = canvasGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 20;
+            var scaler = canvasGo.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+
+            var group = canvasGo.AddComponent<CanvasGroup>();
+            group.alpha = 0f;
+            group.blocksRaycasts = false;
+
+            var c = canvasGo.AddComponent<Cinematic>();
+            c.cam = cam; c.follow = follow; c.input = input; c.tuning = tuning; c.group = group;
+
+            // 위 띠: 화면 맨 위에 붙여 아래로 자란다 (pivot y=1)
+            var top = MakeImage(canvasGo.transform, "BarTop", Color.black,
+                                new Vector2(0f, 1f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+            var trt = (RectTransform)top.transform;
+            trt.pivot = new Vector2(0.5f, 1f);
+            trt.anchoredPosition = Vector2.zero;
+            trt.sizeDelta = Vector2.zero;
+            top.raycastTarget = false;
+            c.barTop = trt;
+
+            // 아래 띠: 맨 아래에 붙여 위로 자란다 (pivot y=0)
+            var bottom = MakeImage(canvasGo.transform, "BarBottom", Color.black,
+                                   new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, Vector2.zero);
+            var brt = (RectTransform)bottom.transform;
+            brt.pivot = new Vector2(0.5f, 0f);
+            brt.anchoredPosition = Vector2.zero;
+            brt.sizeDelta = Vector2.zero;
+            bottom.raycastTarget = false;
+            c.barBottom = brt;
+
+            // 글은 아래 띠 바로 위에 — 띠 안에 넣으면 검은 바탕에 묻힌다
+            var label = MakeText(canvasGo.transform, "Line", font, 42, TextAnchor.LowerCenter,
+                                 new Vector2(0f, 0f), new Vector2(1f, 0f),
+                                 new Vector2(70f, 215f), new Vector2(-70f, 455f));
+            label.color = new Color(0.97f, 0.97f, 0.95f);
+            label.raycastTarget = false;
+            c.label = label;
+
+            return c;
+        }
+
         /// 친밀도 바, 높이, 서사 한 줄, 클리어 화면.
         static GameHud BuildHud(StageSession session, Bond bond, Narration narration, SpriteLib lib)
         {
@@ -671,13 +732,15 @@ namespace UpTogether.EditorTools
 
         /// 개발용 스테이지 선택 — 일시정지 패널 아래쪽에 숫자 버튼 줄.
         /// 테스트할 때 앞 스테이지를 다 깨고 올라갈 수는 없다.
-        static void BuildDevPanel(GameObject canvasGo, Font font, StageFlow flow)
+        static void BuildDevPanel(GameObject canvasGo, Font font, StageFlow flow,
+                                  Bond bond, Narration narration)
         {
             var pause = canvasGo.GetComponent<Pause>();
             if (pause == null || pause.panel == null || flow == null) return;
 
             var dev = canvasGo.AddComponent<DevPanel>();
             dev.flow = flow; dev.pause = pause;
+            dev.bond = bond; dev.narration = narration;
 
             var row = new GameObject("DevRow", typeof(RectTransform));
             row.transform.SetParent(pause.panel.transform, false);
@@ -718,6 +781,55 @@ namespace UpTogether.EditorTools
 
                 var tap = go.GetComponent<DevTap>();
                 tap.panel = dev; tap.stageIndex = i;
+            }
+
+            BuildBondRow(pause.panel.transform, font, dev, box);
+        }
+
+        /// 개발용 친밀도 선택 — Bond.Stages 의 문턱을 그대로 버튼으로 만든다.
+        /// 강아지 행동이 친밀도마다 달라지는데 6단계를 플레이해서 올라갈 수는 없다.
+        static void BuildBondRow(Transform panel, Font font, DevPanel dev, Sprite box)
+        {
+            var row = new GameObject("BondRow", typeof(RectTransform));
+            row.transform.SetParent(panel, false);
+            var rt = (RectTransform)row.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(700f, 150f);
+            rt.anchoredPosition = new Vector2(0f, -430f);
+            dev.bondRow = row;
+
+            var label = MakeText(row.transform, "Label", font, 26, TextAnchor.UpperCenter,
+                                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                                 new Vector2(-300f, -34f), new Vector2(300f, 0f));
+            label.text = "친밀도 (개발용 — 본 대사 기록도 초기화)";
+            label.color = new Color(0.55f, 0.58f, 0.64f);
+            label.raycastTarget = false;
+
+            float[] values = { 0f, 20f, 40f, 62f, 82f, 95f };
+            float w = 100f, gap = 8f;
+            float total = values.Length * w + (values.Length - 1) * gap;
+            for (int i = 0; i < values.Length; i++)
+            {
+                var go = new GameObject($"Bond{values[i]:0}", typeof(RectTransform), typeof(Image), typeof(BondTap));
+                go.transform.SetParent(row.transform, false);
+                var brt = (RectTransform)go.transform;
+                brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f);
+                brt.sizeDelta = new Vector2(w, 84f);
+                brt.anchoredPosition = new Vector2(-total * 0.5f + w * 0.5f + i * (w + gap), -20f);
+                var img = go.GetComponent<Image>();
+                img.sprite = box; img.type = Image.Type.Sliced;
+                // 안기기가 열리는 62 부터는 색을 달리해 경계가 보이게 한다
+                img.color = values[i] >= 62f ? new Color(0.98f, 0.88f, 0.91f)
+                                             : new Color(0.90f, 0.92f, 0.95f);
+
+                var t = MakeText(go.transform, "T", font, 30, TextAnchor.MiddleCenter,
+                                 Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
+                t.text = $"{values[i]:0}";
+                t.color = new Color(0.3f, 0.34f, 0.4f);
+                t.raycastTarget = false;
+
+                var tap = go.GetComponent<BondTap>();
+                tap.panel = dev; tap.value = values[i];
             }
         }
 
