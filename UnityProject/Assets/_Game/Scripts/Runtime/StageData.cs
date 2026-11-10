@@ -74,6 +74,16 @@ namespace UpTogether
         [Serializable]
         public struct Bar { public float x, y, width; public float Right => x + width; }
 
+        /// 천장에 매달려 좌우로 크게 흔들리는 추. 닿으면 아프다.
+        /// (x,y)가 매단 지점, length 는 사슬 길이, swing 은 흔들리는 각도(라디안).
+        [Serializable]
+        public struct Pendulum { public float x, y, length, swing, speed, phase; }
+
+        /// 바닥에서 주기적으로 뿜는 증기. 뿜는 동안만 아프다.
+        /// y 는 뿜어 나오는 바닥면, height 는 닿는 높이.
+        [Serializable]
+        public struct Steam { public float x, y, width, height, period, phase; }
+
         /// 천장에 매달린 돌. 밑을 지나면 흔들리다 떨어진다. 잠시 뒤 되살아난다.
         /// y 는 매달린 높이(천장 발판의 아랫면).
         [Serializable]
@@ -106,6 +116,8 @@ namespace UpTogether
         public Bar[] bars;
         public Roller[] rollers;
         public Rock[] rocks;
+        public Pendulum[] pendulums;
+        public Steam[] steams;
         public Vector2 goal;
 
         /// 월드 y → 게임에 표시되는 높이(m). 프로토타입: 26px = 1m

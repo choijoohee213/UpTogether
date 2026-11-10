@@ -275,11 +275,11 @@ MonoBehaviour:
     width: 0.2812
     down: 0
   winds:
-  - x: 4.3632703
-    y: 5.505682
-    width: 1.312002
+  - x: 2.832452
+    y: 6.335877
+    width: 1.2988421
     height: 1.5
-    force: -4
+    force: 4
   - x: 1.5775876
     y: 10.868526
     width: 1.14
@@ -291,8 +291,8 @@ MonoBehaviour:
     height: 1.5
     force: 4
   saws:
-  - x: 4.7999997
-    y: 4.6152883
+  - x: 4.6
+    y: 6.07078
     blade: 0.2
     orbit: 0.35
     speed: 2.2
@@ -328,8 +328,6 @@ MonoBehaviour:
     y: 1.925071
   - x: 2.3011737
     y: 18.811838
-  - x: 5.019271
-    y: 5.675682
   - x: 3.7354035
     y: 15.840199
   - x: 4.0034223
@@ -381,4 +379,12 @@ MonoBehaviour:
     speed: 1.1
     phase: 11.9
   rocks: []
+  pendulums:
+  - x: 6.671727
+    y: 2.9381073
+    length: 0.85
+    swing: 0.6
+    speed: 1.6
+    phase: 2.6999998
+  steams: []
   goal: {x: 3.7286656, y: 35.137077}

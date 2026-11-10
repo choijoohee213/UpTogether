@@ -57,6 +57,19 @@ namespace UpTogether
         float[] bounceSquashUntil;
         const float SquashTime = 0.16f;
 
+        // 흔들리는 추
+        Transform[] pendChain, pendWeight;
+        Vector2[] pendPos;
+        public int PendulumCount => pendPos?.Length ?? 0;
+        public Vector2 PendulumPos(int i) => pendPos[i];
+        public const float PendulumRadius = 0.26f;
+
+        // 뿜는 증기
+        SpriteRenderer[] steamVis;
+        bool[] steamOn;
+        public int SteamCount => steamOn?.Length ?? 0;
+        public bool SteamOn(int i) => steamOn[i];
+
         // 떨어지는 돌
         enum RockState : byte { Hang, Shake, Fall, Gone }
         RockState[] rockState;
@@ -301,6 +314,8 @@ namespace UpTogether
             BuildRings();
             BuildVines();
             BuildRocks();
+            BuildPendulums();
+            BuildSteams();
             BuildUpdrafts();
             BuildBars();
             BuildRollers();
@@ -335,6 +350,107 @@ namespace UpTogether
                 sr.sortingOrder = -6;
                 rockVisuals[i] = go.transform;
                 rockRenderers[i] = sr;
+            }
+        }
+
+        /// 흔들리는 추 — 사슬은 늘여서 돌리고, 추는 끝에 매단다
+        void BuildPendulums()
+        {
+            var ps = OrEmpty(Data.pendulums);
+            pendChain = new Transform[ps.Length];
+            pendWeight = new Transform[ps.Length];
+            pendPos = new Vector2[ps.Length];
+
+            for (int i = 0; i < ps.Length; i++)
+            {
+                var go = new GameObject("Pendulum");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(ps[i].x, ps[i].y, 0f);
+                pendChain[i] = go.transform;
+
+                var chain = new GameObject("chain");
+                chain.transform.SetParent(go.transform, false);
+                var cr = chain.AddComponent<SpriteRenderer>();
+                if (lib != null && lib.pendulumChain != null)
+                {
+                    cr.sprite = lib.pendulumChain;       // 피벗 상단
+                    cr.drawMode = SpriteDrawMode.Tiled;
+                    float tw = lib.pendulumChain.rect.width / lib.pendulumChain.pixelsPerUnit;
+                    cr.size = new Vector2(tw, ps[i].length);
+                }
+                else { cr.sprite = ProceduralArt.Square; cr.color = new Color(0.67f, 0.65f, 0.75f);
+                       chain.transform.localScale = new Vector3(Px.U(4f), ps[i].length, 1f); }
+                cr.sortingOrder = -7;
+
+                var w = new GameObject("weight");
+                w.transform.SetParent(go.transform, false);
+                var wr = w.AddComponent<SpriteRenderer>();
+                if (lib != null && lib.pendulumWeight != null)
+                {
+                    wr.sprite = lib.pendulumWeight;
+                    float vis = lib.pendulumWeight.rect.height / lib.pendulumWeight.pixelsPerUnit;
+                    w.transform.localScale = Vector3.one * (PendulumRadius * 2f / vis);
+                }
+                else { wr.sprite = ProceduralArt.Square; wr.color = new Color(0.67f, 0.65f, 0.75f);
+                       w.transform.localScale = Vector3.one * PendulumRadius * 2f; }
+                wr.sortingOrder = -6;
+                pendWeight[i] = w.transform;
+            }
+        }
+
+        void UpdatePendulums()
+        {
+            var ps = OrEmpty(Data.pendulums);
+            for (int i = 0; i < ps.Length; i++)
+            {
+                float a = Mathf.Sin(clock * ps[i].speed + ps[i].phase) * ps[i].swing;
+                // 사슬을 통째로 돌린다 (피벗이 매단 지점이다)
+                if (pendChain[i] != null)
+                    pendChain[i].localRotation = Quaternion.Euler(0f, 0f, -a * Mathf.Rad2Deg);
+                Vector2 at = new Vector2(ps[i].x + Mathf.Sin(a) * ps[i].length,
+                                         ps[i].y - Mathf.Cos(a) * ps[i].length);
+                pendPos[i] = at;
+                if (pendWeight[i] != null)
+                    pendWeight[i].localPosition = new Vector3(0f, -ps[i].length, 0f);
+            }
+        }
+
+        /// 뿜는 증기 — 주기의 뒤쪽 40% 동안 뿜는다
+        void BuildSteams()
+        {
+            var ss = OrEmpty(Data.steams);
+            steamVis = new SpriteRenderer[ss.Length];
+            steamOn = new bool[ss.Length];
+            for (int i = 0; i < ss.Length; i++)
+            {
+                var go = new GameObject("Steam");
+                go.transform.SetParent(platformRoot, false);
+                go.transform.localPosition = new Vector3(ss[i].x + ss[i].width * 0.5f, ss[i].y, 0f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                var frames = lib != null ? lib.steam : null;
+                if (frames != null && frames.Length > 0)
+                {
+                    sr.sprite = frames[0];
+                    float vh = frames[0].rect.height / frames[0].pixelsPerUnit;
+                    go.transform.localScale = Vector3.one * (ss[i].height / Mathf.Max(0.01f, vh));
+                    var a = go.AddComponent<SpriteAnim>();
+                    a.frames = frames; a.fps = 10f;
+                }
+                else { sr.sprite = ProceduralArt.Square; sr.color = new Color(0.9f, 0.95f, 1f, 0.5f);
+                       go.transform.localScale = new Vector3(ss[i].width, ss[i].height, 1f); }
+                sr.sortingOrder = -5;
+                steamVis[i] = sr;
+            }
+        }
+
+        void UpdateSteams()
+        {
+            var ss = OrEmpty(Data.steams);
+            for (int i = 0; i < ss.Length; i++)
+            {
+                float t = Mathf.Repeat(clock + ss[i].phase, Mathf.Max(0.2f, ss[i].period));
+                steamOn[i] = t > ss[i].period * 0.6f;
+                if (steamVis[i] != null) steamVis[i].enabled = steamOn[i];
             }
         }
 
@@ -746,6 +862,8 @@ namespace UpTogether
             UpdateRollers();
             UpdateBouncers();
             if (player != null) UpdateRocks(Time.fixedDeltaTime, player.X, player.Y);
+            UpdatePendulums();
+            UpdateSteams();
         }
 
         void UpdateRollers()
