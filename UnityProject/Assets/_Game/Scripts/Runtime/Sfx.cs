@@ -60,6 +60,14 @@ namespace UpTogether
         public void UiClick() => One(uiClick, 0.7f);
         public void UiPopup() => One(uiPopup, 0.7f);
 
+        /// BGM 을 잠시 멈춘다. 프롤로그처럼 음악이 장면과 어긋나는 곳에서 쓴다 —
+        /// 버려진 강아지를 발견하는 비 오는 골목에 오르골이 흐르면
+        /// 글이 아무리 좋아도 장면이 서로 싸운다.
+        public void PauseBgm() { if (music != null && music.isPlaying) music.Pause(); }
+        public void ResumeBgm() { if (music != null && !music.isPlaying) music.UnPause(); }
+        /// BGM 이 지금 돌고 있는가 (테스트가 본다)
+        public bool BgmPlaying => music != null && music.isPlaying;
+
         int stepToggle;
         public void Step()
         {

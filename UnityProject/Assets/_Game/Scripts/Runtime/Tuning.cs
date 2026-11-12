@@ -41,7 +41,12 @@ namespace UpTogether
         [Tooltip("걷기 속도(px/frame). 플레이어(3.6)보다 느리면 계속 뒤처져서 " +
                  "발판 끝이 아니라 가운데에서 뛰게 되고, 가로 거리가 모자라 못 닿는다.")]
         public float dogSpeed = 4.2f;
+        [Tooltip("친밀도 100 에서 따라오는 거리(px).")]
         public float dogTrailDistance = 26f;
+        [Tooltip("친밀도 0 에서 따라오는 거리(px). 친해질수록 dogTrailDistance 까지 좁혀진다. " +
+                 "거리가 곧 관계다 — 유기견 서사가 수치로 드러나는 지점. " +
+                 "Follow 는 목표 거리보다 가까우면 걸어서 물러나므로, 멀게 두면 '다가가면 피한다'가 공짜로 나온다.")]
+        public float dogTrailDistanceShy = 100f;
         [Tooltip("플레이어가 이만큼(px) 위에 있으면 폴짝 뛴다.")]
         public float dogJumpTrigger = 34f;
         [Tooltip("뛰는 세기(px/frame). 경로를 계산하지 않으므로 못 올라가도 상관없다 — 워프가 덮는다.")]
@@ -63,6 +68,19 @@ namespace UpTogether
         public float dogClingOffsetX = 10f;
         public float dogClingOffsetY = 24f;
 
+        [Header("강아지 — 친밀도에 따라 달라지는 것")]
+        [Tooltip("친밀도 0 에서 뛰기 전에 멈칫하는 시간(초). 100 에서 0 이 된다. " +
+                 "28m 서사 '발판 끝에서 망설이고 있다'를 실제 동작으로 만든다.")]
+        public float dogHesitateSeconds = 0.4f;
+        [Tooltip("이 친밀도부터 낙하할 때 품에 안긴다. 그 아래에서는 발판 위에서 보고만 있는다. " +
+                 "밧줄·가지처럼 제 발로 갈 수 없는 길은 친밀도와 무관하게 안긴다 " +
+                 "(안 그러면 뒤에 남아 워프만 반복한다). Bond 의 '품에 안김' 문턱과 같아야 한다.")]
+        public float bondClingUnlock = 62f;
+        [Tooltip("찔리거나 크게 떨어진 뒤 움츠러드는 시간(초). 트라우마는 한 번 낫고 끝이 아니다.")]
+        public float dogFlashbackSeconds = 3.5f;
+        [Tooltip("움츠러든 동안 따라오는 거리에 곱하는 배수.")]
+        public float dogFlashbackTrailScale = 2f;
+
         // ── 변환값 (읽기 전용) ──────────────────────────────
         public float GravityA        => Px.A(gravity);
         public float HoldGravityA    => Px.A(holdGravity);
@@ -75,6 +93,7 @@ namespace UpTogether
         public float GrabMarginU     => Px.U(platformGrabMargin);
         public float DogSpeedV       => Px.V(dogSpeed);
         public float DogTrailU       => Px.U(dogTrailDistance);
+        public float DogTrailShyU    => Px.U(dogTrailDistanceShy);
         public float DogJumpTrigU    => Px.U(dogJumpTrigger);
         public float DogJumpV        => Px.V(dogJumpSpeed);
         public float DogWarpHeightU  => Px.U(dogWarpHeight);
