@@ -110,9 +110,18 @@ namespace UpTogether.EditorTools
             cine.barTop = Bar(canvasGo.transform, "BarTop", true);
             cine.barBottom = Bar(canvasGo.transform, "BarBottom", false);
 
-            var line = Text(canvasGo.transform, font, "Line", 42, TextAnchor.LowerCenter,
-                            new Vector2(70f, 215f), new Vector2(-70f, 455f));
-            line.color = new Color(0.97f, 0.97f, 0.95f);
+            // 글 뒤에 어둠을 깔아준다. 흰 글씨만 올려 두면 상자 앞면처럼 밝은
+            // 그림 위에서 글이 사라진다 — 못 읽는 글은 아무것도 전하지 못한다.
+            Scrim(canvasGo.transform, "LineScrim", 820f);
+
+            var line = Text(canvasGo.transform, font, "Line", 52, TextAnchor.LowerCenter,
+                            new Vector2(60f, 230f), new Vector2(-60f, 520f));
+            line.color = new Color(0.98f, 0.98f, 0.96f);
+            line.lineSpacing = 1.25f;
+            // 어둠 위에서도 글자 획이 배경에 묻지 않게 한 겹 더
+            var sh = line.gameObject.AddComponent<Shadow>();
+            sh.effectColor = new Color(0f, 0f, 0f, 0.85f);
+            sh.effectDistance = new Vector2(2f, -2f);
             cine.label = line;
 
             // 자리표시 설명 — 그림이 들어오면 비워진다
@@ -187,6 +196,41 @@ namespace UpTogether.EditorTools
             var rain = go.AddComponent<Rain>();
             rain.cam = cam;
             return rain;
+        }
+
+        /// 글 뒤에 까는 어둠. 아래가 가장 짙고 위로 갈수록 사라진다.
+        /// 단색 띠를 깔면 경계선이 그어져 화면이 잘려 보이므로 그라데이션을 만든다.
+        static void Scrim(Transform parent, string name, float height)
+        {
+            const int steps = 64;
+            var tex = new Texture2D(1, steps, TextureFormat.RGBA32, false)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+            };
+            for (int y = 0; y < steps; y++)
+            {
+                // y=0 이 아래. 아래가 가장 짙고 위로 가며 사라진다.
+                // 제곱으로 떨어뜨렸더니 글 윗줄에서 이미 어둠이 없어서,
+                // 띠를 높이고 완만하게 깎는다 — 두 줄 다 덮여야 한다.
+                float k = y / (steps - 1f);
+                tex.SetPixel(0, y, new Color(0f, 0f, 0f, 0.88f * Mathf.Pow(1f - k, 1.5f)));
+            }
+            tex.Apply();
+            var sprite = Sprite.Create(tex, new Rect(0f, 0f, 1f, steps), new Vector2(0.5f, 0.5f), 1f);
+
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(0f, height);
+            var img = go.GetComponent<Image>();
+            img.sprite = sprite;
+            img.type = Image.Type.Simple;
+            img.raycastTarget = false;
         }
 
         /// 카메라 이동이 보이도록 두는 작은 표식 (자리표시용)

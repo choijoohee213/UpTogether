@@ -221,6 +221,29 @@ namespace UpTogether.Tests
         }
 
         [Test]
+        public void 글_뒤에_어둠이_깔린다()
+        {
+            // 흰 글씨만 올려 두면 상자 앞면처럼 밝은 그림 위에서 글이 사라진다
+            var scrim = GameObject.Find("LineScrim");
+            Assert.IsNotNull(scrim, "글 뒤 어둠(LineScrim)이 없다");
+            var img = scrim.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(img?.sprite, "어둠이 그라데이션이 아니다 — 단색 띠는 경계선이 보인다");
+            Assert.IsNotNull(cine.label.GetComponent<UnityEngine.UI.Shadow>(),
+                             "글자에 그림자가 없다");
+            Assert.Less(scrim.transform.GetSiblingIndex(), cine.label.transform.GetSiblingIndex(),
+                        "어둠이 글보다 위에 그려진다");
+        }
+
+        [Test]
+        public void 프롤로그_동안_오르골을_끈다()
+        {
+            // 버려진 강아지를 발견하는 비 오는 골목에 밝은 음악이 깔리면
+            // 글이 아무리 좋아도 장면이 서로 싸운다
+            Assert.IsNotNull(Sfx.I, "Sfx 가 없다");
+            Assert.IsFalse(Sfx.I.BgmPlaying, "프롤로그인데 BGM 이 돌고 있다");
+        }
+
+        [Test]
         public void 마지막_컷에서_비가_그친다()
         {
             // 그림의 트인 하늘과 맞아야 한다 — 거기만 비가 없다

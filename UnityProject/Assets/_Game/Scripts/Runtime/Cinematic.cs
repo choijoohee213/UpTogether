@@ -55,6 +55,8 @@ namespace UpTogether
         const float MinShotSeconds = 0.45f;
         const float BarsInSeconds = 0.35f;
         const float BarsOutSeconds = 0.3f;
+        /// 글이 떠오르는 시간. 툭 나타나면 자막이 아니라 알림처럼 보인다.
+        const float LineFadeSeconds = 0.5f;
         /// 레터박스 띠 높이 (캔버스 1080x1920 기준)
         const float BarHeight = 190f;
         /// 시야를 정수배로 맞추느라 이만큼 넘게 바뀌면 맞추지 않는다
@@ -81,11 +83,21 @@ namespace UpTogether
         /// 컷신이 끝난 순간. 조작은 이때 돌아온다.
         public event Action Finished;
 
+        CanvasGroup labelGroup;
+        Coroutine lineFade;
+
         void Awake()
         {
             if (group != null) group.alpha = 0f;
             SetBars(0f);
-            if (label != null) label.text = "";
+            if (label == null) return;
+            label.text = "";
+            // 글자와 그림자를 같이 흐리려면 묶어서 다뤄야 한다.
+            // ?? 를 쓰면 안 된다 — 없는 컴포넌트는 진짜 null 이 아니라서
+            // 가짜 null 이 그대로 들어오고, 쓸 때 터진다.
+            labelGroup = label.GetComponent<CanvasGroup>();
+            if (labelGroup == null) labelGroup = label.gameObject.AddComponent<CanvasGroup>();
+            labelGroup.alpha = 0f;
         }
 
         public void Play(Shot[] shots)
@@ -112,9 +124,12 @@ namespace UpTogether
                 var shot = shots[i];
                 // 플레이트를 먼저 갈아끼운다 — 카메라가 움직이기 전에 그림이 바뀌어야 한다
                 if (i != shown) ShotStarted?.Invoke(i, shot);
+
+                // 글을 먼저 띄우고 카메라가 움직이는 동안 읽게 한다.
+                // 이동이 끝난 뒤에 띄우면 첫 컷은 2.6초 동안 읽을 것이 없다.
+                SetLine(shot.line);
                 yield return MoveTo(shot);
 
-                if (label != null) label.text = shot.line;
                 if (shot.whine) Sfx.I?.Whine();
 
                 float wait = Mathf.Max(MinShotSeconds, shot.holdAfter);
@@ -122,7 +137,7 @@ namespace UpTogether
                 while (!Advanced()) yield return null;
             }
 
-            if (label != null) label.text = "";
+            SetLine("");
             yield return Bars(1f, 0f, BarsOutSeconds);
             if (group != null) group.alpha = 0f;
 
@@ -133,6 +148,29 @@ namespace UpTogether
 
             Running = false;
             Finished?.Invoke();
+        }
+
+        /// 한 줄을 띄운다 — 떠오르듯이.
+        void SetLine(string text)
+        {
+            if (label == null) return;
+            label.text = text;
+            if (labelGroup == null) return;
+            if (lineFade != null) StopCoroutine(lineFade);
+            labelGroup.alpha = 0f;
+            if (string.IsNullOrEmpty(text)) return;
+            lineFade = StartCoroutine(FadeLine());
+        }
+
+        IEnumerator FadeLine()
+        {
+            for (float t = 0f; t < LineFadeSeconds; t += Time.unscaledDeltaTime)
+            {
+                labelGroup.alpha = t / LineFadeSeconds;
+                yield return null;
+            }
+            labelGroup.alpha = 1f;
+            lineFade = null;
         }
 
         /// 카메라를 그 컷의 지점·시야로 옮긴다.

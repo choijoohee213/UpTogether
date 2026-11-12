@@ -79,6 +79,10 @@ namespace UpTogether
             if (narration != null && narration.Seen(SeenKey)) { Done(); return; }
             narration?.MarkSeen(SeenKey);
 
+            // 오르골을 끈다. 버려진 강아지를 발견하는 비 오는 골목에 밝은 음악이
+            // 깔리면 장면이 서로 싸운다 — 여기서는 빗소리만 남는 게 맞다.
+            Sfx.I?.PauseBgm();
+
             cinematic.ShotStarted += ShowPlate;
             cinematic.Finished += Done;
             cinematic.Play(Shots());
@@ -122,12 +126,12 @@ namespace UpTogether
                 new Cinematic.Shot { plate = 0, view = Cinematic.View.Third,
                                      from = new Vector2(0.00f, 0.00f), fromSize = 1.9f,
                                      at = new Vector2(-0.54f, -2.30f), size = 0.85f,
-                                     seconds = 2.6f, line = l[0], holdAfter = 0.5f },
+                                     seconds = 2.6f, line = l[0], holdAfter = 1.0f },
                 // 상자 전체 → 목줄·이름표로 푸시인
                 new Cinematic.Shot { plate = 1, view = Cinematic.View.First,
                                      from = new Vector2(0.25f, 0.10f), fromSize = 1.45f,
                                      at = new Vector2(0.00f, 0.30f), size = 0.70f,
-                                     seconds = 1.8f, line = l[1], holdAfter = 0.4f },
+                                     seconds = 1.8f, line = l[1], holdAfter = 0.8f },
                 // 핵심. 느린 푸시인 — 손과 강아지 사이 틈을 깨지 않는다. 2초 침묵.
                 // 강아지 주둥이(x148)부터 손끝(x700)까지 가로 552px 을 한 화면에
                 // 담아야 해서 시야를 넓게 둔다. 더 당기면 주둥이가 잘린다.
@@ -135,11 +139,12 @@ namespace UpTogether
                                      from = new Vector2(0.46f, -0.65f), fromSize = 1.80f,
                                      at = new Vector2(0.49f, -1.30f), size = 1.55f,
                                      seconds = 1.6f, line = l[2], holdAfter = 2.0f, whine = true },
-                // 고정. 멀리 앉은 강아지와 앞의 뒷모습이 둘 다 들어와야 한다
+                // 고정. 멀리 앉은 강아지와 앞의 뒷모습이 둘 다 들어와야 한다.
+                // 글이 세 문장이라 머무는 시간을 늘렸다 — 빨리 넘겨도 읽히게.
                 new Cinematic.Shot { plate = 3, view = Cinematic.View.Third,
                                      from = new Vector2(0.11f, -3.41f), fromSize = 0.95f,
                                      at = new Vector2(0.11f, -3.41f), size = 0.95f,
-                                     seconds = 0.8f, line = l[3], holdAfter = 0.5f },
+                                     seconds = 0.8f, line = l[3], holdAfter = 1.6f },
                 // 길 아래에서 집까지 올려다보고 게임으로 넘긴다
                 new Cinematic.Shot { plate = 4, view = Cinematic.View.Third,
                                      from = new Vector2(-1.75f, -3.25f), fromSize = 1.0f,
@@ -178,6 +183,8 @@ namespace UpTogether
 
         void Done()
         {
+            // 언덕으로 넘어가면 음악이 돌아온다
+            Sfx.I?.ResumeBgm();
             if (string.IsNullOrEmpty(nextScene)) return;
             SceneManager.LoadScene(nextScene);
         }

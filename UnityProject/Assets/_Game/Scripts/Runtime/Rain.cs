@@ -25,9 +25,16 @@ namespace UpTogether
         /// 시야 650px 일 때 1 유닛 = 100px 이므로 반높이 1 유닛당 325px 이다
         const float PxPerHalfUnit = 325f;
 
+        /// 빗소리 크기. 글을 읽는 장면이라 깔리는 정도로만 둔다.
+        public float volume = 0.33f;
+        /// 그치고 잦아드는 데 걸리는 시간 (초)
+        const float FadeSeconds = 1.6f;
+
         ParticleSystem ps;
         ParticleSystem.ShapeModule shape;
         ParticleSystemRenderer rend;
+        AudioSource audioSource;
+        float wantVolume;
 
         void Awake()
         {
@@ -35,6 +42,58 @@ namespace UpTogether
             shape = ps.shape;
             rend = GetComponent<ParticleSystemRenderer>();
             if (cam == null) cam = Camera.main;
+
+            // 빗소리 파일이 없어서 만들어 쓴다. 비는 결국 걸러진 잡음이라
+            // 녹음을 구하는 것보다 이게 확실하고, 그림의 비와 같은 방식이다.
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.clip = MakeRainClip();
+            audioSource.loop = true;
+            audioSource.playOnAwake = false;
+            audioSource.volume = 0f;
+            wantVolume = volume;
+            if (!Application.isBatchMode) audioSource.Play();
+        }
+
+        void Update()
+        {
+            if (audioSource == null) return;
+            audioSource.volume = Mathf.MoveTowards(audioSource.volume, wantVolume,
+                                                   volume * Time.unscaledDeltaTime / FadeSeconds);
+        }
+
+        /// 빗소리 한 토막. 흰 잡음을 두 번 걸러 쉿 소리를 눅눅하게 만들고,
+        /// 아주 느린 흔들림을 얹어 "일정한 잡음"이 아니라 비처럼 들리게 한다.
+        /// 잡음이라 이음새가 안 들려서 끝을 앞과 겹쳐 잇기만 하면 된다.
+        static AudioClip MakeRainClip()
+        {
+            const int rate = 22050, seconds = 4;
+            const int n = rate * seconds, blend = rate / 4;
+            var data = new float[n];
+            var rnd = new System.Random(20261111);
+            float lp = 0f, lp2 = 0f;
+
+            for (int i = 0; i < n; i++)
+            {
+                float white = (float)(rnd.NextDouble() * 2.0 - 1.0);
+                lp += (white - lp) * 0.5f;
+                lp2 += (lp - lp2) * 0.5f;
+                float t = i / (float)rate;
+                float sway = 1f + 0.18f * Mathf.Sin(t * 0.9f) + 0.1f * Mathf.Sin(t * 2.3f);
+                data[i] = lp2 * 2.4f * sway;
+            }
+
+            // 끝 토막을 앞 토막에 겹쳐 넣어 루프 이음새를 없앤다
+            for (int i = 0; i < blend; i++)
+            {
+                float k = i / (float)blend;
+                data[i] = Mathf.Lerp(data[n - blend + i], data[i], k);
+            }
+
+            var clip = AudioClip.Create("rain", n - blend, 1, rate, false);
+            var loop = new float[n - blend];
+            System.Array.Copy(data, loop, n - blend);
+            clip.SetData(loop, 0);
+            return clip;
         }
 
         void LateUpdate()
@@ -74,11 +133,16 @@ namespace UpTogether
         }
 
         /// 컷마다 켜고 끈다 (마지막 컷은 비가 그친 하늘이라 끈다).
+        /// 소리는 뚝 끊지 않고 잦아들게 둔다 — 비는 그렇게 그친다.
         public void SetFalling(bool on)
         {
             if (ps == null) ps = GetComponent<ParticleSystem>();
             var emission = ps.emission;
             emission.enabled = on;
+            wantVolume = on ? volume : 0f;
         }
+
+        /// 지금 빗소리 크기 (테스트가 본다)
+        public float Loudness => audioSource != null ? audioSource.volume : 0f;
     }
 }
