@@ -265,6 +265,17 @@ namespace UpTogether.Tests
             Assert.Less(shots[2].size, shots[2].fromSize, "핵심 컷이 밀고 들어가지 않는다");
         }
 
+        [Test]
+        public void 밤_색은_비가_그치는_컷에서_걷힌다()
+        {
+            // 하늘이 트이는 것과 색이 돌아오는 것이 같은 순간이어야 한다.
+            // 마지막 컷만 원래 색이고, 그 전까지는 식어 있다.
+            Assert.AreNotEqual(Color.white, pro.nightTint, "밤 색이 원래 색과 같다");
+            Assert.Less(pro.nightTint.r, pro.nightTint.b, "밤 색이 차갑지 않다");
+            Assert.AreEqual(pro.Shots().Length - 1, pro.rainStopsAt,
+                            "색이 걷히는 컷이 마지막이 아니다");
+        }
+
         [UnityTest]
         public IEnumerator 씬에_들어오면_저절로_돌고_봤다고_적힌다()
         {
@@ -282,7 +293,10 @@ namespace UpTogether.Tests
             if (hasArt)
             {
                 Assert.IsNotNull(pro.plate.sprite, "그림이 있는데 플레이트가 비었다");
-                Assert.AreEqual(Color.white, pro.plate.color, "자리표시 색이 남아 있다");
+                Assert.AreNotEqual(pro.thirdTint, pro.plate.color, "자리표시 색이 남아 있다");
+                Assert.AreNotEqual(pro.firstTint, pro.plate.color, "자리표시 색이 남아 있다");
+                // 비 오는 컷이라 그림이 식어 있어야 한다 (마지막 컷에서만 원래 색)
+                Assert.AreEqual(pro.nightTint, pro.plate.color, "비 오는 밤 색이 안 깔렸다");
                 Assert.IsEmpty(pro.slate.text, "그림이 있는데 자리표시 설명이 떠 있다");
             }
             else

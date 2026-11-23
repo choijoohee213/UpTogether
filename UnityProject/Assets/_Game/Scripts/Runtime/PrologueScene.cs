@@ -41,6 +41,14 @@ namespace UpTogether
         public Rain rain;
         /// 비를 멈출 컷 번호 (0부터)
         public int rainStopsAt = 4;
+        /// 비 오는 밤 색. 비가 내리는 컷(0~3)에 곱해서 그림을 식힌다.
+        ///
+        /// 받은 그림은 볼에 분홍 홍조까지 있는 밝은 픽셀아트다. 그대로 두면
+        /// 글이 아무리 슬퍼도 화면은 "귀여운 강아지"라고 말한다 — 플레이어는
+        /// 글이 아니라 그림을 믿는다. 색을 식혀 그림을 글 쪽으로 데려온다.
+        /// 비가 그치는 마지막 컷에서 원래 색으로 돌아온다. 하늘이 트이는 것과
+        /// 색이 돌아오는 것이 같은 순간이어야 회복의 신호가 하나로 읽힌다.
+        public Color nightTint = new Color(0.72f, 0.78f, 0.92f);
         /// 자리표시일 때 무엇이 들어갈 자리인지 적는다
         public Text slate;
         /// 자리표시 판에 씌우는 색 — 3인칭/1인칭을 구분해 보여준다
@@ -126,7 +134,7 @@ namespace UpTogether
                 new Cinematic.Shot { plate = 0, view = Cinematic.View.Third,
                                      from = new Vector2(0.00f, 0.00f), fromSize = 1.9f,
                                      at = new Vector2(-0.54f, -2.30f), size = 0.85f,
-                                     seconds = 2.6f, line = l[0], holdAfter = 1.0f },
+                                     seconds = 2.6f, line = l[0], holdAfter = 1.4f, whine = true },
                 // 상자 전체 → 목줄·이름표로 푸시인
                 new Cinematic.Shot { plate = 1, view = Cinematic.View.First,
                                      from = new Vector2(0.25f, 0.10f), fromSize = 1.45f,
@@ -167,7 +175,7 @@ namespace UpTogether
             if (hasArt)
             {
                 plate.sprite = set[shot.plate];
-                plate.color = Color.white;
+                plate.color = index < rainStopsAt ? nightTint : Color.white;
                 if (slate != null) slate.text = "";
                 return;
             }
