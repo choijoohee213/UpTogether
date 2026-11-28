@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -49,6 +50,18 @@ namespace UpTogether
         /// 비가 그치는 마지막 컷에서 원래 색으로 돌아온다. 하늘이 트이는 것과
         /// 색이 돌아오는 것이 같은 순간이어야 회복의 신호가 하나로 읽힌다.
         public Color nightTint = new Color(0.72f, 0.78f, 0.92f);
+        [Header("음악")]
+        /// 프롤로그에만 까는 곡. 본편 오르골은 이 동안 멈춘다.
+        ///
+        /// 본 테마(bgm_musicbox_loop)는 C장조다. 이 곡은 그 relative minor 인
+        /// A단조로 썼다 — 같은 음계의 어두운 쪽이다. 악기도 같은 오르골이라,
+        /// 언덕에서 밝은 쪽이 돌아올 때 "같은 곡이 나아졌다"로 들린다.
+        public AudioClip music;
+        [Range(0f, 1f)] public float musicVolume = 0.34f;
+        /// 첫 소리가 툭 들어오면 메뉴음처럼 들린다. 빗소리 밑에서 천천히 배어 나온다.
+        const float MusicFadeIn = 3f;
+        /// 언덕으로 넘어가기 전에 걷는다. 두 곡이 겹치면 둘 다 안 들린다.
+        const float MusicFadeOut = 0.9f;
         /// 자리표시일 때 무엇이 들어갈 자리인지 적는다
         public Text slate;
         /// 자리표시 판에 씌우는 색 — 3인칭/1인칭을 구분해 보여준다
@@ -64,6 +77,11 @@ namespace UpTogether
             "한참 떨어져서 — 이쪽을 보고 있다",
             "비탈 꼭대기 — 빈 집",
         };
+
+        AudioSource musicSource;
+
+        /// 프롤로그 곡이 흐르는 중인가 (테스트가 본다)
+        public bool MusicOn => musicSource != null && musicSource.isPlaying;
 
         /// 지금 쓸 플레이트 한 벌. 고른 견종이 없으면 첫 벌로 떨어진다.
         Sprite[] Plates
@@ -88,8 +106,9 @@ namespace UpTogether
             narration?.MarkSeen(SeenKey);
 
             // 오르골을 끈다. 버려진 강아지를 발견하는 비 오는 골목에 밝은 음악이
-            // 깔리면 장면이 서로 싸운다 — 여기서는 빗소리만 남는 게 맞다.
+            // 깔리면 장면이 서로 싸운다. 대신 이 장면의 곡을 깐다.
             Sfx.I?.PauseBgm();
+            StartMusic();
 
             cinematic.ShotStarted += ShowPlate;
             cinematic.Finished += Done;
@@ -189,9 +208,45 @@ namespace UpTogether
             slate.text = $"[{who}]  컷 {index + 1}/5  ·  그림 자리\n{note}";
         }
 
+        void StartMusic()
+        {
+            if (music == null) return;
+            musicSource = gameObject.AddComponent<AudioSource>();
+            musicSource.clip = music;
+            musicSource.loop = true;
+            musicSource.playOnAwake = false;
+            musicSource.volume = 0f;
+            musicSource.Play();
+            StartCoroutine(FadeMusic(musicVolume, MusicFadeIn));
+        }
+
+        IEnumerator FadeMusic(float to, float seconds)
+        {
+            float from = musicSource.volume;
+            for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+            {
+                musicSource.volume = Mathf.Lerp(from, to, t / seconds);
+                yield return null;
+            }
+            musicSource.volume = to;
+        }
+
         void Done()
         {
-            // 언덕으로 넘어가면 음악이 돌아온다
+            if (MusicOn) { StartCoroutine(LeaveAfterFade()); return; }
+            Leave();
+        }
+
+        IEnumerator LeaveAfterFade()
+        {
+            yield return FadeMusic(0f, MusicFadeOut);
+            musicSource.Stop();
+            Leave();
+        }
+
+        void Leave()
+        {
+            // 언덕으로 넘어가면 오르골이 돌아온다
             Sfx.I?.ResumeBgm();
             if (string.IsNullOrEmpty(nextScene)) return;
             SceneManager.LoadScene(nextScene);

@@ -26,7 +26,9 @@ namespace UpTogether
         const float PxPerHalfUnit = 325f;
 
         /// 빗소리 크기. 글을 읽는 장면이라 깔리는 정도로만 둔다.
-        public float volume = 0.33f;
+        /// 넓은 잡음이라 조금만 키워도 오르골 음을 통째로 덮는다 — 곡이 같이
+        /// 깔리게 되면서 0.33 에서 내렸다.
+        public float volume = 0.24f;
         /// 그치고 잦아드는 데 걸리는 시간 (초)
         const float FadeSeconds = 1.6f;
 

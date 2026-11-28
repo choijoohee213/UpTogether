@@ -17,6 +17,7 @@ namespace UpTogether.EditorTools
     {
         const string ScenePath = "Assets/_Game/Prologue.unity";
         const string FontPath = "Assets/_Game/Fonts/Jua-Regular.ttf";
+        const string MusicPath = "Assets/_Game/Audio/BGM/bgm_prologue_rain.wav";
 
         /// 플레이트 한 장의 크기(유닛). 세로 시야 650px = 6.5유닛 기준으로
         /// 팬·줌 여유를 두고 1.5~2배 크게 잡는다 (STORY.md 7장).
@@ -143,6 +144,7 @@ namespace UpTogether.EditorTools
             pro.breedPlates = hasArt ? byBreed.ToArray() : null;
             pro.slate = slate;
             pro.rain = rain;
+            pro.music = AssetDatabase.LoadAssetAtPath<AudioClip>(MusicPath);
             pro.nextScene = "Playground";
 
             EditorSceneManager.MarkSceneDirty(scene);

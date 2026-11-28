@@ -266,6 +266,19 @@ namespace UpTogether.Tests
             Assert.Less(shots[2].size, shots[2].fromSize, "핵심 컷이 밀고 들어가지 않는다");
         }
 
+        [UnityTest]
+        public IEnumerator 프롤로그에는_프롤로그의_곡이_깔린다()
+        {
+            // 본편 오르골은 멈추고(밝아서 장면과 싸운다) 이 장면의 곡이 깔린다.
+            Assert.IsNotNull(pro.music, "프롤로그 곡이 안 붙어 있다");
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsTrue(pro.MusicOn, "곡이 안 돌고 있다");
+            Assert.Greater(pro.musicVolume, 0f, "곡 크기가 0 이다");
+
+            // 빗소리가 곡을 덮으면 둘 다 안 들린다
+            Assert.Less(pro.rain.volume, pro.musicVolume, "빗소리가 곡보다 크다");
+        }
+
         [Test]
         public void 컷_사이를_덮을_검은_판이_있다()
         {
