@@ -205,6 +205,12 @@ namespace UpTogether.Tests
         /// 먼저 높은 발판에 실제로 서 있어야 한다.
         IEnumerator FallUntilHeld()
         {
+            // 안기기는 친밀도 문턱(Tuning.bondClingUnlock)을 넘어야 열린다.
+            // 이 시험들은 안긴 자세·겹침 순서·오프셋을 보는 것이고 해금 자체는
+            // BondStoryTests 가 본다. 친밀도는 PlayerPrefs 로 테스트끼리 공유되므로
+            // 명시적으로 올려 둔다 — 안 그러면 앞 테스트가 쌓아 둔 값에 따라 흔들린다.
+            if (bond != null) bond.Set(100f);
+
             var high = stage.Data.platforms[0];
             foreach (var pl in stage.Data.platforms)
                 if (pl.y > high.y && pl.y < stage.Data.groundY + 6f) high = pl;
@@ -460,6 +466,11 @@ namespace UpTogether.Tests
         [UnityTest]
         public IEnumerator 실제_점프로_이동할_때_강아지가_제_발로_따라온다()
         {
+            // 발판에서 발판으로 갈 수 있는지(배치 기하)를 보는 시험이다.
+            // 친밀도가 낮으면 일부러 멀찍이 떨어져 걷고 뛰기 전에 멈칫하므로
+            // 여기서는 최대로 올려 둔다 — 그 동작은 BondStoryTests 가 본다.
+            if (bond != null) bond.Set(100f);
+
             var plats = new System.Collections.Generic.List<StageData.Platform>(stage.Data.platforms);
             plats.Sort((a, b) => a.y.CompareTo(b.y));
 
@@ -548,12 +559,21 @@ namespace UpTogether.Tests
             narration.Say += t => said = t;
             float before = bond.Value;
 
-            // 첫 서사 구간은 10m. 그보다 위로 올린다.
+            // 첫 구간은 10m 인데 글이 없다 — 그 높이에서 강아지는 아직 경계하고 있어서
+            // "종종걸음으로 따라온다" 같은 줄이 뜨면 안 된다. 친밀도는 그래도 올라야 한다.
             float y = stage.Data.groundY + Px.U(12f * Px.PxPerMeter);
             player.Body.Teleport(player.Body.X, y);
             yield return Steps(5);
 
-            Assert.AreEqual(Narration.Default[0].text, said, "첫 서사가 안 떴다");
+            Assert.Greater(bond.Value, before, "글 없는 구간에서 친밀도가 안 올랐다");
+            Assert.IsNull(said, "글이 없는 구간인데 서사가 떴다");
+
+            // 글이 붙은 첫 구간은 28m
+            before = bond.Value;
+            player.Body.Teleport(player.Body.X, stage.Data.groundY + Px.U(30f * Px.PxPerMeter));
+            yield return Steps(5);
+
+            Assert.AreEqual(Narration.Default[1].text, said, "28m 서사가 안 떴다");
             Assert.Greater(bond.Value, before, "친밀도가 안 올랐다");
         }
 
@@ -590,9 +610,9 @@ namespace UpTogether.Tests
         {
             Assert.IsNotNull(bond);
             bond.Add(-100f);
-            Assert.AreEqual("서먹서먹", bond.StageName);
+            Assert.AreEqual("겁먹음", bond.StageName);
             bond.Add(21f);
-            Assert.AreEqual("조금 친해짐", bond.StageName);
+            Assert.AreEqual("곁눈질", bond.StageName);
             bond.Add(80f);
             Assert.AreEqual("영혼의 단짝", bond.StageName);
             bond.Add(-100f);   // 테스트끼리 영향 주지 않도록 되돌린다

@@ -14,6 +14,10 @@ UnityProject/Build/
 UnityProject/Builds/
 UnityProject/[Bb]uild[Ss]/
 
+# PlayMode 테스트를 돌리면 test-framework.performance 가 매번 새로 만든다
+UnityProject/Assets/Resources/PerformanceTestRun*.json
+UnityProject/Assets/Resources/PerformanceTestRun*.json.meta
+
 # IDE 프로젝트 파일 — Unity가 열 때마다 재생성한다
 *.csproj
 *.unityproj
@@ -50,6 +54,7 @@ crashlytics-build.properties
 /PROJECT.md
 /SUMMARY.md
 /DEV_NOTES.md
+/STORY.md
 
 # ───── 주의 ─────
 # .meta 파일은 절대 무시하면 안 된다. GUID가 들어 있어서

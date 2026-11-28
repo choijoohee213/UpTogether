@@ -12,6 +12,7 @@ namespace UpTogether.EditorTools
     {
         public const string ScenePath = "Assets/_Game/Title.unity";
         const string SelectPath = "Assets/_Game/Select.unity";
+        const string ProloguePath = "Assets/_Game/Prologue.unity";
         const string PlayPath = "Assets/_Game/Playground.unity";
         const string FontPath = "Assets/_Game/Fonts/Jua-Regular.ttf";
         const string CharDir = "Assets/_Game/Art/Player/Generated";
@@ -208,23 +209,27 @@ namespace UpTogether.EditorTools
             return new Color(r + m, g + m, b + m);
         }
 
-        /// Title 첫 씬, 그다음 Select, Playground.
+        /// Title 첫 씬, 그다음 Select, Prologue, Playground.
+        /// Prologue 는 Select 와 Playground 사이에 끼어 있고, 이미 본 사람은
+        /// PrologueScene 이 곧바로 Playground 로 넘긴다.
         internal static void RegisterScenes()
         {
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(ScenePath, true),
                 new EditorBuildSettingsScene(SelectPath, true),
+                new EditorBuildSettingsScene(ProloguePath, true),
                 new EditorBuildSettingsScene(PlayPath, true),
             };
         }
 
-        /// 세 씬을 한 번에 다시 만든다.
+        /// 네 씬을 한 번에 다시 만든다.
         [MenuItem("UpTogether/Build All Scenes")]
         public static void BuildAll()
         {
             SceneBuilder.Build();
             SelectSceneBuilder.Build();
+            PrologueSceneBuilder.Build();
             Build();
         }
     }

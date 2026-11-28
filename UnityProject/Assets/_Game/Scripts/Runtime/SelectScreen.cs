@@ -19,7 +19,10 @@ namespace UpTogether
 
         public Option[] characters;
         public Option[] breeds;
-        public string gameScene = "Playground";
+        /// 다음 씬. 프롤로그를 먼저 거친다 — 이미 본 사람은 PrologueScene 이
+        /// 곧바로 Playground 로 넘긴다. 건너뛸지 판단하는 곳을 한 군데로 두기 위해
+        /// 선택 화면은 늘 프롤로그로 보낸다.
+        public string gameScene = "Prologue";
 
         [Header("연결")]
         public Image charPreview;
