@@ -129,6 +129,10 @@ namespace UpTogether.EditorTools
                              new Vector2(70f, -560f), new Vector2(-70f, -300f));
             slate.color = new Color(1f, 1f, 1f, 0.5f);
 
+            // 컷 사이 암전. 그림도 글도 전부 덮어야 해서 맨 마지막에 둔다
+            // (캔버스는 나중에 붙은 자식이 위에 그려진다).
+            cine.dip = Fill(canvasGo.transform, "Dip");
+
             // ── 진행 ──
             var sysGo = new GameObject("Systems");
             var narration = sysGo.AddComponent<Narration>();
@@ -231,6 +235,24 @@ namespace UpTogether.EditorTools
             img.sprite = sprite;
             img.type = Image.Type.Simple;
             img.raycastTarget = false;
+        }
+
+        /// 화면을 꽉 채우는 검은 판. 투명하게 두고 Cinematic 이 알파만 움직인다.
+        /// 띠와 같은 이유로 스프라이트를 주지 않는다 — 빌트인 UISprite 를 쓰면
+        /// 모서리가 둥근 그림이 늘어난다.
+        static Image Fill(Transform parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            var img = go.GetComponent<Image>();
+            img.color = new Color(0f, 0f, 0f, 0f);
+            img.raycastTarget = false;
+            return img;
         }
 
         /// 카메라 이동이 보이도록 두는 작은 표식 (자리표시용)

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace UpTogether.Tests
 {
@@ -263,6 +264,29 @@ namespace UpTogether.Tests
             // 손과 강아지 사이의 틈이 이 컷의 주제라서, 더 당기면 그 틈이 잘린다.
             // (2번 컷이 이름표까지 더 깊게 들어간다.)
             Assert.Less(shots[2].size, shots[2].fromSize, "핵심 컷이 밀고 들어가지 않는다");
+        }
+
+        [Test]
+        public void 컷_사이를_덮을_검은_판이_있다()
+        {
+            // 그림을 한 프레임 만에 갈아끼우면 슬라이드쇼로 읽힌다.
+            // 끊기는 자리를 덮는 판이 화면 전체를 가려야 한다.
+            Assert.IsNotNull(cine.dip, "암전 판이 없다");
+            Assert.AreEqual(0f, cine.dip.color.r, 0.001f, "암전 판이 검지 않다");
+            Assert.AreEqual(0f, cine.dip.color.g, 0.001f, "암전 판이 검지 않다");
+            Assert.AreEqual(0f, cine.dip.color.b, 0.001f, "암전 판이 검지 않다");
+            Assert.IsFalse(cine.dip.raycastTarget, "암전 판이 입력을 먹는다");
+
+            var rt = cine.dip.rectTransform;
+            Assert.AreEqual(Vector2.zero, rt.anchorMin, "암전 판이 화면을 다 덮지 않는다");
+            Assert.AreEqual(Vector2.one, rt.anchorMax, "암전 판이 화면을 다 덮지 않는다");
+            Assert.AreEqual(Vector2.zero, rt.offsetMin, "암전 판이 화면을 다 덮지 않는다");
+            Assert.AreEqual(Vector2.zero, rt.offsetMax, "암전 판이 화면을 다 덮지 않는다");
+
+            // 글보다 뒤에 붙어야 글 위를 덮는다
+            Assert.Greater(cine.dip.transform.GetSiblingIndex(),
+                           cine.label.transform.GetSiblingIndex(),
+                           "암전 판이 글 아래에 깔려 있다");
         }
 
         [Test]

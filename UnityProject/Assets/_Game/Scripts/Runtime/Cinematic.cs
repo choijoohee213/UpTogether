@@ -57,6 +57,10 @@ namespace UpTogether
         const float BarsOutSeconds = 0.3f;
         /// 글이 떠오르는 시간. 툭 나타나면 자막이 아니라 알림처럼 보인다.
         const float LineFadeSeconds = 0.5f;
+        /// 컷과 컷 사이 암전. 나가는 쪽이 짧고 들어오는 쪽이 길다 —
+        /// 끊을 때는 빠르게, 보여줄 때는 천천히가 눈에 자연스럽다.
+        const float DipOutSeconds = 0.26f;
+        const float DipInSeconds = 0.38f;
         /// 레터박스 띠 높이 (캔버스 1080x1920 기준)
         const float BarHeight = 190f;
         /// 시야를 정수배로 맞추느라 이만큼 넘게 바뀌면 맞추지 않는다
@@ -77,6 +81,8 @@ namespace UpTogether
         public RectTransform barTop;
         public RectTransform barBottom;
         public Text label;
+        /// 컷 사이에 한 번 덮는 검은 판. 없으면 그냥 끊어 넘긴다.
+        public Image dip;
 
         public bool Running { get; private set; }
 
@@ -90,6 +96,7 @@ namespace UpTogether
         {
             if (group != null) group.alpha = 0f;
             SetBars(0f);
+            SetDip(0f);
             if (label == null) return;
             label.text = "";
             // 글자와 그림자를 같이 흐리려면 묶어서 다뤄야 한다.
@@ -122,8 +129,25 @@ namespace UpTogether
             for (int i = 0; i < shots.Length; i++)
             {
                 var shot = shots[i];
+
+                // 컷과 컷 사이를 한 번 어둡게 지난다.
+                //
+                // 그림을 한 프레임 만에 갈아끼우면 영화가 아니라 슬라이드쇼로
+                // 읽힌다 — 넘어가는 것이 아니라 지나가는 것으로 보여야 한다.
+                // 끊기는 자리를 덮는 것이지 뜸을 들이는 것이 아니라서 짧게 둔다.
+                if (i > 0)
+                {
+                    // 글이 그림보다 먼저 사라진다. 같이 지우면 글만 공중에 뜬다.
+                    SetLine("");
+                    yield return Dip(1f, DipOutSeconds);
+                }
+
                 // 플레이트를 먼저 갈아끼운다 — 카메라가 움직이기 전에 그림이 바뀌어야 한다
-                if (i != shown) ShotStarted?.Invoke(i, shot);
+                if (i != shown) { ShotStarted?.Invoke(i, shot); shown = i; }
+                // 카메라도 어두운 동안 옮겨 둔다. 밝아진 뒤에 튀면 전환이 두 번 보인다.
+                SnapToStart(shot);
+
+                if (i > 0) yield return Dip(0f, DipInSeconds);
 
                 // 글을 먼저 띄우고 카메라가 움직이는 동안 읽게 한다.
                 // 이동이 끝난 뒤에 띄우면 첫 컷은 2.6초 동안 읽을 것이 없다.
@@ -178,18 +202,9 @@ namespace UpTogether
         {
             if (cam == null || tuning == null) yield break;
 
+            SnapToStart(shot);
             Vector3 from = cam.transform.position;
             float sizeFrom = cam.orthographicSize;
-
-            // 시작점이 주어졌으면 거기에 붙이고 출발한다. 컷마다 그림이 바뀌므로
-            // 앞 컷이 끝난 자리에서 이어 움직이면 엉뚱한 곳을 훑게 된다.
-            if (shot.fromSize > 0f)
-            {
-                sizeFrom = SnapSize(tuning.CameraOrthoSize * shot.fromSize);
-                from = Inside(new Vector3(shot.from.x, shot.from.y, from.z), sizeFrom);
-                cam.transform.position = from;
-                cam.orthographicSize = sizeFrom;
-            }
 
             float sizeTo = SnapSize(tuning.CameraOrthoSize * Mathf.Max(0.05f, shot.size));
             var to = Inside(new Vector3(shot.at.x, shot.at.y, from.z), sizeTo);
@@ -206,6 +221,39 @@ namespace UpTogether
             }
             cam.orthographicSize = sizeTo;
             cam.transform.position = to;
+        }
+
+        /// 컷의 시작 지점에 카메라를 붙인다. 컷마다 그림이 바뀌므로 앞 컷이
+        /// 끝난 자리에서 이어 움직이면 엉뚱한 곳을 훑게 된다.
+        /// (시작점이 없는 컷은 앞 컷에서 이어서 움직인다 — 그대로 둔다.)
+        void SnapToStart(Shot shot)
+        {
+            if (cam == null || tuning == null || shot.fromSize <= 0f) return;
+            float size = SnapSize(tuning.CameraOrthoSize * shot.fromSize);
+            float z = cam.transform.position.z;
+            cam.orthographicSize = size;
+            cam.transform.position = Inside(new Vector3(shot.from.x, shot.from.y, z), size);
+        }
+
+        /// 암전. 1 이면 깜깜하고 0 이면 그림이 다 보인다.
+        IEnumerator Dip(float to, float seconds)
+        {
+            if (dip == null) yield break;
+            float from = dip.color.a;
+            for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+            {
+                SetDip(Mathf.Lerp(from, to, t / seconds));
+                yield return null;
+            }
+            SetDip(to);
+        }
+
+        void SetDip(float alpha)
+        {
+            if (dip == null) return;
+            var c = dip.color;
+            c.a = Mathf.Clamp01(alpha);
+            dip.color = c;
         }
 
         /// 그림 밖이 보이지 않게 카메라를 플레이트 안으로 밀어 넣는다.
